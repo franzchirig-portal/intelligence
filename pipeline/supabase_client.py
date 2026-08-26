@@ -23,7 +23,11 @@ class SupabaseLoader:
     """
 
     def __init__(self, url: str, service_key: str):
-        self._url = url.rstrip("/")
+        # Normalizar URL: remover trailing slash y /rest/v1 si ya está incluido
+        _url = url.rstrip("/")
+        if _url.endswith("/rest/v1"):
+            _url = _url[: -len("/rest/v1")]
+        self._url = _url
         self._key = service_key
         self._rest = f"{self._url}/rest/v1"
         self._headers = {
