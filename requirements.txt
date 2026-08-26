@@ -1,14 +1,13 @@
 # Google Sheets API
-google-api-python-client==2.140.0
-google-auth==2.35.0
-google-auth-httplib2==0.2.0
+google-auth==2.29.0
+google-auth-oauthlib==1.2.0
+google-api-python-client==2.131.0
 
-# Supabase
-supabase==2.9.0
+# HTTP (reemplaza supabase-py para las llamadas REST directas)
+httpx==0.27.0
 
-# Data handling
-pandas==2.2.3
-
-# Utilities
-python-dotenv==1.0.1
+# Logging
 loguru==0.7.2
+
+# Utilidades
+python-dotenv==1.0.1

@@ -1,40 +1,45 @@
 """
 pipeline/supabase_client.py
 ============================
-Cliente para interactuar con Supabase via supabase-py.
-Maneja upserts a Bronze, Silver y refresh del Gold layer.
-
-Usa SUPABASE_SERVICE_KEY (service_role) para operaciones de escritura
-masiva sin restricciones de RLS.
+Cliente para interactuar con Supabase via REST API directamente (httpx).
+Evita los problemas de construcción de URL de supabase-py v2 (PGRST125).
 
 Skill: sheets_supabase_pipeline
 """
 
-import os
 import json
+import os
 from typing import Any
+import httpx
 from loguru import logger
-from supabase import create_client, Client
+
+from .utils import hash_row, clean_text
 
 
 class SupabaseLoader:
     """
-    Cargador de datos hacia Supabase.
-    Maneja upserts idempotentes a Bronze y Silver.
+    Cargador de datos hacia Supabase usando REST API directa.
+    Usa SUPABASE_SERVICE_KEY (service_role) para escritura sin restricciones de RLS.
     """
 
     def __init__(self, url: str, service_key: str):
-        """
-        Args:
-            url: URL del proyecto Supabase.
-            service_key: service_role key (bypasa RLS para escritura masiva).
-        """
-        self.client: Client = create_client(url, service_key)
-        logger.debug(f"Supabase client conectado a {url}")
+        self._url = url.rstrip("/")
+        self._key = service_key
+        self._rest = f"{self._url}/rest/v1"
+        self._headers = {
+            "apikey": service_key,
+            "Authorization": f"Bearer {service_key}",
+            "Content-Type": "application/json",
+        }
+        # Cliente httpx reutilizable
+        self._http = httpx.Client(
+            headers=self._headers,
+            timeout=60.0,
+        )
+        logger.debug(f"Supabase loader listo → {self._url}")
 
     @classmethod
     def from_env(cls) -> "SupabaseLoader":
-        """Crear loader desde variables de entorno."""
         url = os.environ.get("SUPABASE_URL")
         key = os.environ.get("SUPABASE_SERVICE_KEY")
         if not url or not key:
@@ -43,6 +48,40 @@ class SupabaseLoader:
                 "Configúralas en .env o en los GitHub Secrets."
             )
         return cls(url, key)
+
+    def __del__(self):
+        try:
+            self._http.close()
+        except Exception:
+            pass
+
+    # --------------------------------------------------------
+    # Helpers internos
+    # --------------------------------------------------------
+
+    def _post(self, table: str, records: list[dict], prefer: str) -> httpx.Response:
+        """POST a la REST API de Supabase con manejo de errores detallado."""
+        r = self._http.post(
+            f"{self._rest}/{table}",
+            headers={"Prefer": prefer},
+            content=json.dumps(records, default=str),
+        )
+        if not r.is_success:
+            body = r.text[:500]
+            logger.error(
+                f"Supabase POST /{table} → HTTP {r.status_code}: {body}"
+            )
+            r.raise_for_status()
+        return r
+
+    def _select(self, table: str, columns: str = "*", filters: dict = None) -> list[dict]:
+        """SELECT simple desde una tabla."""
+        params = {"select": columns}
+        if filters:
+            params.update(filters)
+        r = self._http.get(f"{self._rest}/{table}", params=params)
+        r.raise_for_status()
+        return r.json()
 
     # --------------------------------------------------------
     # BRONZE LAYER
@@ -57,51 +96,40 @@ class SupabaseLoader:
     ) -> tuple[int, int]:
         """
         Insertar filas crudas en el Bronze layer.
-        Usa ON CONFLICT (row_hash) DO NOTHING para idempotencia.
+        Ignora duplicados basado en la restricción UNIQUE(row_hash).
 
-        Args:
-            table: Nombre de la tabla bronze (ej: "bronze_datos_margenes").
-            rows: Lista de dicts crudos de Google Sheets.
-            city_code: 'SCZ', 'LPZ' o 'CBB'.
-            tab_name: Nombre del tab (para el hash y el log).
-
-        Returns:
-            Tuple (rows_inserted, rows_skipped).
+        Returns: (rows_inserted, rows_skipped)
         """
-        from .utils import hash_row, clean_text
-
         if not rows:
             return 0, 0
 
         records = []
         for row in rows:
-            row_hash = hash_row(city_code, tab_name, row)
+            rh = hash_row(city_code, tab_name, row)
             records.append({
                 "city_code":    city_code,
-                "row_hash":     row_hash,
+                "row_hash":     rh,
                 "raw_data":     row,
-                # Extraer campos clave para indexación rápida
                 "project_name": clean_text(
                     row.get("Proyecto:") or row.get("Proyecto") or ""
                 ),
-                "snapshot_date": (
-                    row.get("Fecha") or row.get("Fecha ") or None
-                ),
+                "snapshot_date": str(
+                    row.get("Fecha") or row.get("Fecha ") or ""
+                ) or None,
             })
 
-        # Batch upsert en chunks de 500 (límite seguro de Supabase)
         inserted = 0
         for chunk in _chunked(records, 500):
-            response = (
-                self.client.table(table)
-                .upsert(chunk, ignore_duplicates=True)
-                .execute()
+            self._post(
+                table, chunk,
+                prefer="resolution=ignore-duplicates,return=minimal",
             )
-            inserted += len(response.data) if response.data else 0
+            inserted += len(chunk)
 
-        skipped = len(rows) - inserted
-        logger.info(f"[Bronze/{table}] {inserted} insertadas, {skipped} duplicadas (sin cambios)")
-        return inserted, skipped
+        # En modo ignore-duplicates no sabemos exactamente cuántas se insertaron
+        # vs cuántas ya existían. Usamos el total como aproximación.
+        logger.info(f"[Bronze/{table}] {inserted} filas enviadas (nuevas insertadas, duplicadas ignoradas)")
+        return inserted, 0
 
     def log_sync(
         self,
@@ -115,30 +143,33 @@ class SupabaseLoader:
         error_message: str = None,
     ) -> None:
         """Registrar resultado del sync en bronze_sync_log."""
-        self.client.table("bronze_sync_log").insert({
-            "source_tab":    source_tab,
-            "city_code":     city_code,
-            "rows_fetched":  rows_fetched,
-            "rows_inserted": rows_inserted,
-            "rows_skipped":  rows_skipped,
-            "duration_ms":   duration_ms,
-            "status":        status,
-            "error_message": error_message,
-        }).execute()
+        try:
+            self._post(
+                "bronze_sync_log",
+                [{
+                    "source_tab":    source_tab,
+                    "city_code":     city_code,
+                    "rows_fetched":  rows_fetched,
+                    "rows_inserted": rows_inserted,
+                    "rows_skipped":  rows_skipped,
+                    "duration_ms":   duration_ms,
+                    "status":        status,
+                    "error_message": error_message,
+                }],
+                prefer="return=minimal",
+            )
+        except Exception as e:
+            logger.warning(f"No se pudo registrar en sync_log: {e}")
 
     # --------------------------------------------------------
     # SILVER LAYER
     # --------------------------------------------------------
 
     def upsert_projects(self, records: list[dict]) -> int:
-        """
-        Upsert de proyectos en silver_projects.
-        Conflict: (name, city_id) — pero usamos (project_name, city_code) como proxy.
-        """
+        """Upsert de proyectos en silver_projects. Conflict: (name, city_code)."""
         if not records:
             return 0
 
-        # Extraer solo los campos de proyecto (deduplicados por nombre+ciudad)
         seen = set()
         project_records = []
         for r in records:
@@ -167,12 +198,11 @@ class SupabaseLoader:
 
         count = 0
         for chunk in _chunked(project_records, 500):
-            response = (
-                self.client.table("silver_projects")
-                .upsert(chunk, ignore_duplicates=False)
-                .execute()
+            self._post(
+                "silver_projects", chunk,
+                prefer="resolution=merge-duplicates,return=minimal",
             )
-            count += len(response.data) if response.data else 0
+            count += len(chunk)
 
         logger.info(f"[Silver/projects] {count} proyectos upserted")
         return count
@@ -185,50 +215,49 @@ class SupabaseLoader:
         snapshot_records = []
         for r in records:
             snapshot_records.append({
-                "project_name":      r["project_name"],
-                "city_code":         r["city_code"],
-                "snapshot_date":     str(r["snapshot_date"]),
-                "stage":             r.get("stage"),
-                "total_units":       r.get("total_units"),
-                "units_for_sale":    r.get("units_for_sale"),
-                "units_sold":        r.get("units_sold"),
-                "pct_for_sale":      r.get("pct_for_sale"),
-                "pct_sold":          r.get("pct_sold"),
-                "stock_sold_usd":    r.get("stock_sold_usd"),
+                "project_name":       r["project_name"],
+                "city_code":          r["city_code"],
+                "snapshot_date":      str(r["snapshot_date"]),
+                "stage":              r.get("stage"),
+                "total_units":        r.get("total_units"),
+                "units_for_sale":     r.get("units_for_sale"),
+                "units_sold":         r.get("units_sold"),
+                "pct_for_sale":       r.get("pct_for_sale"),
+                "pct_sold":           r.get("pct_sold"),
+                "stock_sold_usd":     r.get("stock_sold_usd"),
                 "stock_for_sale_usd": r.get("stock_for_sale_usd"),
-                "stock_total_usd":   r.get("stock_total_usd"),
-                "sales_velocity":    r.get("sales_velocity"),
-                "months_stock":      r.get("months_stock"),
-                "parking_price_usd": r.get("parking_price_usd"),
-                "storage_price_usd": r.get("storage_price_usd"),
-                "cash_payment":      r.get("cash_payment"),
-                "direct_credit":     r.get("direct_credit"),
-                "bank_credit":       r.get("bank_credit"),
-                "tether_usdt":       r.get("tether_usdt"),
-                "installment_plan":  r.get("installment_plan"),
-                "exchange_rate":     r.get("exchange_rate"),
-                "initial_pct":       r.get("initial_pct"),
-                "monthly_payment":   r.get("monthly_payment"),
-                "finance_months":    r.get("finance_months"),
-                "increment_pct":     r.get("increment_pct"),
-                "lien":              r.get("lien"),
-                "bank_name":         r.get("bank_name"),
+                "stock_total_usd":    r.get("stock_total_usd"),
+                "sales_velocity":     r.get("sales_velocity"),
+                "months_stock":       r.get("months_stock"),
+                "parking_price_usd":  r.get("parking_price_usd"),
+                "storage_price_usd":  r.get("storage_price_usd"),
+                "cash_payment":       r.get("cash_payment"),
+                "direct_credit":      r.get("direct_credit"),
+                "bank_credit":        r.get("bank_credit"),
+                "tether_usdt":        r.get("tether_usdt"),
+                "installment_plan":   r.get("installment_plan"),
+                "exchange_rate":      r.get("exchange_rate"),
+                "initial_pct":        r.get("initial_pct"),
+                "monthly_payment":    r.get("monthly_payment"),
+                "finance_months":     r.get("finance_months"),
+                "increment_pct":      r.get("increment_pct"),
+                "lien":               r.get("lien"),
+                "bank_name":          r.get("bank_name"),
             })
 
         count = 0
         for chunk in _chunked(snapshot_records, 500):
-            response = (
-                self.client.table("silver_project_snapshots")
-                .upsert(chunk, ignore_duplicates=False)
-                .execute()
+            self._post(
+                "silver_project_snapshots", chunk,
+                prefer="resolution=merge-duplicates,return=minimal",
             )
-            count += len(response.data) if response.data else 0
+            count += len(chunk)
 
         logger.info(f"[Silver/snapshots] {count} snapshots upserted")
         return count
 
     def upsert_units(self, records: list[dict]) -> int:
-        """Insert de unidades en silver_units (sin conflict key única, se insertan)."""
+        """Upsert de unidades en silver_units."""
         if not records:
             return 0
 
@@ -255,12 +284,11 @@ class SupabaseLoader:
 
         count = 0
         for chunk in _chunked(unit_records, 500):
-            response = (
-                self.client.table("silver_units")
-                .upsert(chunk, ignore_duplicates=True)
-                .execute()
+            self._post(
+                "silver_units", chunk,
+                prefer="resolution=ignore-duplicates,return=minimal",
             )
-            count += len(response.data) if response.data else 0
+            count += len(chunk)
 
         logger.info(f"[Silver/units] {count} unidades upserted")
         return count
@@ -282,12 +310,11 @@ class SupabaseLoader:
 
         count = 0
         for chunk in _chunked(amenity_records, 500):
-            response = (
-                self.client.table("silver_amenities")
-                .upsert(chunk, ignore_duplicates=True)
-                .execute()
+            self._post(
+                "silver_amenities", chunk,
+                prefer="resolution=ignore-duplicates,return=minimal",
             )
-            count += len(response.data) if response.data else 0
+            count += len(chunk)
 
         logger.info(f"[Silver/amenities] {count} amenidades upserted")
         return count
@@ -297,12 +324,15 @@ class SupabaseLoader:
     # --------------------------------------------------------
 
     def refresh_gold_layer(self) -> None:
-        """
-        Refrescar todas las Materialized Views del Gold layer.
-        Llama a la función SQL `refresh_gold_layer()` via RPC.
-        """
+        """Llamar a la función SQL refresh_gold_layer() via RPC."""
         logger.info("Refrescando Gold layer (materialized views)...")
-        self.client.rpc("refresh_gold_layer").execute()
+        r = self._http.post(
+            f"{self._rest}/rpc/refresh_gold_layer",
+            headers={"Prefer": "return=minimal"},
+            content="{}",
+        )
+        if not r.is_success:
+            raise Exception(f"HTTP {r.status_code}: {r.text[:300]}")
         logger.success("Gold layer refrescado ✓")
 
 
@@ -311,6 +341,5 @@ class SupabaseLoader:
 # --------------------------------------------------------
 
 def _chunked(lst: list, size: int):
-    """Dividir lista en chunks de tamaño máximo `size`."""
     for i in range(0, len(lst), size):
-        yield lst[i : i + size]
+        yield lst[i: i + size]
