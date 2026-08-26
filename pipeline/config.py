@@ -17,7 +17,7 @@ SHEETS_CONFIG = {
         "city_name": "Santa Cruz de la Sierra",
         "tabs": {
             "datos_margenes":    "Datos & Margenes",
-            "tipologia_precios": "Tipologia & Precios",
+            "tipologia_precios": "Tipología & Precios",
             "amenidades":        "Amenidades",
         },
     },
@@ -26,7 +26,7 @@ SHEETS_CONFIG = {
         "city_name": "La Paz",
         "tabs": {
             "datos_margenes":    "Datos & Margenes",
-            "tipologia_precios": "Tipologia & Precios",
+            "tipologia_precios": "Tipología & Precios",
             "amenidades":        "Amenidades",
         },
     },
@@ -35,7 +35,7 @@ SHEETS_CONFIG = {
         "city_name": "Cochabamba",
         "tabs": {
             "datos_margenes":    "Datos & Margenes",
-            "tipologia_precios": "Tipologia & Precios",
+            "tipologia_precios": "Tipología & Precios",
             "amenidades":        "Amenidades",
         },
     },

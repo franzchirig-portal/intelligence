@@ -94,7 +94,7 @@ class SupabaseLoader:
         for chunk in _chunked(records, 500):
             response = (
                 self.client.table(table)
-                .upsert(chunk, on_conflict="row_hash", ignore_duplicates=True)
+                .upsert(chunk, ignore_duplicates=True)
                 .execute()
             )
             inserted += len(response.data) if response.data else 0
@@ -169,7 +169,7 @@ class SupabaseLoader:
         for chunk in _chunked(project_records, 500):
             response = (
                 self.client.table("silver_projects")
-                .upsert(chunk, on_conflict="name,city_code")
+                .upsert(chunk, ignore_duplicates=False)
                 .execute()
             )
             count += len(response.data) if response.data else 0
@@ -219,7 +219,7 @@ class SupabaseLoader:
         for chunk in _chunked(snapshot_records, 500):
             response = (
                 self.client.table("silver_project_snapshots")
-                .upsert(chunk, on_conflict="project_name,city_code,snapshot_date")
+                .upsert(chunk, ignore_duplicates=False)
                 .execute()
             )
             count += len(response.data) if response.data else 0
@@ -257,11 +257,7 @@ class SupabaseLoader:
         for chunk in _chunked(unit_records, 500):
             response = (
                 self.client.table("silver_units")
-                .upsert(
-                    chunk,
-                    on_conflict="project_name,city_code,snapshot_date,area_m2,price_usd",
-                    ignore_duplicates=True,
-                )
+                .upsert(chunk, ignore_duplicates=True)
                 .execute()
             )
             count += len(response.data) if response.data else 0
@@ -288,11 +284,7 @@ class SupabaseLoader:
         for chunk in _chunked(amenity_records, 500):
             response = (
                 self.client.table("silver_amenities")
-                .upsert(
-                    chunk,
-                    on_conflict="project_name,city_code,snapshot_date,amenity_name",
-                    ignore_duplicates=True,
-                )
+                .upsert(chunk, ignore_duplicates=True)
                 .execute()
             )
             count += len(response.data) if response.data else 0
