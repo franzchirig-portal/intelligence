@@ -1,0 +1,126 @@
+name: "📊 Sync: Sheets → Supabase"
+
+on:
+  # ─────────────────────────────────────────────────────────
+  # Cron: cada 6 horas (00:00, 06:00, 12:00, 18:00 UTC)
+  # Ajustar según frecuencia deseada de actualización
+  # ─────────────────────────────────────────────────────────
+  schedule:
+    - cron: "0 */6 * * *"
+
+  # ─────────────────────────────────────────────────────────
+  # Dispatch manual desde GitHub UI (Actions → Run workflow)
+  # Permite seleccionar ciudad, tab y modo sin tocar código
+  # ─────────────────────────────────────────────────────────
+  workflow_dispatch:
+    inputs:
+      city:
+        description: "Ciudad a sincronizar"
+        required: false
+        default: "ALL"
+        type: choice
+        options:
+          - ALL
+          - SCZ
+          - LPZ
+          - CBB
+      tab:
+        description: "Tab a sincronizar"
+        required: false
+        default: "ALL"
+        type: choice
+        options:
+          - ALL
+          - datos_margenes
+          - tipologia_precios
+          - amenidades
+      mode:
+        description: "Modo de sync"
+        required: false
+        default: "incremental"
+        type: choice
+        options:
+          - incremental   # Solo filas nuevas/modificadas
+          - full          # Re-sync completo (más lento, pero garantiza consistencia)
+
+  # También ejecutar al hacer push al branch main (para probar cambios al pipeline)
+  push:
+    branches:
+      - main
+    paths:
+      - "pipeline/**"
+      - "supabase/**"
+      - "requirements.txt"
+
+jobs:
+  sync:
+    name: "🔄 Pipeline ETL"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      # ──────────────────────────────────────
+      # 1. Checkout del código
+      # ──────────────────────────────────────
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      # ──────────────────────────────────────
+      # 2. Python setup con caché de pip
+      # ──────────────────────────────────────
+      - name: "🐍 Setup Python 3.11"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # ──────────────────────────────────────
+      # 3. Instalar dependencias
+      # ──────────────────────────────────────
+      - name: "📦 Install dependencies"
+        run: pip install -r requirements.txt
+
+      # ──────────────────────────────────────
+      # 4. Escribir credenciales de Google al disco
+      # El secret GOOGLE_CREDENTIALS contiene el JSON completo
+      # de la Service Account
+      # ──────────────────────────────────────
+      - name: "🔑 Setup Google credentials"
+        run: echo '${{ secrets.GOOGLE_CREDENTIALS }}' > /tmp/google-creds.json
+
+      # ──────────────────────────────────────
+      # 5. Ejecutar el pipeline
+      # ──────────────────────────────────────
+      - name: "🚀 Run sync pipeline"
+        env:
+          # Google Sheets API
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/google-creds.json
+          # Supabase
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          # Parámetros del sync (desde dispatch o defaults)
+          SYNC_CITY: ${{ github.event.inputs.city || 'ALL' }}
+          SYNC_MODE: ${{ github.event.inputs.mode || 'incremental' }}
+          SYNC_TAB:  ${{ github.event.inputs.tab  || 'ALL' }}
+        run: python -m pipeline.sync
+
+      # ──────────────────────────────────────
+      # 6. Limpiar credenciales del disco
+      # Siempre se ejecuta, incluso si el pipeline falla
+      # ──────────────────────────────────────
+      - name: "🧹 Cleanup credentials"
+        if: always()
+        run: rm -f /tmp/google-creds.json
+
+      # ──────────────────────────────────────
+      # 7. Subir reporte JSON como artifact
+      # Disponible en Actions → Run → Artifacts
+      # ──────────────────────────────────────
+      - name: "📊 Upload sync report"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "sync-report-${{ github.run_number }}"
+          path: pipeline/reports/
+          retention-days: 30
+          if-no-files-found: warn

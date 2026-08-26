@@ -1,0 +1,30 @@
+# =============================================
+# NUNCA subir al repositorio
+# =============================================
+
+# Credenciales locales
+.env
+google-credentials.json
+*.json
+!package.json
+
+# Reportes del pipeline (generados automáticamente)
+pipeline/reports/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
