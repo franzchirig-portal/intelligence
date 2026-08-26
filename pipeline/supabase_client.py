@@ -63,10 +63,15 @@ class SupabaseLoader:
     # Helpers internos
     # --------------------------------------------------------
 
-    def _post(self, table: str, records: list[dict], prefer: str) -> httpx.Response:
+    def _post(self, table: str, records: list[dict], prefer: str, on_conflict: str = "") -> httpx.Response:
         """POST a la REST API de Supabase con manejo de errores detallado."""
+        params = {}
+        if on_conflict:
+            params["on_conflict"] = on_conflict
+
         r = self._http.post(
             f"{self._rest}/{table}",
+            params=params,
             headers={"Prefer": prefer},
             content=json.dumps(records, default=str),
         )
@@ -127,6 +132,7 @@ class SupabaseLoader:
             self._post(
                 table, chunk,
                 prefer="resolution=ignore-duplicates,return=minimal",
+                on_conflict="row_hash",
             )
             inserted += len(chunk)
 
@@ -205,6 +211,7 @@ class SupabaseLoader:
             self._post(
                 "silver_projects", chunk,
                 prefer="resolution=merge-duplicates,return=minimal",
+                on_conflict="name,city_code",
             )
             count += len(chunk)
 
@@ -254,6 +261,7 @@ class SupabaseLoader:
             self._post(
                 "silver_project_snapshots", chunk,
                 prefer="resolution=merge-duplicates,return=minimal",
+                on_conflict="project_name,city_code,snapshot_date",
             )
             count += len(chunk)
 
@@ -291,6 +299,7 @@ class SupabaseLoader:
             self._post(
                 "silver_units", chunk,
                 prefer="resolution=ignore-duplicates,return=minimal",
+                on_conflict="project_name,city_code,snapshot_date,area_m2,price_usd",
             )
             count += len(chunk)
 
@@ -317,6 +326,7 @@ class SupabaseLoader:
             self._post(
                 "silver_amenities", chunk,
                 prefer="resolution=ignore-duplicates,return=minimal",
+                on_conflict="project_name,city_code,snapshot_date,amenity_name",
             )
             count += len(chunk)
 
