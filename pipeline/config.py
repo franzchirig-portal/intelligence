@@ -134,25 +134,13 @@ INVALID_PROJECT_VALUES = {"", "Falso", "FALSE", "#N/A", None}
 # Etapas a excluir del Silver layer (van a Bronze pero no a Silver)
 EXCLUDED_STAGES = {"Paralizada/Clandestina", "Clandestina"}
 
+# TABLAS DESTINO EN SUPABASE (DIAMOND MODEL)
 # ============================================================
-# TABLAS DESTINO EN SUPABASE
-# ============================================================
-BRONZE_TABLES = {
-    "datos_margenes":    "bronze_datos_margenes",
-    "tipologia_precios": "bronze_tipologia_precios",
-    "amenidades":        "bronze_amenidades",
+DIAMOND_TABLES = {
+    "proyectos":               "oferta_proyectos",
+    "indicadores_censo":       "oferta_indicadores_censo",
+    "tipologias":              "oferta_tipologias",
+    "avg_tipologias":          "oferta_avg_tipologias",
+    "condiciones_financieras": "oferta_condiciones_financieras",
+    "amenidades":              "oferta_amenidades",
 }
-
-SILVER_TABLES = {
-    "snapshots":  "silver_project_snapshots",
-    "units":      "silver_units",
-    "amenities":  "silver_amenities",
-    "projects":   "silver_projects",
-    "zones":      "silver_zones",
-}
-
-GOLD_VIEWS = [
-    "gold_project_features",
-    "gold_unit_features",
-    "gold_zone_features",
-]
