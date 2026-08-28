@@ -57,10 +57,9 @@ class DiamondTransformer:
                 if not proj or proj in INVALID_PROJECT_VALUES:
                     continue
                     
-                proj_key = (proj, city_code)
                 proj_id = make_uuid("proyecto", proj, city_code)
                 
-                if proj_key not in proyectos:
+                if proj_id not in proyectos:
                     lat, lng = parse_coordinates(remapped.get("google_maps_id"))
                     zona_kmz = clean_text(remapped.get("zone"))
                     
@@ -69,7 +68,7 @@ class DiamondTransformer:
                         if zona_calc:
                             zona_kmz = zona_calc
                             
-                    proyectos[proj_key] = {
+                    proyectos[proj_id] = {
                         "proyecto_id": proj_id,
                         "proyecto": proj,
                         "ZONAS": zona_kmz,
@@ -95,11 +94,10 @@ class DiamondTransformer:
                     continue
                 snap_date = str(snap_date_raw)
                 
-                ind_key = (proj_id, snap_date)
                 ind_id = make_uuid("indicador", proj_id, snap_date)
                 
-                if ind_key not in indicadores:
-                    indicadores[ind_key] = {
+                if ind_id not in indicadores:
+                    indicadores[ind_id] = {
                         "indicador_censo_id": ind_id,
                         "proyecto_id": proj_id,
                         "fecha_snapshot": snap_date,
@@ -142,12 +140,18 @@ class DiamondTransformer:
                     continue
                     
                 proj_id = make_uuid("proyecto", proj, city_code)
+                if proj_id not in proyectos:
+                    continue
+                    
                 snap_date_raw = parse_date(remapped.get("snapshot_date"))
                 if not snap_date_raw:
                     continue
                 snap_date = str(snap_date_raw)
                 
                 ind_id = make_uuid("indicador", proj_id, snap_date)
+                if ind_id not in indicadores:
+                    continue
+                    
                 tipologia_nombre = clean_text(remapped.get("typology", ""))
                 
                 tipologias.append({
