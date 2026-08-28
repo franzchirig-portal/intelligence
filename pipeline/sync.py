@@ -35,7 +35,7 @@ def main():
     
     # 1. Connect
     try:
-        sheets = SheetsClient()
+        sheets = SheetsClient.from_env()
         loader = SupabaseLoader.from_env()
         transformer = DiamondTransformer()
     except Exception as e:
@@ -58,12 +58,14 @@ def main():
         for tab_key, tab_name in conf["tabs"].items():
             logger.info(f"[{city}] Extracting '{tab_name}'...")
             try:
-                rows = sheets.get_all_rows(spreadsheet_id, tab_name)
+                rows = sheets.fetch_tab(spreadsheet_id, tab_name)
                 data_dict[tab_key] = rows
                 logger.success(f"[{city}] '{tab_name}': {len(rows)} filas obtenidas")
             except Exception as e:
                 logger.error(f"[{city}] Error obteniendo '{tab_name}': {e}")
                 data_dict[tab_key] = []
+                # Forzar salida si falla la extracción para evitar falsos positivos
+                sys.exit(1)
                 
     # 3. Transform
     logger.info("Transformando datos al Modelo Diamante...")
@@ -93,6 +95,7 @@ def main():
             )
         except Exception as e:
             logger.error(f"Error cargando {DIAMOND_TABLES[tab_key]}: {e}")
+            sys.exit(1)
 
     logger.success("✅ Sync completado exitosamente.")
 
