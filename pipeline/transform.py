@@ -41,9 +41,9 @@ class DiamondTransformer:
         
         proyectos = {} 
         indicadores = {} 
-        tipologias = []
-        condiciones = []
-        amenidades = []
+        tipologias = {}
+        condiciones = {}
+        amenidades = {}
         
         # 1. "Datos & Margenes"
         for city_code, city_tabs in all_data.items():
@@ -118,15 +118,16 @@ class DiamondTransformer:
                     
                     modalidad = clean_text(remapped.get("bank_name", ""))
                     if modalidad:
-                        condiciones.append({
-                            "condicion_financiera_id": make_uuid("condicion", ind_id, modalidad),
+                        cond_id = make_uuid("condicion", ind_id, modalidad)
+                        condiciones[cond_id] = {
+                            "condicion_financiera_id": cond_id,
                             "indicador_censo_id": ind_id,
                             "modalidad_pago": "Bancario",
                             "aporte_inicial": parse_percentage(remapped.get("initial_pct")),
                             "cuota_mensual": parse_number(remapped.get("monthly_payment")),
                             "meses": int(m) if (m := parse_number(remapped.get("finance_months"))) else None,
                             "banco": modalidad
-                        })
+                        }
 
         # 2. "Tipología & Precios"
         for city_code, city_tabs in all_data.items():
@@ -153,9 +154,10 @@ class DiamondTransformer:
                     continue
                     
                 tipologia_nombre = clean_text(remapped.get("typology", ""))
+                tipologia_id = make_uuid("tipologia", ind_id, tipologia_nombre)
                 
-                tipologias.append({
-                    "tipologia_id": make_uuid("tipologia", ind_id, tipologia_nombre),
+                tipologias[tipologia_id] = {
+                    "tipologia_id": tipologia_id,
                     "indicador_censo_id": ind_id,
                     "tipologia": tipologia_nombre,
                     "dormitorios": int(x) if (x := parse_number(remapped.get("bedrooms"))) else None,
@@ -168,7 +170,7 @@ class DiamondTransformer:
                     "estado": clean_text(remapped.get("status")),
                     "tc_oficial": parse_number(remapped.get("exchange_rate")),
                     "tc": parse_number(remapped.get("exchange_rate_parallel"))
-                })
+                }
                 
         # 3. "Amenidades"
         for city_code, city_tabs in all_data.items():
@@ -185,16 +187,17 @@ class DiamondTransformer:
                 amenity_name = clean_text(remapped.get("amenity_name"))
                 
                 if amenity_name:
-                    amenidades.append({
-                        "amenidad_id": make_uuid("amenidad", proj_id, amenity_name),
+                    amenity_id = make_uuid("amenidad", proj_id, amenity_name)
+                    amenidades[amenity_id] = {
+                        "amenidad_id": amenity_id,
                         "proyecto_id": proj_id,
                         "areas_comunes": amenity_name
-                    })
+                    }
                     
         return {
             "oferta_proyectos": list(proyectos.values()),
             "oferta_indicadores_censo": list(indicadores.values()),
-            "oferta_tipologias": tipologias,
-            "oferta_condiciones_financieras": condiciones,
-            "oferta_amenidades": amenidades,
+            "oferta_tipologias": list(tipologias.values()),
+            "oferta_condiciones_financieras": list(condiciones.values()),
+            "oferta_amenidades": list(amenidades.values()),
         }
