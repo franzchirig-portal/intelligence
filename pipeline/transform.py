@@ -10,7 +10,7 @@ from loguru import logger
 from datetime import date
 
 from .config import DATOS_MARGENES_COLUMNS, TIPOLOGIA_PRECIOS_COLUMNS, AMENIDADES_COLUMNS, INVALID_PROJECT_VALUES
-from .utils import parse_number, parse_percentage, parse_date, parse_coordinates, clean_text
+from .utils import parse_number, parse_percentage, parse_date, parse_coordinates, clean_text, hash_row
 from .geospatial import KMZMatcher
 
 # Namespace for deterministic UUIDs
@@ -118,7 +118,7 @@ class DiamondTransformer:
                     
                     modalidad = clean_text(remapped.get("bank_name", ""))
                     if modalidad:
-                        cond_id = make_uuid("condicion", ind_id, modalidad)
+                        cond_id = make_uuid("condicion", ind_id, hash_row(city_code, "condicion", row))
                         condiciones[cond_id] = {
                             "condicion_financiera_id": cond_id,
                             "indicador_censo_id": ind_id,
@@ -154,7 +154,7 @@ class DiamondTransformer:
                     continue
                     
                 tipologia_nombre = clean_text(remapped.get("typology", ""))
-                tipologia_id = make_uuid("tipologia", ind_id, tipologia_nombre)
+                tipologia_id = make_uuid("tipologia", ind_id, hash_row(city_code, "tipologia", row))
                 
                 tipologias[tipologia_id] = {
                     "tipologia_id": tipologia_id,
@@ -187,7 +187,7 @@ class DiamondTransformer:
                 amenity_name = clean_text(remapped.get("amenity_name"))
                 
                 if amenity_name:
-                    amenity_id = make_uuid("amenidad", proj_id, amenity_name)
+                    amenity_id = make_uuid("amenidad", proj_id, hash_row(city_code, "amenidad", row))
                     amenidades[amenity_id] = {
                         "amenidad_id": amenity_id,
                         "proyecto_id": proj_id,

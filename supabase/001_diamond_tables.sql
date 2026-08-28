@@ -68,8 +68,7 @@ CREATE TABLE IF NOT EXISTS public.oferta_tipologias (
     tipo_operacion VARCHAR,
     tc_oficial NUMERIC,
     tc NUMERIC,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(indicador_censo_id, tipologia)
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 4. oferta_avg_tipologias
@@ -104,8 +103,7 @@ CREATE TABLE IF NOT EXISTS public.oferta_condiciones_financieras (
     incremento NUMERIC,
     gravamen NUMERIC,
     banco VARCHAR,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(indicador_censo_id, modalidad_pago)
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 6. oferta_amenidades
@@ -113,6 +111,5 @@ CREATE TABLE IF NOT EXISTS public.oferta_amenidades (
     amenidad_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     proyecto_id UUID REFERENCES public.oferta_proyectos(proyecto_id) ON DELETE CASCADE,
     areas_comunes TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(proyecto_id, areas_comunes)
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
