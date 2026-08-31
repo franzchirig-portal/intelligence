@@ -215,9 +215,13 @@ class DiamondTransformer:
                     if not col_name_clean or col_name_clean in AMENIDADES_COLUMNS:
                         continue
                         
-                    val = clean_text(cell_val).lower()
+                    val = clean_text(cell_val)
+                    if not val:
+                        continue
+                        
+                    val_lower = val.lower()
                     # Si la celda dice "falso" o está vacía, ignoramos. Si dice "verdadero", "si", etc. la guardamos.
-                    if val and val not in ("falso", "false", "no", "0", "ninguno", "n/a"):
+                    if val_lower not in ("falso", "false", "no", "0", "ninguno", "n/a"):
                         amenity_name = clean_text(col_name_clean)
                         
                         if amenity_name:
