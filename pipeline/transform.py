@@ -233,6 +233,37 @@ class DiamondTransformer:
                                 "areas_comunes": amenity_name
                             }
                     
+        # ANÁLISIS DE PROYECTOS DUPLICADOS/SIMILARES
+        try:
+            import difflib
+            from collections import defaultdict
+            city_projs = defaultdict(list)
+            for p in proyectos.values():
+                city_projs[p["ciudad"]].append(p["proyecto"])
+                
+            logger.info("=" * 60)
+            logger.info("🔍 ANÁLISIS DE PROYECTOS SIMILARES (POSIBLES DUPLICADOS)")
+            logger.info("=" * 60)
+            for city, projs in city_projs.items():
+                projs = sorted(list(set(projs)))
+                n = len(projs)
+                found = False
+                for i in range(n):
+                    for j in range(i+1, n):
+                        p1 = projs[i]
+                        p2 = projs[j]
+                        if abs(len(p1) - len(p2)) > 10:
+                            continue
+                        sim = difflib.SequenceMatcher(None, p1.lower(), p2.lower()).ratio()
+                        if sim > 0.82 and p1.lower() != p2.lower():
+                            logger.warning(f"[{city}] '{p1}' <---> '{p2}' ({round(sim*100,1)}% similitud)")
+                            found = True
+                if not found:
+                    logger.info(f"[{city}] No se detectaron duplicados obvios.")
+            logger.info("=" * 60)
+        except Exception as e:
+            logger.error(f"Error en análisis de duplicados: {e}")
+
         return {
             "oferta_proyectos": list(proyectos.values()),
             "oferta_indicadores_censo": list(indicadores.values()),
