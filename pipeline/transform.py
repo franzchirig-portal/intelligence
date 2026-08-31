@@ -233,36 +233,32 @@ class DiamondTransformer:
                                 "areas_comunes": amenity_name
                             }
                     
-        # ANÁLISIS DE PROYECTOS DUPLICADOS/SIMILARES
+        # ANÁLISIS DE PROYECTOS DUPLICADOS/SIMILARES (BASADO EN COORDENADAS)
         try:
-            import difflib
             from collections import defaultdict
-            city_projs = defaultdict(list)
+            # Agrupar por (ciudad, latitud, longitud)
+            coord_groups = defaultdict(list)
             for p in proyectos.values():
-                city_projs[p["ciudad"]].append(p["proyecto"])
+                if p["latitud"] and p["longitud"]:
+                    coord_key = (p["ciudad"], p["latitud"], p["longitud"])
+                    coord_groups[coord_key].append(p["proyecto"])
                 
             logger.info("=" * 60)
-            logger.info("🔍 ANÁLISIS DE PROYECTOS SIMILARES (POSIBLES DUPLICADOS)")
+            logger.info("📍 ANÁLISIS DE PROYECTOS DUPLICADOS (MISMA UBICACIÓN, DIFERENTE NOMBRE)")
             logger.info("=" * 60)
-            for city, projs in city_projs.items():
-                projs = sorted(list(set(projs)))
-                n = len(projs)
-                found = False
-                for i in range(n):
-                    for j in range(i+1, n):
-                        p1 = projs[i]
-                        p2 = projs[j]
-                        if abs(len(p1) - len(p2)) > 10:
-                            continue
-                        sim = difflib.SequenceMatcher(None, p1.lower(), p2.lower()).ratio()
-                        if sim > 0.82 and p1.lower() != p2.lower():
-                            logger.warning(f"[{city}] '{p1}' <---> '{p2}' ({round(sim*100,1)}% similitud)")
-                            found = True
-                if not found:
-                    logger.info(f"[{city}] No se detectaron duplicados obvios.")
+            found_any = False
+            for (city, lat, lng), projs in coord_groups.items():
+                unique_projs = sorted(list(set(projs)))
+                if len(unique_projs) > 1:
+                    logger.warning(f"[{city}] Diferentes nombres comparten la misma coordenada (Google Maps ID):")
+                    logger.warning(f"      -> {', '.join(unique_projs)}")
+                    found_any = True
+            
+            if not found_any:
+                logger.info("No se detectaron proyectos con nombres distintos en la misma coordenada exacta.")
             logger.info("=" * 60)
         except Exception as e:
-            logger.error(f"Error en análisis de duplicados: {e}")
+            logger.error(f"Error en análisis de duplicados por coordenadas: {e}")
 
         return {
             "oferta_proyectos": list(proyectos.values()),
