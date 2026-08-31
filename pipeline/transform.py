@@ -203,15 +203,31 @@ class DiamondTransformer:
                     continue
                     
                 proj_id = make_uuid("proyecto", proj, city_code)
-                amenity_name = clean_text(remapped.get("amenity_name"))
-                
-                if amenity_name and amenity_name.lower() not in ("falso", "false", "no", "0", "ninguno", "n/a"):
-                    amenity_id = make_uuid("amenidad", proj_id, hash_row(city_code, "amenidad", row))
-                    amenidades[amenity_id] = {
-                        "amenidad_id": amenity_id,
-                        "proyecto_id": proj_id,
-                        "areas_comunes": amenity_name
-                    }
+                if proj_id not in proyectos:
+                    continue
+                    
+                # La tabla de amenidades es una matriz booleana. Las columnas son las amenidades.
+                # Iteramos sobre todas las llaves originales de la fila.
+                for col_name, cell_val in row.items():
+                    col_name_clean = col_name.strip()
+                    
+                    # Ignorar las columnas base (Proyecto, Zona, Fecha, etc.)
+                    if not col_name_clean or col_name_clean in AMENIDADES_COLUMNS:
+                        continue
+                        
+                    val = clean_text(cell_val).lower()
+                    # Si la celda dice "falso" o está vacía, ignoramos. Si dice "verdadero", "si", etc. la guardamos.
+                    if val and val not in ("falso", "false", "no", "0", "ninguno", "n/a"):
+                        amenity_name = clean_text(col_name_clean)
+                        
+                        if amenity_name:
+                            # UUID determinista por proyecto y amenidad (asegura que haya 1 sola por proyecto)
+                            amenity_id = make_uuid("amenidad", proj_id, amenity_name)
+                            amenidades[amenity_id] = {
+                                "amenidad_id": amenity_id,
+                                "proyecto_id": proj_id,
+                                "areas_comunes": amenity_name
+                            }
                     
         return {
             "oferta_proyectos": list(proyectos.values()),
