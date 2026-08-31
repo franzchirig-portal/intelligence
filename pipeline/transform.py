@@ -45,6 +45,9 @@ class DiamondTransformer:
         condiciones = {}
         amenidades = {}
         
+        from collections import defaultdict
+        tipologia_hash_counts = defaultdict(int)
+        
         # 1. "Datos & Margenes"
         for city_code, city_tabs in all_data.items():
             if "datos_margenes" not in city_tabs:
@@ -116,18 +119,29 @@ class DiamondTransformer:
                         "baulera_sus": parse_number(remapped.get("storage_price_usd"))
                     }
                     
-                    modalidad = clean_text(remapped.get("bank_name", ""))
-                    if modalidad:
-                        cond_id = make_uuid("condicion", ind_id, hash_row(city_code, "condicion", row))
-                        condiciones[cond_id] = {
-                            "condicion_financiera_id": cond_id,
-                            "indicador_censo_id": ind_id,
-                            "modalidad_pago": "Bancario",
-                            "aporte_inicial": parse_percentage(remapped.get("initial_pct")),
-                            "cuota_mensual": parse_number(remapped.get("monthly_payment")),
-                            "meses": int(m) if (m := parse_number(remapped.get("finance_months"))) else None,
-                            "banco": modalidad
-                        }
+                    cond_id = make_uuid("condicion", ind_id)
+                    
+                    # Detectar modalidades basado en las columnas booleanas/texto
+                    modalidades = []
+                    if clean_text(remapped.get("cash_payment")) not in ("", "Falso", "FALSE", "0", "No"): modalidades.append("Al Contado")
+                    if clean_text(remapped.get("direct_credit")) not in ("", "Falso", "FALSE", "0", "No"): modalidades.append("Crédito Directo")
+                    if clean_text(remapped.get("bank_credit")) not in ("", "Falso", "FALSE", "0", "No"): modalidades.append("Crédito Bancario")
+                    if clean_text(remapped.get("installment_plan")) not in ("", "Falso", "FALSE", "0", "No"): modalidades.append("Pago a Plazos")
+                    
+                    mod_pago = ", ".join(modalidades) if modalidades else None
+                    
+                    condiciones[cond_id] = {
+                        "condicion_financiera_id": cond_id,
+                        "indicador_censo_id": ind_id,
+                        "modalidad_pago": mod_pago,
+                        "forma_de_pago": clean_text(remapped.get("bank_name", "")), # A veces se anota el banco como forma
+                        "aporte_inicial": parse_percentage(remapped.get("initial_pct")),
+                        "cuota_mensual": parse_number(remapped.get("monthly_payment")),
+                        "meses": int(m) if (m := parse_number(remapped.get("finance_months"))) else None,
+                        "incremento": parse_percentage(remapped.get("increment_pct")),
+                        "gravamen": parse_percentage(remapped.get("lien")),
+                        "banco": clean_text(remapped.get("bank_name", ""))
+                    }
 
         # 2. "Tipología & Precios"
         for city_code, city_tabs in all_data.items():
@@ -154,7 +168,12 @@ class DiamondTransformer:
                     continue
                     
                 tipologia_nombre = clean_text(remapped.get("typology", ""))
-                tipologia_id = make_uuid("tipologia", ind_id, hash_row(city_code, "tipologia", row))
+                
+                base_hash = hash_row(city_code, "tipologia", row)
+                tipologia_hash_counts[base_hash] += 1
+                unique_hash = f"{base_hash}_{tipologia_hash_counts[base_hash]}"
+                
+                tipologia_id = make_uuid("tipologia", ind_id, unique_hash)
                 
                 tipologias[tipologia_id] = {
                     "tipologia_id": tipologia_id,
@@ -186,7 +205,7 @@ class DiamondTransformer:
                 proj_id = make_uuid("proyecto", proj, city_code)
                 amenity_name = clean_text(remapped.get("amenity_name"))
                 
-                if amenity_name:
+                if amenity_name and amenity_name.lower() not in ("falso", "false", "no", "0", "ninguno", "n/a"):
                     amenity_id = make_uuid("amenidad", proj_id, hash_row(city_code, "amenidad", row))
                     amenidades[amenity_id] = {
                         "amenidad_id": amenity_id,
