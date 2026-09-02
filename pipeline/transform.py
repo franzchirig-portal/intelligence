@@ -212,7 +212,8 @@ class DiamondTransformer:
                     col_name_clean = col_name.strip()
                     
                     # Ignorar las columnas base (Proyecto, Zona, Fecha, etc.)
-                    if not col_name_clean or col_name_clean in AMENIDADES_COLUMNS:
+                    base_cols = {"proyecto", "proyecto:", "tipo", "zona", "zona:", "subzona", "sub-zona", "sub-zona:", "fecha", "etapa"}
+                    if not col_name_clean or col_name_clean in AMENIDADES_COLUMNS or col_name_clean.lower() in base_cols:
                         continue
                         
                     val = clean_text(cell_val)
