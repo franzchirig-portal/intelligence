@@ -86,9 +86,10 @@ DATOS_MARGENES_COLUMNS = {
     "Incremento:":       "increment_pct",
     "Gravamen:":         "lien",
     "Banco:":            "bank_name",
-    # Columnas adicionales de SCZ (zona2, subzona2)
+    # Columnas adicionales de SCZ (zona2, subzona2, uv)
     "zona2":             "zone2",
     "subzona2":          "sub_zone2",
+    "uv":                "uv",
 }
 
 # Columnas del tab "Tipología & Precios" (unidades individuales)

@@ -30,7 +30,7 @@ class DiamondTransformer:
         for sheet_col, py_field in col_map.items():
             val = None
             for k, v in row.items():
-                if k.strip() == sheet_col.strip():
+                if k.strip().lower() == sheet_col.strip().lower():
                     val = v
                     break
             result[py_field] = val
@@ -80,7 +80,8 @@ class DiamondTransformer:
                         zonas_val = clean_text(remapped.get("zone"))
                         subzonas_val = clean_text(remapped.get("sub_zone"))
                             
-                    uv_val = clean_text(remapped.get("uv"))
+                    raw_uv = row.get("uv") if row.get("uv") is not None else row.get("UV")
+                    uv_val = clean_text(remapped.get("uv")) or clean_text(raw_uv)
                     proyectos[proj_id] = {
                         "proyecto_id": proj_id,
                         "proyecto": proj,
@@ -104,7 +105,8 @@ class DiamondTransformer:
                 else:
                     # Si el proyecto ya fue registrado pero no tenía UV y esta fila sí tiene, actualizarlo
                     if not proyectos[proj_id].get("uv"):
-                        curr_uv = clean_text(remapped.get("uv"))
+                        raw_uv = row.get("uv") if row.get("uv") is not None else row.get("UV")
+                        curr_uv = clean_text(remapped.get("uv")) or clean_text(raw_uv)
                         if curr_uv:
                             proyectos[proj_id]["uv"] = curr_uv
                 
