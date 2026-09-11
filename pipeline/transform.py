@@ -54,6 +54,14 @@ class DiamondTransformer:
                 continue
                 
             for row in city_tabs["datos_margenes"]:
+                # Diagnóstico: verificar columnas de la primera fila
+                if row == city_tabs["datos_margenes"][0]:
+                    raw_cols = list(row.keys())
+                    uv_cols = [c for c in raw_cols if "uv" in c.lower()]
+                    logger.info(f"[{city_code}] Columnas con 'uv': {uv_cols}")
+                    logger.info(f"[{city_code}] Total columnas en sheet: {len(raw_cols)}")
+                    logger.info(f"[{city_code}] Últimas 5 columnas: {raw_cols[-5:]}")
+                
                 remapped = self._remap(row, DATOS_MARGENES_COLUMNS)
                 
                 proj = clean_text(remapped.get("project_name"))
