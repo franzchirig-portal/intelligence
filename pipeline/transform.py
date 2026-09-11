@@ -61,6 +61,11 @@ class DiamondTransformer:
                     logger.info(f"[{city_code}] Columnas con 'uv': {uv_cols}")
                     logger.info(f"[{city_code}] Total columnas en sheet: {len(raw_cols)}")
                     logger.info(f"[{city_code}] Últimas 5 columnas: {raw_cols[-5:]}")
+                    # Contar filas con UV no vacío
+                    uv_count = sum(1 for r in city_tabs["datos_margenes"] if r.get("uv") and str(r.get("uv")).strip())
+                    uv_sample = next((str(r.get("uv")).strip() for r in city_tabs["datos_margenes"] if r.get("uv") and str(r.get("uv")).strip()), "N/A")
+                    logger.info(f"[{city_code}] Filas con UV no vacío: {uv_count} / {len(city_tabs['datos_margenes'])}")
+                    logger.info(f"[{city_code}] Ejemplo de valor UV: '{uv_sample}'")
                 
                 remapped = self._remap(row, DATOS_MARGENES_COLUMNS)
                 
