@@ -78,6 +78,7 @@ class DiamondTransformer:
                         zonas_val = clean_text(remapped.get("zone"))
                         subzonas_val = clean_text(remapped.get("sub_zone"))
                             
+                    uv_val = clean_text(remapped.get("uv")) or ""
                     proyectos[proj_id] = {
                         "proyecto_id": proj_id,
                         "proyecto": proj,
