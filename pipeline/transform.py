@@ -64,20 +64,27 @@ class DiamondTransformer:
                 
                 if proj_id not in proyectos:
                     lat, lng = parse_coordinates(remapped.get("google_maps_id"))
-                    zona_kmz = clean_text(remapped.get("zone"))
                     
-                    if lat and lng:
-                        zona_calc = self.kmz_matcher.find_zone(lat, lng, city_code)
-                        if zona_calc:
-                            zona_kmz = zona_calc
+                    # zona_aux: siempre viene de "Zona:" del sheet (para las 3 ciudades)
+                    zona_aux_val = clean_text(remapped.get("zone"))
+                    
+                    # ZONAS y SUBZONAS: dependen de la ciudad
+                    if city_code == "SCZ":
+                        # SCZ usa columnas "zona2" y "subzona2"
+                        zonas_val = clean_text(remapped.get("zone2"))
+                        subzonas_val = clean_text(remapped.get("sub_zone2"))
+                    else:
+                        # LPZ y CBB usan "Zona:" y "Sub-zona:"
+                        zonas_val = clean_text(remapped.get("zone"))
+                        subzonas_val = clean_text(remapped.get("sub_zone"))
                             
                     proyectos[proj_id] = {
                         "proyecto_id": proj_id,
                         "proyecto": proj,
-                        "ZONAS": zona_kmz,
-                        "SUBZONAS": clean_text(remapped.get("sub_zone")),
+                        "ZONAS": zonas_val,
+                        "SUBZONAS": subzonas_val,
                         "ciudad": city_code,
-                        "zona_aux": "",
+                        "zona_aux": zona_aux_val,
                         "tipo_inmueble": clean_text(remapped.get("type")),
                         "calidad": clean_text(remapped.get("quality")),
                         "desarrollador": clean_text(remapped.get("developer")),
@@ -89,7 +96,7 @@ class DiamondTransformer:
                         "lanzamiento": parse_date(remapped.get("launch_date")),
                         "entrega": parse_date(remapped.get("delivery_date")),
                         "pisos": int(f) if (f := parse_number(remapped.get("floors"))) else None,
-                        "uv": ""
+                        "uv": uv_val,
                     }
                 
                 snap_date_raw = parse_date(remapped.get("snapshot_date"))
