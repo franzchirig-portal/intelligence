@@ -54,18 +54,7 @@ class DiamondTransformer:
                 continue
                 
             for row in city_tabs["datos_margenes"]:
-                # Diagnóstico: verificar columnas de la primera fila
-                if row == city_tabs["datos_margenes"][0]:
-                    raw_cols = list(row.keys())
-                    uv_cols = [c for c in raw_cols if "uv" in c.lower()]
-                    logger.info(f"[{city_code}] Columnas con 'uv': {uv_cols}")
-                    logger.info(f"[{city_code}] Total columnas en sheet: {len(raw_cols)}")
-                    logger.info(f"[{city_code}] Últimas 5 columnas: {raw_cols[-5:]}")
-                    # Contar filas con UV no vacío
-                    uv_count = sum(1 for r in city_tabs["datos_margenes"] if r.get("uv") and str(r.get("uv")).strip())
-                    uv_sample = next((str(r.get("uv")).strip() for r in city_tabs["datos_margenes"] if r.get("uv") and str(r.get("uv")).strip()), "N/A")
-                    logger.info(f"[{city_code}] Filas con UV no vacío: {uv_count} / {len(city_tabs['datos_margenes'])}")
-                    logger.info(f"[{city_code}] Ejemplo de valor UV: '{uv_sample}'")
+
                 
                 remapped = self._remap(row, DATOS_MARGENES_COLUMNS)
                 
@@ -91,7 +80,7 @@ class DiamondTransformer:
                         zonas_val = clean_text(remapped.get("zone"))
                         subzonas_val = clean_text(remapped.get("sub_zone"))
                             
-                    uv_val = clean_text(remapped.get("uv")) or ""
+                    uv_val = clean_text(remapped.get("uv"))
                     proyectos[proj_id] = {
                         "proyecto_id": proj_id,
                         "proyecto": proj,
@@ -112,6 +101,12 @@ class DiamondTransformer:
                         "pisos": int(f) if (f := parse_number(remapped.get("floors"))) else None,
                         "uv": uv_val,
                     }
+                else:
+                    # Si el proyecto ya fue registrado pero no tenía UV y esta fila sí tiene, actualizarlo
+                    if not proyectos[proj_id].get("uv"):
+                        curr_uv = clean_text(remapped.get("uv"))
+                        if curr_uv:
+                            proyectos[proj_id]["uv"] = curr_uv
                 
                 snap_date_raw = parse_date(remapped.get("snapshot_date"))
                 if not snap_date_raw:
@@ -163,6 +158,11 @@ class DiamondTransformer:
                         "gravamen": parse_percentage(remapped.get("lien")),
                         "banco": clean_text(remapped.get("bank_name", ""))
                     }
+
+        for c_code in ("SCZ", "LPZ", "CBB"):
+            c_projs = [p for p in proyectos.values() if p["ciudad"] == c_code]
+            c_with_uv = [p for p in c_projs if p.get("uv")]
+            logger.info(f"[{c_code}] Proyectos únicos: {len(c_projs)} | Con UV: {len(c_with_uv)}")
 
         # 2. "Tipología & Precios"
         for city_code, city_tabs in all_data.items():
