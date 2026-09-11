@@ -118,12 +118,20 @@ TIPOLOGIA_PRECIOS_COLUMNS = {
 # Columnas del tab "Amenidades"
 AMENIDADES_COLUMNS = {
     "Proyecto":                       "project_name",
-    "Áreas comunes en los proyectos": "amenity_name",
     "Proyecto:":                      "project_name",
+    "Áreas comunes en los proyectos": "amenity_name",
     "Àreas comunes en los proyectos": "amenity_name",  # typo en LPZ
+    "Areas comunes en los proyectos": "amenity_name",
+    "Áreas comunes":                  "amenity_name",
+    "Areas comunes":                  "amenity_name",
+    "Amenidades":                     "amenity_name",
+    "Amenidad":                       "amenity_name",
     "Tipo":                           "type",
+    "Zona":                           "zone",
     "Zona:":                          "zone",
+    "Sub-zona":                       "sub_zone",
     "Sub-zona:":                      "sub_zone",
+    "Subzona":                        "sub_zone",
     "Fecha":                          "snapshot_date",
     "Etapa":                          "stage",
 }

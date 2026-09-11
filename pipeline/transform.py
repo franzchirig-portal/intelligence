@@ -219,7 +219,11 @@ class DiamondTransformer:
             if "amenidades" not in city_tabs:
                 continue
                 
+            city_amenities_count = 0
             for row in city_tabs["amenidades"]:
+                if row == city_tabs["amenidades"][0]:
+                    logger.info(f"[{city_code}] Columnas en 'Amenidades': {list(row.keys())}")
+                    
                 remapped = self._remap(row, AMENIDADES_COLUMNS)
                 proj = clean_text(remapped.get("project_name"))
                 if not proj or proj in INVALID_PROJECT_VALUES:
@@ -229,33 +233,38 @@ class DiamondTransformer:
                 if proj_id not in proyectos:
                     continue
                     
-                # La tabla de amenidades es una matriz booleana. Las columnas son las amenidades.
-                # Iteramos sobre todas las llaves originales de la fila.
-                for col_name, cell_val in row.items():
-                    col_name_clean = col_name.strip()
+                # El nombre de la amenidad viene del valor de la celda
+                amenity_val = clean_text(remapped.get("amenity_name"))
+                
+                # Fallback: buscar en cualquier columna que contenga "comun" o "amenid"
+                if not amenity_val:
+                    for k, v in row.items():
+                        k_clean = k.strip().lower()
+                        if "comun" in k_clean or "amenid" in k_clean:
+                            amenity_val = clean_text(v)
+                            if amenity_val:
+                                break
+                                
+                if not amenity_val:
+                    continue
                     
-                    # Ignorar las columnas base (Proyecto, Zona, Fecha, etc.)
-                    base_cols = {"proyecto", "proyecto:", "tipo", "zona", "zona:", "subzona", "sub-zona", "sub-zona:", "fecha", "etapa"}
-                    if not col_name_clean or col_name_clean in AMENIDADES_COLUMNS or col_name_clean.lower() in base_cols:
-                        continue
-                        
-                    val = clean_text(cell_val)
-                    if not val:
-                        continue
-                        
-                    val_lower = val.lower()
-                    # Si la celda dice "falso" o está vacía, ignoramos. Si dice "verdadero", "si", etc. la guardamos.
-                    if val_lower not in ("falso", "false", "no", "0", "ninguno", "n/a"):
-                        amenity_name = clean_text(col_name_clean)
-                        
-                        if amenity_name:
-                            # UUID determinista por proyecto y amenidad (asegura que haya 1 sola por proyecto)
-                            amenity_id = make_uuid("amenidad", proj_id, amenity_name)
-                            amenidades[amenity_id] = {
-                                "amenidad_id": amenity_id,
-                                "proyecto_id": proj_id,
-                                "areas_comunes": amenity_name
-                            }
+                val_lower = amenity_val.lower()
+                # Filtrar valores que no son amenidades
+                if val_lower in ("falso", "false", "no", "0", "ninguno", "n/a", "none", "zona", "tipo", "etapa", "proyecto"):
+                    continue
+                    
+                # UUID determinista por proyecto y amenidad (asegura unicidad por proyecto)
+                amenity_id = make_uuid("amenidad", proj_id, amenity_val)
+                amenidades[amenity_id] = {
+                    "amenidad_id": amenity_id,
+                    "proyecto_id": proj_id,
+                    "areas_comunes": amenity_val
+                }
+                city_amenities_count += 1
+                
+            logger.info(f"[{city_code}] Amenidades registradas: {city_amenities_count}")
+
+        logger.info(f"Total amenidades únicas para Supabase: {len(amenidades)}")
                     
         # ANÁLISIS DE PROYECTOS DUPLICADOS/SIMILARES (BASADO EN COORDENADAS)
         try:
