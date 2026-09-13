@@ -48,17 +48,28 @@ class DiamondTransformer:
         
         from collections import defaultdict
         tipologia_hash_counts = defaultdict(int)
-        # Acumular datos crudos por (ind_id, avg_tipologia) para luego promediar
+        # Acumular datos crudos por (ind_id, avg_tipologia) para luego promediar.
+        # Se mantienen dos conjuntos de listas:
+        #   _disp: solo unidades NO vendidas (disponibles, por vender, etc.)
+        #   _all:  todas las unidades (fallback cuando todas están vendidas)
         _avg_raw: dict = defaultdict(lambda: {
             "und_totales": 0,
             "und_vendidas": 0,
             "und_por_vender": 0,
-            "construccion_m2": [],
-            "sus_m2": [],
-            "precio": [],
-            "bs_m2": [],
-            "usd_m2": [],
-            "tc_oficial": [],
+            # Listas para unidades disponibles (no vendidas)
+            "construccion_m2_disp": [],
+            "sus_m2_disp": [],
+            "precio_disp": [],
+            "bs_m2_disp": [],
+            "usd_m2_disp": [],
+            "tc_oficial_disp": [],
+            # Listas para TODAS las unidades (fallback si 100% vendido)
+            "construccion_m2_all": [],
+            "sus_m2_all": [],
+            "precio_all": [],
+            "bs_m2_all": [],
+            "usd_m2_all": [],
+            "tc_oficial_all": [],
         })
         
         # 1. "Datos & Margenes"
@@ -251,34 +262,48 @@ class DiamondTransformer:
                 bucket = _avg_raw[avg_key]
                 bucket["und_totales"] += 1
                 estado_lower = estado.lower()
-                if "vendid" in estado_lower:
-                    bucket["und_vendidas"] += 1
-                elif any(kw in estado_lower for kw in ("por vender", "disponib", "libre")):
-                    bucket["und_por_vender"] += 1
-                if construccion_m2:
-                    bucket["construccion_m2"].append(construccion_m2)
-                if sus_m2:
-                    bucket["sus_m2"].append(sus_m2)
-                if precio:
-                    bucket["precio"].append(precio)
-                if bs_m2:
-                    bucket["bs_m2"].append(bs_m2)
-                if usd_m2:
-                    bucket["usd_m2"].append(usd_m2)
-                if tc_oficial:
-                    bucket["tc_oficial"].append(tc_oficial)
+                is_vendida = "vendid" in estado_lower
                 
-        # Generar avg_tipologias a partir de los datos acumulados
+                if is_vendida:
+                    bucket["und_vendidas"] += 1
+                else:
+                    # Es disponible (por vender, disponible, libre, reservado, etc.)
+                    bucket["und_por_vender"] += 1
+                
+                # Siempre acumular en la lista _all (fallback)
+                if construccion_m2: bucket["construccion_m2_all"].append(construccion_m2)
+                if sus_m2:          bucket["sus_m2_all"].append(sus_m2)
+                if precio:          bucket["precio_all"].append(precio)
+                if bs_m2:           bucket["bs_m2_all"].append(bs_m2)
+                if usd_m2:          bucket["usd_m2_all"].append(usd_m2)
+                if tc_oficial:      bucket["tc_oficial_all"].append(tc_oficial)
+                
+                # Solo acumular en _disp si la unidad NO está vendida
+                if not is_vendida:
+                    if construccion_m2: bucket["construccion_m2_disp"].append(construccion_m2)
+                    if sus_m2:          bucket["sus_m2_disp"].append(sus_m2)
+                    if precio:          bucket["precio_disp"].append(precio)
+                    if bs_m2:           bucket["bs_m2_disp"].append(bs_m2)
+                    if usd_m2:          bucket["usd_m2_disp"].append(usd_m2)
+                    if tc_oficial:      bucket["tc_oficial_disp"].append(tc_oficial)
+                
+        # Generar avg_tipologias a partir de los datos acumulados.
+        # Regla de promedios:
+        #   - Si hay unidades disponibles → promediar SOLO con las disponibles.
+        #   - Si todas están vendidas (sin disponibles) → promediar con la totalidad.
         def _avg(lst):
             return round(sum(lst) / len(lst), 2) if lst else None
+        
+        def _pick(bucket, field):
+            """Devuelve la lista _disp si tiene datos, sino la lista _all (fallback)."""
+            disp = bucket[f"{field}_disp"]
+            return disp if disp else bucket[f"{field}_all"]
         
         for (ind_id, avg_label), bucket in _avg_raw.items():
             und_totales    = bucket["und_totales"]
             und_vendidas   = bucket["und_vendidas"]
             und_por_vender = bucket["und_por_vender"]
-            # Si no se pudo contar por estado, derivar und_por_vender
-            if und_vendidas == 0 and und_por_vender == 0:
-                und_por_vender = und_totales  # Asumir todo por vender si no hay info de estado
+            
             avg_id = make_uuid("avg_tipologia", ind_id, avg_label)
             avg_tipologias[avg_id] = {
                 "indicador_censo_id": ind_id,
@@ -288,12 +313,12 @@ class DiamondTransformer:
                 "und_por_vender":     und_por_vender,
                 "ritmo_venta":        None,
                 "meses_stock":        None,
-                "avg_construccion_m2": _avg(bucket["construccion_m2"]),
-                "avg_sus_m2":          _avg(bucket["sus_m2"]),
-                "avg_precio":          _avg(bucket["precio"]),
-                "avg_bs_m2":           _avg(bucket["bs_m2"]),
-                "avg_usd_m2":          _avg(bucket["usd_m2"]),
-                "avg_tc_oficial":      _avg(bucket["tc_oficial"]),
+                "avg_construccion_m2": _avg(_pick(bucket, "construccion_m2")),
+                "avg_sus_m2":          _avg(_pick(bucket, "sus_m2")),
+                "avg_precio":          _avg(_pick(bucket, "precio")),
+                "avg_bs_m2":           _avg(_pick(bucket, "bs_m2")),
+                "avg_usd_m2":          _avg(_pick(bucket, "usd_m2")),
+                "avg_tc_oficial":      _avg(_pick(bucket, "tc_oficial")),
             }
         
         logger.info(f"avg_tipologias calculadas: {len(avg_tipologias)} grupos (proyecto × snapshot × modelo)")
