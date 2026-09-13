@@ -13,7 +13,7 @@ Skill: sheets_supabase_pipeline
 import hashlib
 import json
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any, Optional
 from loguru import logger
 
@@ -149,7 +149,24 @@ def parse_date(value: Any) -> Optional[date]:
     if isinstance(value, (date, datetime)):
         return value.date() if isinstance(value, datetime) else value
 
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        try:
+            v = int(value)
+            if 30000 <= v <= 60000:
+                return date(1899, 12, 30) + timedelta(days=v)
+            elif 1900 <= v <= 2100:
+                return date(v, 1, 1)
+        except Exception:
+            pass
+
     text = str(value).strip()
+
+    if text.isdigit():
+        v = int(text)
+        if 1900 <= v <= 2100:
+            return date(v, 1, 1)
+        elif 30000 <= v <= 60000:
+            return date(1899, 12, 30) + timedelta(days=v)
 
     # Formato DD/MM/YYYY o D/M/YYYY
     m = re.match(r"^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})$", text)

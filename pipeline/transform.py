@@ -26,14 +26,16 @@ class DiamondTransformer:
         self.kmz_matcher = KMZMatcher(kmz_dir)
         
     def _remap(self, row: dict, col_map: dict) -> dict:
-        result = {}
-        for sheet_col, py_field in col_map.items():
-            val = None
-            for k, v in row.items():
-                if k.strip().lower() == sheet_col.strip().lower():
-                    val = v
-                    break
-            result[py_field] = val
+        result = {py_field: None for py_field in col_map.values()}
+        clean_col_map = {sheet_col.strip().lower(): py_field for sheet_col, py_field in col_map.items()}
+        for k, v in row.items():
+            k_clean = str(k).strip().lower()
+            if k_clean in clean_col_map:
+                py_field = clean_col_map[k_clean]
+                if v is not None and v != "":
+                    result[py_field] = v
+                elif result[py_field] is None:
+                    result[py_field] = v
         return result
 
     def transform_all(self, scz_data, lpz_data, cbb_data) -> Dict[str, List[Dict[str, Any]]]:
@@ -358,9 +360,11 @@ class DiamondTransformer:
         def _calc_ritmo(und_disp_ingreso, und_disp_actual, fecha_ingreso_dt, fecha_dt, avg_key):
             """Aplica la fórmula y escribe ritmo_venta / meses_stock en el registro."""
             nonlocal n_velocidades
-            meses = (fecha_dt - fecha_ingreso_dt).days / 30.44
-            if meses <= 0:
+            days_diff = (fecha_dt - fecha_ingreso_dt).days
+            if days_diff < 0:
+                logger.debug(f"[ritmo_venta] Fecha actual {fecha_dt} anterior a ingreso {fecha_ingreso_dt}")
                 return
+            meses = max(round(days_diff / 30.44, 2), 0.5) if days_diff > 0 else 1.0
             unidades_vendidas = und_disp_ingreso - und_disp_actual
             if unidades_vendidas <= 0:
                 avg_tipologias[avg_key]["ritmo_venta"] = 0.0
