@@ -322,6 +322,68 @@ class DiamondTransformer:
             }
         
         logger.info(f"avg_tipologias calculadas: {len(avg_tipologias)} grupos (proyecto × snapshot × modelo)")
+
+        # ── Ritmo de venta por (proyecto × modelo de dormitorios) ──────────────────
+        # Fórmula:
+        #   ritmo_venta  = (und_disp_ingreso - und_disp_reconteo) / meses_transcurridos
+        #   meses_stock  = und_disp_actual / ritmo_venta
+        #
+        # «Fecha de ingreso» = primer snapshot en que apareció ese modelo.
+        # «Reconteo»         = cada snapshot posterior ordenado cronológicamente.
+
+        # 1. Construir historial cronológico: (proj_id, avg_label) → [(fecha_str, und_por_vender, avg_key)]
+        _proj_model_hist: dict = defaultdict(list)
+        for avg_key, rec in avg_tipologias.items():
+            ind_id_rec = rec["indicador_censo_id"]
+            ind_info   = indicadores.get(ind_id_rec)
+            if not ind_info:
+                continue
+            proj_id_rec = ind_info["proyecto_id"]
+            fecha_str   = ind_info["fecha_snapshot"]
+            _proj_model_hist[(proj_id_rec, rec["avg_tipologia"])].append(
+                (str(fecha_str), rec["und_por_vender"] or 0, avg_key)
+            )
+
+        # 2. Para cada modelo de cada proyecto, calcular velocidad respecto al PRIMER snapshot
+        n_velocidades = 0
+        for (_proj, _label), snaps in _proj_model_hist.items():
+            snaps.sort(key=lambda x: x[0])          # Orden cronológico por fecha_str
+            if len(snaps) < 2:
+                continue                              # Sin baseline, no hay cálculo
+
+            fecha_ingreso_str, und_disp_ingreso, _ = snaps[0]
+            try:
+                fecha_ingreso_dt = date.fromisoformat(fecha_ingreso_str)
+            except (ValueError, TypeError):
+                continue
+
+            for fecha_str, und_disp_actual, avg_key in snaps[1:]:
+                try:
+                    fecha_dt = date.fromisoformat(fecha_str)
+                except (ValueError, TypeError):
+                    continue
+
+                meses = (fecha_dt - fecha_ingreso_dt).days / 30.44
+                if meses <= 0:
+                    continue
+
+                unidades_vendidas = und_disp_ingreso - und_disp_actual
+
+                if unidades_vendidas <= 0:
+                    # Sin ventas registradas en el periodo (ritmo = 0)
+                    avg_tipologias[avg_key]["ritmo_venta"] = 0.0
+                    avg_tipologias[avg_key]["meses_stock"] = None
+                else:
+                    ritmo = round(unidades_vendidas / meses, 2)
+                    avg_tipologias[avg_key]["ritmo_venta"] = ritmo
+                    # meses_stock: cuántos meses tardaría en agotar el stock actual
+                    if ritmo > 0 and und_disp_actual > 0:
+                        avg_tipologias[avg_key]["meses_stock"] = round(und_disp_actual / ritmo, 2)
+                    else:
+                        avg_tipologias[avg_key]["meses_stock"] = 0.0
+                    n_velocidades += 1
+
+        logger.info(f"Ritmo de venta calculado: {n_velocidades} modelos con velocidad > 0")
         
         # 3. "Amenidades"
         for city_code, city_tabs in all_data.items():
