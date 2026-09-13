@@ -126,13 +126,20 @@ class DiamondTransformer:
                         "pisos": int(f) if (f := parse_number(remapped.get("floors"))) else None,
                         "uv": uv_val,
                     }
-                else:
                     # Si el proyecto ya fue registrado pero no tenía UV y esta fila sí tiene, actualizarlo
                     if not proyectos[proj_id].get("uv"):
                         raw_uv = row.get("uv") if row.get("uv") is not None else row.get("UV")
                         curr_uv = clean_text(remapped.get("uv")) or clean_text(raw_uv)
                         if curr_uv:
                             proyectos[proj_id]["uv"] = curr_uv
+                    if not proyectos[proj_id].get("lanzamiento"):
+                        lanz_date = parse_date(remapped.get("launch_date"))
+                        if lanz_date:
+                            proyectos[proj_id]["lanzamiento"] = lanz_date
+                    if not proyectos[proj_id].get("entrega"):
+                        ent_date = parse_date(remapped.get("delivery_date"))
+                        if ent_date:
+                            proyectos[proj_id]["entrega"] = ent_date
                 
                 snap_date_raw = parse_date(remapped.get("snapshot_date"))
                 if not snap_date_raw:
@@ -369,40 +376,54 @@ class DiamondTransformer:
 
         for (_proj, _label), snaps in _proj_model_hist.items():
             snaps.sort(key=lambda x: x[0])          # Orden cronológico por fecha_str
+            if not snaps:
+                continue
 
-            if len(snaps) == 1:
-                # ── Caso borde: solo 1 snapshot ─────────────────────────────────
-                # Usar fecha_lanzamiento del proyecto como fecha de ingreso.
-                fecha_snap_str, und_disp_actual, avg_key = snaps[0]
-                lanzamiento = proyectos.get(_proj, {}).get("lanzamiento")
-                if not lanzamiento:
-                    continue  # Sin fecha de lanzamiento, no se puede calcular
+            # ── 1. Primer snapshot: siempre usa fecha_lanzamiento como fecha de ingreso ──
+            fecha_snap0_str, und_disp_snap0, avg_key0 = snaps[0]
+            proj_info   = proyectos.get(_proj, {})
+            lanzamiento = proj_info.get("lanzamiento")
+            proj_nombre = proj_info.get("proyecto", _proj)
+
+            if lanzamiento:
                 try:
                     fecha_lanzamiento_dt = (
                         lanzamiento if isinstance(lanzamiento, date)
                         else date.fromisoformat(str(lanzamiento))
                     )
-                    fecha_snap_dt = date.fromisoformat(fecha_snap_str)
-                except (ValueError, TypeError):
-                    continue
-                # und_disp_ingreso = unidades que había al lanzamiento = und_totales del proyecto
-                und_totales = avg_tipologias[avg_key].get("und_totales") or 0
-                _calc_ritmo(und_totales, und_disp_actual, fecha_lanzamiento_dt, fecha_snap_dt, avg_key)
-                continue
+                    fecha_snap0_dt = date.fromisoformat(fecha_snap0_str)
+                    und_totales = avg_tipologias[avg_key0].get("und_totales") or 0
+                    _calc_ritmo(und_totales, und_disp_snap0, fecha_lanzamiento_dt, fecha_snap0_dt, avg_key0)
+                    logger.debug(
+                        f"[ritmo_venta] '{proj_nombre}' modelo '{_label}' (snap 1): "
+                        f"lanzamiento={fecha_lanzamiento_dt} → snap={fecha_snap0_dt}, "
+                        f"und_totales={und_totales}, und_disp={und_disp_snap0} → "
+                        f"ritmo={avg_tipologias[avg_key0].get('ritmo_venta')}"
+                    )
+                except (ValueError, TypeError) as e:
+                    logger.debug(
+                        f"[ritmo_venta] '{proj_nombre}' modelo '{_label}': "
+                        f"error parseando fechas para snap 1 → {e}"
+                    )
+            else:
+                logger.debug(
+                    f"[ritmo_venta] '{proj_nombre}' modelo '{_label}': "
+                    f"primer snapshot sin fecha_lanzamiento → ritmo_venta=None"
+                )
 
-            # ── Caso normal: múltiples snapshots ────────────────────────────────
-            fecha_ingreso_str, und_disp_ingreso, _ = snaps[0]
-            try:
-                fecha_ingreso_dt = date.fromisoformat(fecha_ingreso_str)
-            except (ValueError, TypeError):
-                continue
-
-            for fecha_str, und_disp_actual, avg_key in snaps[1:]:
+            # ── 2. Snapshots posteriores (2 en adelante): calculan contra el primer snapshot ──
+            if len(snaps) > 1:
                 try:
-                    fecha_dt = date.fromisoformat(fecha_str)
+                    fecha_ingreso_dt = date.fromisoformat(fecha_snap0_str)
                 except (ValueError, TypeError):
                     continue
-                _calc_ritmo(und_disp_ingreso, und_disp_actual, fecha_ingreso_dt, fecha_dt, avg_key)
+
+                for fecha_str, und_disp_actual, avg_key in snaps[1:]:
+                    try:
+                        fecha_dt = date.fromisoformat(fecha_str)
+                    except (ValueError, TypeError):
+                        continue
+                    _calc_ritmo(und_disp_snap0, und_disp_actual, fecha_ingreso_dt, fecha_dt, avg_key)
 
 
         logger.info(f"Ritmo de venta calculado: {n_velocidades} modelos con velocidad > 0")
