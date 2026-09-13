@@ -44,9 +44,22 @@ class DiamondTransformer:
         tipologias = {}
         condiciones = {}
         amenidades = {}
+        avg_tipologias = {}
         
         from collections import defaultdict
         tipologia_hash_counts = defaultdict(int)
+        # Acumular datos crudos por (ind_id, avg_tipologia) para luego promediar
+        _avg_raw: dict = defaultdict(lambda: {
+            "und_totales": 0,
+            "und_vendidas": 0,
+            "und_por_vender": 0,
+            "construccion_m2": [],
+            "sus_m2": [],
+            "precio": [],
+            "bs_m2": [],
+            "usd_m2": [],
+            "tc_oficial": [],
+        })
         
         # 1. "Datos & Margenes"
         for city_code, city_tabs in all_data.items():
@@ -191,6 +204,17 @@ class DiamondTransformer:
                     continue
                     
                 tipologia_nombre = clean_text(remapped.get("typology", ""))
+                dormitorios = int(d) if (d := parse_number(remapped.get("bedrooms"))) is not None else None
+                
+                # Determinar el label del modelo (avg_tipologia)
+                if tipologia_nombre:
+                    avg_label = tipologia_nombre
+                elif dormitorios == 0:
+                    avg_label = "Monoambiente"
+                elif dormitorios is not None:
+                    avg_label = f"{dormitorios} Dormitorio{'s' if dormitorios != 1 else ''}"
+                else:
+                    avg_label = "Sin Tipología"
                 
                 base_hash = hash_row(city_code, "tipologia", row)
                 tipologia_hash_counts[base_hash] += 1
@@ -198,22 +222,82 @@ class DiamondTransformer:
                 
                 tipologia_id = make_uuid("tipologia", ind_id, unique_hash)
                 
+                construccion_m2 = parse_number(remapped.get("area_m2"))
+                sus_m2        = parse_number(remapped.get("price_per_m2_usd"))
+                precio        = parse_number(remapped.get("price_usd"))
+                bs_m2         = parse_number(remapped.get("price_per_m2_bob"))
+                usd_m2        = parse_number(remapped.get("price_usd_per_bob"))
+                tc_oficial    = parse_number(remapped.get("exchange_rate"))
+                estado        = clean_text(remapped.get("status")) or ""
+                
                 tipologias[tipologia_id] = {
                     "tipologia_id": tipologia_id,
                     "indicador_censo_id": ind_id,
                     "tipologia": tipologia_nombre,
-                    "dormitorios": int(x) if (x := parse_number(remapped.get("bedrooms"))) else None,
+                    "dormitorios": dormitorios,
                     "banos": int(x) if (x := parse_number(remapped.get("bathrooms"))) else None,
-                    "construccion_m2": parse_number(remapped.get("area_m2")),
-                    "sus_m2": parse_number(remapped.get("price_per_m2_usd")),
-                    "precio": parse_number(remapped.get("price_usd")),
-                    "bs_m2": parse_number(remapped.get("price_per_m2_bob")),
-                    "usd_m2": parse_number(remapped.get("price_usd_per_bob")),
-                    "estado": clean_text(remapped.get("status")),
-                    "tc_oficial": parse_number(remapped.get("exchange_rate")),
+                    "construccion_m2": construccion_m2,
+                    "sus_m2": sus_m2,
+                    "precio": precio,
+                    "bs_m2": bs_m2,
+                    "usd_m2": usd_m2,
+                    "estado": estado,
+                    "tc_oficial": tc_oficial,
                     "tc": parse_number(remapped.get("exchange_rate_parallel"))
                 }
                 
+                # Acumular para avg_tipologias
+                avg_key = (ind_id, avg_label)
+                bucket = _avg_raw[avg_key]
+                bucket["und_totales"] += 1
+                estado_lower = estado.lower()
+                if "vendid" in estado_lower:
+                    bucket["und_vendidas"] += 1
+                elif any(kw in estado_lower for kw in ("por vender", "disponib", "libre")):
+                    bucket["und_por_vender"] += 1
+                if construccion_m2:
+                    bucket["construccion_m2"].append(construccion_m2)
+                if sus_m2:
+                    bucket["sus_m2"].append(sus_m2)
+                if precio:
+                    bucket["precio"].append(precio)
+                if bs_m2:
+                    bucket["bs_m2"].append(bs_m2)
+                if usd_m2:
+                    bucket["usd_m2"].append(usd_m2)
+                if tc_oficial:
+                    bucket["tc_oficial"].append(tc_oficial)
+                
+        # Generar avg_tipologias a partir de los datos acumulados
+        def _avg(lst):
+            return round(sum(lst) / len(lst), 2) if lst else None
+        
+        for (ind_id, avg_label), bucket in _avg_raw.items():
+            und_totales    = bucket["und_totales"]
+            und_vendidas   = bucket["und_vendidas"]
+            und_por_vender = bucket["und_por_vender"]
+            # Si no se pudo contar por estado, derivar und_por_vender
+            if und_vendidas == 0 and und_por_vender == 0:
+                und_por_vender = und_totales  # Asumir todo por vender si no hay info de estado
+            avg_id = make_uuid("avg_tipologia", ind_id, avg_label)
+            avg_tipologias[avg_id] = {
+                "indicador_censo_id": ind_id,
+                "avg_tipologia":      avg_label,
+                "und_totales":        und_totales,
+                "und_vendidas":       und_vendidas,
+                "und_por_vender":     und_por_vender,
+                "ritmo_venta":        None,
+                "meses_stock":        None,
+                "avg_construccion_m2": _avg(bucket["construccion_m2"]),
+                "avg_sus_m2":          _avg(bucket["sus_m2"]),
+                "avg_precio":          _avg(bucket["precio"]),
+                "avg_bs_m2":           _avg(bucket["bs_m2"]),
+                "avg_usd_m2":          _avg(bucket["usd_m2"]),
+                "avg_tc_oficial":      _avg(bucket["tc_oficial"]),
+            }
+        
+        logger.info(f"avg_tipologias calculadas: {len(avg_tipologias)} grupos (proyecto × snapshot × modelo)")
+        
         # 3. "Amenidades"
         for city_code, city_tabs in all_data.items():
             if "amenidades" not in city_tabs:
@@ -297,6 +381,7 @@ class DiamondTransformer:
             "oferta_proyectos": list(proyectos.values()),
             "oferta_indicadores_censo": list(indicadores.values()),
             "oferta_tipologias": list(tipologias.values()),
+            "oferta_avg_tipologias": list(avg_tipologias.values()),
             "oferta_condiciones_financieras": list(condiciones.values()),
             "oferta_amenidades": list(amenidades.values()),
         }

@@ -79,6 +79,7 @@ def main():
         ("proyectos", "proyecto_id"),
         ("indicadores_censo", "indicador_censo_id"),
         ("tipologias", "tipologia_id"),
+        ("avg_tipologias", "indicador_censo_id,avg_tipologia"),
         ("condiciones_financieras", "condicion_financiera_id"),
         ("amenidades", "amenidad_id"),
     ]
