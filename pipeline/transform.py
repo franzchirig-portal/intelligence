@@ -345,12 +345,52 @@ class DiamondTransformer:
             )
 
         # 2. Para cada modelo de cada proyecto, calcular velocidad respecto al PRIMER snapshot
+        #    Caso borde: si solo hay 1 snapshot, usar fecha_lanzamiento del proyecto como baseline.
         n_velocidades = 0
+
+        def _calc_ritmo(und_disp_ingreso, und_disp_actual, fecha_ingreso_dt, fecha_dt, avg_key):
+            """Aplica la fórmula y escribe ritmo_venta / meses_stock en el registro."""
+            nonlocal n_velocidades
+            meses = (fecha_dt - fecha_ingreso_dt).days / 30.44
+            if meses <= 0:
+                return
+            unidades_vendidas = und_disp_ingreso - und_disp_actual
+            if unidades_vendidas <= 0:
+                avg_tipologias[avg_key]["ritmo_venta"] = 0.0
+                avg_tipologias[avg_key]["meses_stock"] = None
+            else:
+                ritmo = round(unidades_vendidas / meses, 2)
+                avg_tipologias[avg_key]["ritmo_venta"] = ritmo
+                if ritmo > 0 and und_disp_actual > 0:
+                    avg_tipologias[avg_key]["meses_stock"] = round(und_disp_actual / ritmo, 2)
+                else:
+                    avg_tipologias[avg_key]["meses_stock"] = 0.0
+                n_velocidades += 1
+
         for (_proj, _label), snaps in _proj_model_hist.items():
             snaps.sort(key=lambda x: x[0])          # Orden cronológico por fecha_str
-            if len(snaps) < 2:
-                continue                              # Sin baseline, no hay cálculo
 
+            if len(snaps) == 1:
+                # ── Caso borde: solo 1 snapshot ─────────────────────────────────
+                # Usar fecha_lanzamiento del proyecto como fecha de ingreso.
+                fecha_snap_str, und_disp_actual, avg_key = snaps[0]
+                lanzamiento = proyectos.get(_proj, {}).get("lanzamiento")
+                if not lanzamiento:
+                    continue  # Sin fecha de lanzamiento, no se puede calcular
+                try:
+                    fecha_lanzamiento_dt = (
+                        lanzamiento if isinstance(lanzamiento, date)
+                        else date.fromisoformat(str(lanzamiento))
+                    )
+                    fecha_snap_dt = date.fromisoformat(fecha_snap_str)
+                except (ValueError, TypeError):
+                    continue
+                # und_disp_ingreso = unidades que había al lanzamiento = und_totales del proyecto
+                und_totales = avg_tipologias[avg_key].get("und_totales") or 0
+                _calc_ritmo(und_totales, und_disp_actual, fecha_lanzamiento_dt, fecha_snap_dt, avg_key)
+                continue
+
+            # ── Caso normal: múltiples snapshots ────────────────────────────────
             fecha_ingreso_str, und_disp_ingreso, _ = snaps[0]
             try:
                 fecha_ingreso_dt = date.fromisoformat(fecha_ingreso_str)
@@ -362,26 +402,8 @@ class DiamondTransformer:
                     fecha_dt = date.fromisoformat(fecha_str)
                 except (ValueError, TypeError):
                     continue
+                _calc_ritmo(und_disp_ingreso, und_disp_actual, fecha_ingreso_dt, fecha_dt, avg_key)
 
-                meses = (fecha_dt - fecha_ingreso_dt).days / 30.44
-                if meses <= 0:
-                    continue
-
-                unidades_vendidas = und_disp_ingreso - und_disp_actual
-
-                if unidades_vendidas <= 0:
-                    # Sin ventas registradas en el periodo (ritmo = 0)
-                    avg_tipologias[avg_key]["ritmo_venta"] = 0.0
-                    avg_tipologias[avg_key]["meses_stock"] = None
-                else:
-                    ritmo = round(unidades_vendidas / meses, 2)
-                    avg_tipologias[avg_key]["ritmo_venta"] = ritmo
-                    # meses_stock: cuántos meses tardaría en agotar el stock actual
-                    if ritmo > 0 and und_disp_actual > 0:
-                        avg_tipologias[avg_key]["meses_stock"] = round(und_disp_actual / ritmo, 2)
-                    else:
-                        avg_tipologias[avg_key]["meses_stock"] = 0.0
-                    n_velocidades += 1
 
         logger.info(f"Ritmo de venta calculado: {n_velocidades} modelos con velocidad > 0")
         
