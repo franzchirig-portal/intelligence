@@ -4,9 +4,17 @@
 
 # Credenciales locales
 .env
+.env.*
+*.local
 google-credentials.json
-*.json
-!package.json
+credentials*.json
+service-account*.json
+
+# Node / Frontend builds
+frontend/node_modules/
+frontend/dist/
+frontend/.env*
+node_modules/
 
 # Reportes del pipeline (generados automáticamente)
 pipeline/reports/
