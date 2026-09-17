@@ -3,9 +3,8 @@ import ReactECharts from 'echarts-for-react'
 import {
   fetchIndicadores,
   getLatestPerProject,
-  computeZonaMetrics,
 } from '../lib/supabase'
-import type { IndicadorFull, ZonaMetrics } from '../lib/supabase'
+import type { IndicadorFull } from '../lib/supabase'
 
 interface Props {
   ciudad: string

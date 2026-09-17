@@ -65,12 +65,6 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
     }
   }
 
-  // Quick Demo Login for instant evaluation
-  const handleQuickDemo = () => {
-    setEmail('demo@citrino.bo')
-    setPassword('Citrino2026!')
-  }
-
   return (
     <div style={{
       position: 'fixed',

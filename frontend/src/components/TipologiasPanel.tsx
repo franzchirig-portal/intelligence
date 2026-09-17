@@ -145,8 +145,9 @@ export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador
       setTipologias([])
       return
     }
+    const current = selectedIndicador
     setLoadingTipos(true)
-    fetchTipologiasForProject(selectedIndicador.proyecto_id, selectedIndicador.indicador_censo_id)
+    fetchTipologiasForProject(current.proyecto_id, current.indicador_censo_id)
       .then((data) => {
         setTipologias(data)
         setLoadingTipos(false)
@@ -155,7 +156,7 @@ export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador
         console.error('Error fetching project tipologias:', err)
         setLoadingTipos(false)
       })
-  }, [selectedIndicador?.proyecto_id, selectedIndicador?.indicador_censo_id])
+  }, [selectedIndicador])
 
   // ─── ECharts Configuration ──────────────────────────────────────────────
   const chartPriceM2 = tipologias.length > 0 ? {

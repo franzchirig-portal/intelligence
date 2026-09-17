@@ -2,12 +2,9 @@ import { useEffect, useState } from 'react'
 import {
   fetchIndicadores,
   fetchAvgTipologias,
-  fetchAllAvgTipologias,
-  computeTipologiaBenchmarks,
   getLatestPerProject,
-  fetchProjectHistory,
 } from '../lib/supabase'
-import type { IndicadorFull, AvgTipologia, TipologiaBenchmark } from '../lib/supabase'
+import type { IndicadorFull, AvgTipologia } from '../lib/supabase'
 
 interface Props {
   selectedIndicador: IndicadorFull | null
