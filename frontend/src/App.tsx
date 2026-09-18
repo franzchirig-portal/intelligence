@@ -51,6 +51,21 @@ export default function App() {
   const [osInitialApp, setOsInitialApp] = useState<string>('mission')
   const [allIndicadoresForCmd, setAllIndicadoresForCmd] = useState<IndicadorFull[]>([])
 
+  // Theme State: 'dark' (Nocturno) | 'light' (Diurno)
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('citrino_theme')
+    return (saved === 'light' || saved === 'dark') ? saved : 'dark'
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('citrino_theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+  }
+
   // Auth Session Listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -261,6 +276,16 @@ export default function App() {
 
           <div className="topbar-divider" />
 
+          {/* Theme Toggle Button (Nocturno / Diurno) */}
+          <button
+            className="theme-toggle-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Cambiar a Modo Diurno (Claro)' : 'Cambiar a Modo Nocturno (Oscuro)'}
+          >
+            <span className="theme-toggle-icon">{theme === 'dark' ? '🌙' : '☀️'}</span>
+            <span>{theme === 'dark' ? 'Nocturno' : 'Diurno'}</span>
+          </button>
+
           {/* User Profile & Logout */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{
@@ -316,6 +341,7 @@ export default function App() {
             onSwitchTab={setActiveTab}
             initialApp={osInitialApp}
             onOpenCommandPalette={() => setIsCmdOpen(true)}
+            theme={theme}
           />
         </main>
       )}
@@ -410,6 +436,7 @@ export default function App() {
             etapaFilter={selectedEtapas}
             selectedIndicador={selectedIndicador}
             onSelectIndicador={setSelectedIndicador}
+            theme={theme}
           />
           <AnalysisPanel
             selectedIndicador={selectedIndicador}

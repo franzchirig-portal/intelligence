@@ -67,6 +67,65 @@
   --radius-lg: 10px;
 }
 
+/* ─── Light Theme (Diurno / Crisp Professional Modern Slate) ─────────────── */
+[data-theme="light"] {
+  /* Citrino Brand Colors (Diurnal palette) */
+  --citrino-petrol:     #0f766e;
+  --citrino-teal:       #0d9488;
+  --citrino-teal-light: #0f766e;
+  --citrino-cyan:       #0284c7;
+  --citrino-accent:     #0284c7;
+  --citrino-glow:       rgba(13, 148, 136, 0.15);
+  --citrino-dark:       #f0fdfa;
+
+  /* Backgrounds (Clean Modern Slate) */
+  --bg-base:         #f1f5f9;
+  --bg-surface:      #ffffff;
+  --bg-panel:        #ffffff;
+  --bg-panel-header: #f8fafc;
+  --bg-hover:        #f1f5f9;
+  --bg-active:       #e2e8f0;
+  --bg-input:        #ffffff;
+  --bg-card:         #ffffff;
+
+  /* Borders */
+  --border-subtle:   #e2e8f0;
+  --border-default:  #cbd5e1;
+  --border-bright:   #94a3b8;
+  --border-accent:   #0d9488;
+
+  /* Text */
+  --text-primary:    #0f172a;
+  --text-secondary:  #334155;
+  --text-muted:      #64748b;
+  --text-accent:     #0284c7;
+  --text-citrino:    #0d9488;
+  --text-success:    #059669;
+  --text-warning:    #d97706;
+  --text-danger:     #dc2626;
+  --color-positive:  #059669;
+  --color-negative:  #dc2626;
+  --color-warning:   #d97706;
+
+  /* Accents */
+  --accent-blue:     #0284c7;
+  --accent-blue-glow:rgba(2, 132, 199, 0.15);
+  --accent-cyan:     #0284c7;
+  --accent-emerald:  #059669;
+  --accent-ruby:     #dc2626;
+  --accent-violet:   #7c3aed;
+  --accent-teal:     #0d9488;
+  --accent-amber:    #d97706;
+  --citrino-amber:   #0d9488;
+  --citrino-amber-glow: rgba(13, 148, 136, 0.15);
+
+  /* Effects */
+  --shadow-panel:    0 0 0 1px var(--border-subtle), 0 2px 16px rgba(15, 23, 42, 0.08);
+  --shadow-card:     0 1px 3px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
+  --glow-citrino:    0 0 12px rgba(13, 148, 136, 0.12);
+  --glow-blue:       0 0 12px rgba(2, 132, 199, 0.12);
+}
+
 /* ─── Reset & Base ───────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1891,6 +1950,109 @@ html, body, #root {
 .cmd-footer-brand strong {
   color: var(--citrino-accent);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   THEME SWITCHER & LIGHT MODE COMPONENT ADAPTATIONS
+══════════════════════════════════════════════════════════════════════════════ */
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-card);
+  user-select: none;
+}
+.theme-toggle-btn:hover {
+  border-color: var(--citrino-teal-light);
+  color: var(--text-accent);
+  background: var(--bg-hover);
+  transform: translateY(-1px);
+}
+.theme-toggle-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* Smooth transitions for theme switching */
+html, body, .app-shell, .panel, .topbar, .panel-header, .panel-body, .workspace-os-wrapper {
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+/* Light Mode Leaflet Enhancements */
+[data-theme="light"] .leaflet-container {
+  background: #e2e8f0 !important;
+}
+[data-theme="light"] .leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06) !important;
+  color: #0f172a !important;
+}
+[data-theme="light"] .leaflet-popup-tip {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08) !important;
+}
+[data-theme="light"] .leaflet-popup-close-button {
+  color: #64748b !important;
+}
+[data-theme="light"] .leaflet-popup-close-button:hover {
+  color: #0f172a !important;
+}
+
+/* Light Mode Workspace OS Background */
+[data-theme="light"] .workspace-os-wrapper {
+  background: radial-gradient(circle at 50% 0%, #e2e8f0 0%, #f1f5f9 85%) !important;
+}
+
+/* Light Mode Command Palette & Modals */
+[data-theme="light"] .cmd-palette-backdrop {
+  background: rgba(15, 23, 42, 0.4) !important;
+}
+[data-theme="light"] .cmd-palette-modal {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15) !important;
+}
+[data-theme="light"] .cmd-palette-footer {
+  background: #f8fafc !important;
+  border-top-color: #e2e8f0 !important;
+}
+[data-theme="light"] .cmd-item:hover,
+[data-theme="light"] .cmd-item.selected {
+  background: #f1f5f9 !important;
+}
+[data-theme="light"] .cmd-item-badge {
+  background: #e6fffa !important;
+  color: #0f766e !important;
+  border-color: #99f6e4 !important;
+}
+
+/* Light Mode Table & Dropdown Tweaks */
+[data-theme="light"] .os-compare-table th {
+  background: #f8fafc !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+[data-theme="light"] .os-compare-dropdown {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12) !important;
+}
+[data-theme="light"] .os-tipo-name {
+  color: #0f172a !important;
+}
+
 
 
 

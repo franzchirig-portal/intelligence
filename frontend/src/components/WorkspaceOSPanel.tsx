@@ -18,6 +18,7 @@ interface Props {
   onSwitchTab?: (tab: any) => void
   initialApp?: string
   onOpenCommandPalette?: () => void
+  theme?: 'dark' | 'light'
 }
 
 type OSApp = 'mission' | 'comparador' | 'dossier' | 'pipeline'
@@ -43,6 +44,7 @@ export default function WorkspaceOSPanel({
   onSwitchTab,
   initialApp = 'mission',
   onOpenCommandPalette,
+  theme = 'dark',
 }: Props) {
   const [activeApp, setActiveApp] = useState<OSApp>(initialApp as OSApp)
   const [allIndicadores, setAllIndicadores] = useState<IndicadorFull[]>([])
@@ -250,27 +252,21 @@ export default function WorkspaceOSPanel({
   const radarChartOption = React.useMemo(() => {
     if (comparedProjects.length === 0) return {}
 
-    // Find max values for normalization
-    const maxRitmo = Math.max(...comparedProjects.map((p) => p.ritmo_venta ?? 0), 10)
-    const maxStock = Math.max(...comparedProjects.map((p) => p.und_por_vender ?? 0), 100)
-    const maxPct = 100
-    const maxTotal = Math.max(...comparedProjects.map((p) => p.und_totales ?? 0), 150)
-    const maxUSD = Math.max(...comparedProjects.map((p) => p.stock_total ?? 0), 1_000_000)
+    const isLight = theme === 'light'
+    const maxRitmo = Math.max(...comparedProjects.map((p) => p.ritmo_venta ?? 0), 2)
+    const maxStock = Math.max(...comparedProjects.map((p) => p.und_por_vender ?? 0), 50)
+    const maxPct = 1
+    const maxTotal = Math.max(...comparedProjects.map((p) => p.und_totales ?? 0), 100)
+    const maxUSD = Math.max(...comparedProjects.map((p) => p.stock_total ?? 0), 5_000_000)
 
-    const colors = ['#22d3ee', '#10b981', '#f59e0b', '#a855f7']
+    const colors = ['#14b8a6', '#22d3ee', '#f59e0b', '#a855f7', '#10b981']
 
     return {
       backgroundColor: 'transparent',
-      tooltip: {
-        trigger: 'item',
-        backgroundColor: '#091b22',
-        borderColor: '#1a4354',
-        textStyle: { color: '#f1f5f9', fontSize: 12 },
-      },
       legend: {
         data: comparedProjects.map((p) => p.proyecto),
         bottom: 0,
-        textStyle: { color: '#94a3b8', fontSize: 11 },
+        textStyle: { color: isLight ? '#475569' : '#94a3b8', fontSize: 11 },
       },
       radar: {
         indicator: [
@@ -283,23 +279,27 @@ export default function WorkspaceOSPanel({
         shape: 'polygon',
         splitNumber: 4,
         axisName: {
-          color: '#22d3ee',
+          color: isLight ? '#0284c7' : '#22d3ee',
           fontSize: 10,
           fontWeight: 600,
         },
         splitLine: {
           lineStyle: {
-            color: ['#133340', '#1a4354', '#133340', '#1a4354'],
+            color: isLight
+              ? ['#cbd5e1', '#e2e8f0', '#cbd5e1', '#e2e8f0']
+              : ['#133340', '#1a4354', '#133340', '#1a4354'],
           },
         },
         splitArea: {
           show: true,
           areaStyle: {
-            color: ['rgba(3, 46, 53, 0.25)', 'rgba(7, 20, 26, 0.4)'],
+            color: isLight
+              ? ['rgba(241, 245, 249, 0.7)', 'rgba(255, 255, 255, 0.9)']
+              : ['rgba(3, 46, 53, 0.25)', 'rgba(7, 20, 26, 0.4)'],
           },
         },
         axisLine: {
-          lineStyle: { color: '#1a4354' },
+          lineStyle: { color: isLight ? '#cbd5e1' : '#1a4354' },
         },
       },
       series: [
@@ -323,31 +323,32 @@ export default function WorkspaceOSPanel({
         },
       ],
     }
-  }, [comparedProjects])
+  }, [comparedProjects, theme])
 
   // Mission Control Zone Distribution Chart
   const zoneChartOption = React.useMemo(() => {
+    const isLight = theme === 'light'
     return {
       backgroundColor: 'transparent',
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
-        backgroundColor: '#091b22',
-        borderColor: '#1a4354',
-        textStyle: { color: '#f1f5f9' },
+        backgroundColor: isLight ? '#ffffff' : '#091b22',
+        borderColor: isLight ? '#cbd5e1' : '#1a4354',
+        textStyle: { color: isLight ? '#0f172a' : '#f1f5f9' },
       },
       grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true },
       xAxis: {
         type: 'category',
         data: topZonas.map((z) => z.zona),
-        axisLine: { lineStyle: { color: '#1a4354' } },
-        axisLabel: { color: '#94a3b8', fontSize: 10, rotate: 20 },
+        axisLine: { lineStyle: { color: isLight ? '#cbd5e1' : '#1a4354' } },
+        axisLabel: { color: isLight ? '#475569' : '#94a3b8', fontSize: 10, rotate: 20 },
       },
       yAxis: {
         type: 'value',
-        axisLine: { lineStyle: { color: '#1a4354' } },
-        splitLine: { lineStyle: { color: '#133340' } },
-        axisLabel: { color: '#94a3b8', fontSize: 10 },
+        axisLine: { lineStyle: { color: isLight ? '#cbd5e1' : '#1a4354' } },
+        splitLine: { lineStyle: { color: isLight ? '#e2e8f0' : '#133340' } },
+        axisLabel: { color: isLight ? '#475569' : '#94a3b8', fontSize: 10 },
       },
       series: [
         {

@@ -10,6 +10,7 @@ interface Props {
   etapaFilter?: string | string[]
   selectedIndicador: IndicadorFull | null
   onSelectIndicador: (ind: IndicadorFull | null) => void
+  theme?: 'dark' | 'light'
 }
 
 type ColorMetric = 'meses_stock' | 'ritmo_venta' | 'etapa'
@@ -27,10 +28,12 @@ export default function GeoespacialPanel({
   etapaFilter,
   selectedIndicador,
   onSelectIndicador,
+  theme = 'dark',
 }: Props) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
   const markersLayerRef = useRef<any>(null)
+  const tileLayerRef = useRef<any>(null)
 
   const [allProjects, setAllProjects] = useState<IndicadorFull[]>([])
   const [loading, setLoading] = useState(true)
@@ -148,11 +151,16 @@ export default function GeoespacialPanel({
       attributionControl: true,
     })
 
-    // ESRI World Dark Gray Canvas tile layer (clean, high resolution, no API key required)
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    const initialTileUrl = theme === 'light'
+      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+      : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+
+    // ESRI World Canvas tile layer (Dark or Light according to active theme)
+    const tiles = L.tileLayer(initialTileUrl, {
       attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
       maxZoom: 16,
     }).addTo(map)
+    tileLayerRef.current = tiles
 
     const markersGroup = L.layerGroup().addTo(map)
     markersLayerRef.current = markersGroup
@@ -162,21 +170,38 @@ export default function GeoespacialPanel({
       map.remove()
       mapInstanceRef.current = null
       markersLayerRef.current = null
+      tileLayerRef.current = null
     }
   }, [])
 
-  // 4. Update map center when ciudad changes
+  // 4. Update map tile layer when theme changes (Nocturno / Diurno)
+  useEffect(() => {
+    if (!tileLayerRef.current) return
+    const tileUrl = theme === 'light'
+      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+      : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+    tileLayerRef.current.setUrl(tileUrl)
+  }, [theme])
+
+  // 5. Update map center when ciudad changes
   useEffect(() => {
     if (!mapInstanceRef.current) return
     const config = CITY_COORDS[ciudad] || CITY_COORDS['SCZ']
     mapInstanceRef.current.flyTo(config.center, config.zoom, { duration: 1.2 })
   }, [ciudad])
 
-  // 5. Render project markers on map
+  // 6. Render project markers on map
   useEffect(() => {
     if (!mapInstanceRef.current || !markersLayerRef.current || typeof L === 'undefined') return
 
     markersLayerRef.current.clearLayers()
+
+    const isLight = theme === 'light'
+    const popupText = isLight ? '#0f172a' : '#f1f5f9'
+    const popupSub = isLight ? '#475569' : '#94a3b8'
+    const metricsBg = isLight ? '#f8fafc' : '#040e12'
+    const metricsBorder = isLight ? '#cbd5e1' : '#163642'
+    const metricsTextMuted = isLight ? '#64748b' : '#64748b'
 
     filteredProjects.forEach((p) => {
       const lat = p.latitud!
@@ -188,52 +213,52 @@ export default function GeoespacialPanel({
       const marker = L.circleMarker([lat, lng], {
         radius: isSelected ? 11 : 7,
         fillColor: color,
-        color: isSelected ? '#22d3ee' : '#ffffff',
+        color: isSelected ? (isLight ? '#0284c7' : '#22d3ee') : (isLight ? '#334155' : '#ffffff'),
         weight: isSelected ? 3 : 1.5,
         opacity: 1,
         fillOpacity: 0.88,
       })
 
-      // Citrino Dark Popup Template
+      // Citrino Popup Template (Adaptive Day/Night)
       const popupHtml = `
         <div style="padding: 12px 14px; min-width: 220px; font-family: 'Inter', sans-serif;">
           <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
-            <div style="font-weight: 700; font-size: 13px; color: #f1f5f9; line-height: 1.25;">
+            <div style="font-weight: 700; font-size: 13px; color: ${popupText}; line-height: 1.25;">
               ${p.proyecto}
             </div>
-            <span style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(34, 211, 238, 0.15); color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.3); white-space: nowrap;">
+            <span style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(20, 184, 166, 0.15); color: #0d9488; border: 1px solid rgba(20, 184, 166, 0.3); white-space: nowrap;">
               ${p.etapa || 'En Curso'}
             </span>
           </div>
 
-          <div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px; display: flex; align-items: center; gap: 4px;">
+          <div style="font-size: 11px; color: ${popupSub}; margin-bottom: 10px; display: flex; align-items: center; gap: 4px;">
             <span>📍 ${p.ZONAS || 'Zona no especificada'}</span>
             ${p.SUBZONAS ? `<span style="opacity: 0.7;">• ${p.SUBZONAS}</span>` : ''}
           </div>
 
           <!-- Metrics Grid -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #040e12; border: 1px solid #163642; border-radius: 6px; padding: 8px; margin-bottom: 10px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: ${metricsBg}; border: 1px solid ${metricsBorder}; border-radius: 6px; padding: 8px; margin-bottom: 10px;">
             <div>
-              <div style="font-size: 9.5px; color: #64748b; text-transform: uppercase;">Ritmo Venta</div>
+              <div style="font-size: 9.5px; color: ${metricsTextMuted}; text-transform: uppercase;">Ritmo Venta</div>
               <div style="font-size: 12px; font-weight: 700; color: #10b981; font-family: 'JetBrains Mono', monospace;">
                 ${p.ritmo_venta != null ? `${Number(p.ritmo_venta).toFixed(1)} und/m` : '—'}
               </div>
             </div>
             <div>
-              <div style="font-size: 9.5px; color: #64748b; text-transform: uppercase;">Meses Stock</div>
-              <div style="font-size: 12px; font-weight: 700; color: #38bdf8; font-family: 'JetBrains Mono', monospace;">
+              <div style="font-size: 9.5px; color: ${metricsTextMuted}; text-transform: uppercase;">Meses Stock</div>
+              <div style="font-size: 12px; font-weight: 700; color: #0284c7; font-family: 'JetBrains Mono', monospace;">
                 ${p.meses_stock != null ? `${Number(p.meses_stock).toFixed(1)} m` : '—'}
               </div>
             </div>
             <div>
-              <div style="font-size: 9.5px; color: #64748b; text-transform: uppercase;">Disponibles</div>
-              <div style="font-size: 12px; font-weight: 700; color: #f1f5f9; font-family: 'JetBrains Mono', monospace;">
-                ${p.und_por_vender ?? '—'} <span style="font-size: 9.5px; font-weight: 400; color: #64748b;">/ ${p.und_totales ?? '—'}</span>
+              <div style="font-size: 9.5px; color: ${metricsTextMuted}; text-transform: uppercase;">Disponibles</div>
+              <div style="font-size: 12px; font-weight: 700; color: ${popupText}; font-family: 'JetBrains Mono', monospace;">
+                ${p.und_por_vender ?? '—'} <span style="font-size: 9.5px; font-weight: 400; color: ${metricsTextMuted};">/ ${p.und_totales ?? '—'}</span>
               </div>
             </div>
             <div>
-              <div style="font-size: 9.5px; color: #64748b; text-transform: uppercase;">% Colocado</div>
-              <div style="font-size: 12px; font-weight: 700; color: #22d3ee; font-family: 'JetBrains Mono', monospace;">
+              <div style="font-size: 9.5px; color: ${metricsTextMuted}; text-transform: uppercase;">% Colocado</div>
+              <div style="font-size: 12px; font-weight: 700; color: #0d9488; font-family: 'JetBrains Mono', monospace;">
                 ${p.pct_vendido != null ? `${(p.pct_vendido * 100).toFixed(0)}%` : '—'}
               </div>
             </div>
@@ -241,7 +266,7 @@ export default function GeoespacialPanel({
 
           <button id="btn-select-${p.proyecto_id}" style="
             width: 100%;
-            background: linear-gradient(135deg, #032e35 0%, #0d4b57 100%);
+            background: ${isLight ? 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)' : 'linear-gradient(135deg, #032e35 0%, #0d4b57 100%)'};
             border: 1px solid #14b8a6;
             color: #ffffff;
             font-size: 11px;
@@ -377,11 +402,11 @@ export default function GeoespacialPanel({
           top: 14,
           left: 14,
           zIndex: 800,
-          background: 'rgba(9, 27, 34, 0.92)',
+          background: 'var(--bg-panel)',
           backdropFilter: 'blur(10px)',
-          border: '1px solid var(--border-bright)',
+          border: '1px solid var(--border-default)',
           borderRadius: 8,
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
+          boxShadow: 'var(--shadow-panel)',
           display: 'flex',
           alignItems: 'center',
           padding: '4px 10px',
@@ -396,7 +421,7 @@ export default function GeoespacialPanel({
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#f1f5f9',
+              color: 'var(--text-primary)',
               fontSize: 11.5,
               width: '100%',
               outline: 'none',
@@ -423,12 +448,12 @@ export default function GeoespacialPanel({
           bottom: 24,
           left: 14,
           zIndex: 800,
-          background: 'rgba(9, 27, 34, 0.92)',
+          background: 'var(--bg-panel)',
           backdropFilter: 'blur(10px)',
-          border: '1px solid var(--border-bright)',
+          border: '1px solid var(--border-default)',
           borderRadius: 8,
           padding: '8px 12px',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
+          boxShadow: 'var(--shadow-panel)',
           fontSize: 10.5,
         }}>
           <div style={{ fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 6, textTransform: 'uppercase', fontSize: 9.5, letterSpacing: 0.5 }}>
