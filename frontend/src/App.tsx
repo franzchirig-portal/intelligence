@@ -5,13 +5,15 @@ import WorkspacePanel from './components/WorkspacePanel'
 import TipologiasPanel from './components/TipologiasPanel'
 import AnalysisPanel from './components/AnalysisPanel'
 import GeoespacialPanel from './components/GeoespacialPanel'
+import WorkspaceOSPanel from './components/WorkspaceOSPanel'
+import CommandPalette from './components/CommandPalette'
 import AuthScreen from './components/AuthScreen'
 import MultiSelectDropdown from './components/MultiSelectDropdown'
 import { supabase, fetchIndicadores, getLatestPerProject } from './lib/supabase'
 import type { IndicadorFull } from './lib/supabase'
 
 type Ciudad = 'SCZ' | 'LPZ' | 'CBB' | 'ALL'
-type Tab = 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial'
+type Tab = 'workspace_os' | 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial'
 
 const CIUDAD_LABELS: Record<Ciudad, string> = {
   SCZ: 'Santa Cruz',
@@ -21,6 +23,7 @@ const CIUDAD_LABELS: Record<Ciudad, string> = {
 }
 
 const TABS: { id: Tab; label: string }[] = [
+  { id: 'workspace_os', label: '⚡ Workspace OS' },
   { id: 'mercado',     label: '01 · Oferta Nueva' },
   { id: 'tipologias', label: '01-E · Tipologías' },
   { id: 'proyectos',  label: 'Proyectos' },
@@ -33,7 +36,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true)
 
   const [ciudad, setCiudad] = useState<Ciudad>('SCZ')
-  const [activeTab, setActiveTab] = useState<Tab>('mercado')
+  const [activeTab, setActiveTab] = useState<Tab>('workspace_os')
   const [selectedIndicador, setSelectedIndicador] = useState<IndicadorFull | null>(null)
 
   // Citrino Global Filters
@@ -42,6 +45,11 @@ export default function App() {
   const [availableZonas, setAvailableZonas] = useState<string[]>([])
   const [availableEtapas, setAvailableEtapas] = useState<string[]>([])
   const [etapaCounts, setEtapaCounts] = useState<Record<string, number>>({})
+
+  // Workspace OS & Command Palette States
+  const [isCmdOpen, setIsCmdOpen] = useState(false)
+  const [osInitialApp, setOsInitialApp] = useState<string>('mission')
+  const [allIndicadoresForCmd, setAllIndicadoresForCmd] = useState<IndicadorFull[]>([])
 
   // Auth Session Listener
   useEffect(() => {
@@ -63,6 +71,7 @@ export default function App() {
   useEffect(() => {
     fetchIndicadores(ciudad === 'ALL' ? undefined : ciudad).then((inds) => {
       const latest = getLatestPerProject(inds)
+      setAllIndicadoresForCmd(latest)
       const zonas = Array.from(new Set(latest.map((p) => p.ZONAS).filter((z): z is string => Boolean(z && z.trim()))))
       zonas.sort()
       setAvailableZonas(zonas)
@@ -80,6 +89,18 @@ export default function App() {
       setEtapaCounts(counts)
     }).catch(console.error)
   }, [ciudad])
+
+  // Global Command Palette Shortcut (Cmd+K / Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setIsCmdOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const handleCiudadChange = (c: Ciudad) => {
     setCiudad(c)
@@ -156,6 +177,15 @@ export default function App() {
             </div>
           ))}
         </nav>
+
+        {/* Command Palette Quick Search Button */}
+        <button
+          className="topbar-cmd-btn"
+          onClick={() => setIsCmdOpen(true)}
+          title="Abrir Command Palette (Ctrl+K / Cmd+K)">
+          <span className="topbar-cmd-badge">⌘K</span>
+          <span className="topbar-cmd-text">Buscar o comando...</span>
+        </button>
 
         {/* Citrino Filters (Zona, Etapa & Reset) */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -274,6 +304,22 @@ export default function App() {
         </div>
       </header>
 
+      {/* Workspace OS tab (Modular Command Center) */}
+      {activeTab === 'workspace_os' && (
+        <main className="workspace-os-wrapper">
+          <WorkspaceOSPanel
+            ciudad={ciudad}
+            zonaFilter={zonaFilter}
+            etapaFilter={selectedEtapas}
+            selectedIndicador={selectedIndicador}
+            onSelectIndicador={setSelectedIndicador}
+            onSwitchTab={setActiveTab}
+            initialApp={osInitialApp}
+            onOpenCommandPalette={() => setIsCmdOpen(true)}
+          />
+        </main>
+      )}
+
       {/* 3-Panel Workspace — Mercado tab (main) */}
       {activeTab === 'mercado' && (
         <main className="workspace">
@@ -389,6 +435,27 @@ export default function App() {
           Pipeline: ETL GitHub Actions · 6h sync
         </div>
       </footer>
+
+      {/* Global Command Palette (Cmd+K / Ctrl+K) */}
+      <CommandPalette
+        isOpen={isCmdOpen}
+        onClose={() => setIsCmdOpen(false)}
+        indicadores={allIndicadoresForCmd}
+        currentCiudad={ciudad}
+        onSelectProject={(proj) => {
+          setSelectedIndicador(proj)
+          if (proj.ciudad && proj.ciudad !== ciudad) {
+            handleCiudadChange(proj.ciudad as Ciudad)
+          }
+        }}
+        onSelectCiudad={(c) => handleCiudadChange(c)}
+        onSelectZona={(z) => setZonaFilter(z)}
+        onSwitchTab={(t) => setActiveTab(t)}
+        onOpenApp={(appId) => {
+          setOsInitialApp(appId)
+          setActiveTab('workspace_os')
+        }}
+      />
     </div>
   )
 }
