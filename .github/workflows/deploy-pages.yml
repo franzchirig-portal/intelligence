@@ -1,11 +1,7 @@
 name: "🌐 Deploy Web Platform to GitHub Pages"
 
 on:
-  push:
-    branches: ["master", "main"]
-    paths:
-      - "frontend/**"
-      - ".github/workflows/deploy-pages.yml"
+  # Solo ejecución manual (en repositorios privados GitHub Pages requiere GitHub Pro/Enterprise)
   workflow_dispatch:
 
 permissions:
