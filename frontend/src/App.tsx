@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import './index.css'
-import ChatPanel from './components/ChatPanel'
+import RightSidebar from './components/RightSidebar'
 import WorkspacePanel from './components/WorkspacePanel'
 import TipologiasPanel from './components/TipologiasPanel'
-import AnalysisPanel from './components/AnalysisPanel'
 import GeoespacialPanel from './components/GeoespacialPanel'
 import WorkspaceOSPanel from './components/WorkspaceOSPanel'
 import CommandPalette from './components/CommandPalette'
@@ -56,6 +55,9 @@ export default function App() {
     const saved = localStorage.getItem('citrino_theme')
     return (saved === 'light' || saved === 'dark') ? saved : 'dark'
   })
+
+  // Right sidebar — panel to force open (triggered by topbar button)
+  const [forcedRightPanel, setForcedRightPanel] = useState<'assistant' | 'inspector' | 'notifications' | 'settings' | null>(null)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -286,6 +288,16 @@ export default function App() {
             <span>{theme === 'dark' ? 'Nocturno' : 'Diurno'}</span>
           </button>
 
+          {/* IA Asistente Quick-Open Button */}
+          <button
+            className="ia-asistente-btn"
+            onClick={() => setForcedRightPanel('assistant')}
+            title="Abrir IA Asistente"
+          >
+            <span>🤖</span>
+            <span>IA Asistente</span>
+          </button>
+
           {/* User Profile & Logout */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{
@@ -349,13 +361,6 @@ export default function App() {
       {/* 3-Panel Workspace — Mercado tab (main) */}
       {activeTab === 'mercado' && (
         <main className="workspace">
-          <ChatPanel
-            ciudad={ciudad}
-            onFilterZona={setZonaFilter}
-            onFilterEtapas={setSelectedEtapas}
-            onSelectIndicador={setSelectedIndicador}
-            onSwitchTab={setActiveTab}
-          />
           <WorkspacePanel
             ciudad={ciudad}
             zonaFilter={zonaFilter}
@@ -363,10 +368,16 @@ export default function App() {
             selectedIndicador={selectedIndicador}
             onSelectIndicador={setSelectedIndicador}
           />
-          <AnalysisPanel
-            selectedIndicador={selectedIndicador}
+          <RightSidebar
             ciudad={ciudad}
+            selectedIndicador={selectedIndicador}
+            onFilterZona={setZonaFilter}
+            onFilterEtapas={setSelectedEtapas}
+            onSelectIndicador={setSelectedIndicador}
             onClearSelection={() => setSelectedIndicador(null)}
+            onSwitchTab={setActiveTab}
+            forcedPanel={forcedRightPanel}
+            onForcedPanelConsumed={() => setForcedRightPanel(null)}
           />
         </main>
       )}
@@ -374,13 +385,6 @@ export default function App() {
       {/* Proyectos tab */}
       {activeTab === 'proyectos' && (
         <main className="workspace">
-          <ChatPanel
-            ciudad={ciudad}
-            onFilterZona={setZonaFilter}
-            onFilterEtapas={setSelectedEtapas}
-            onSelectIndicador={setSelectedIndicador}
-            onSwitchTab={setActiveTab}
-          />
           <WorkspacePanel
             ciudad={ciudad}
             zonaFilter={zonaFilter}
@@ -388,10 +392,16 @@ export default function App() {
             selectedIndicador={selectedIndicador}
             onSelectIndicador={setSelectedIndicador}
           />
-          <AnalysisPanel
-            selectedIndicador={selectedIndicador}
+          <RightSidebar
             ciudad={ciudad}
+            selectedIndicador={selectedIndicador}
+            onFilterZona={setZonaFilter}
+            onFilterEtapas={setSelectedEtapas}
+            onSelectIndicador={setSelectedIndicador}
             onClearSelection={() => setSelectedIndicador(null)}
+            onSwitchTab={setActiveTab}
+            forcedPanel={forcedRightPanel}
+            onForcedPanelConsumed={() => setForcedRightPanel(null)}
           />
         </main>
       )}
@@ -399,23 +409,22 @@ export default function App() {
       {/* Tipologías tab */}
       {activeTab === 'tipologias' && (
         <main className="workspace">
-          <ChatPanel
-            ciudad={ciudad}
-            onFilterZona={setZonaFilter}
-            onFilterEtapas={setSelectedEtapas}
-            onSelectIndicador={setSelectedIndicador}
-            onSwitchTab={setActiveTab}
-          />
           <TipologiasPanel
             ciudad={ciudad}
             etapaFilter={selectedEtapas}
             selectedIndicador={selectedIndicador}
             onSelectIndicador={setSelectedIndicador}
           />
-          <AnalysisPanel
-            selectedIndicador={selectedIndicador}
+          <RightSidebar
             ciudad={ciudad}
+            selectedIndicador={selectedIndicador}
+            onFilterZona={setZonaFilter}
+            onFilterEtapas={setSelectedEtapas}
+            onSelectIndicador={setSelectedIndicador}
             onClearSelection={() => setSelectedIndicador(null)}
+            onSwitchTab={setActiveTab}
+            forcedPanel={forcedRightPanel}
+            onForcedPanelConsumed={() => setForcedRightPanel(null)}
           />
         </main>
       )}
@@ -423,13 +432,6 @@ export default function App() {
       {/* Geoespacial tab */}
       {activeTab === 'geoespacial' && (
         <main className="workspace">
-          <ChatPanel
-            ciudad={ciudad}
-            onFilterZona={setZonaFilter}
-            onFilterEtapas={setSelectedEtapas}
-            onSelectIndicador={setSelectedIndicador}
-            onSwitchTab={setActiveTab}
-          />
           <GeoespacialPanel
             ciudad={ciudad}
             zonaFilter={zonaFilter}
@@ -438,10 +440,16 @@ export default function App() {
             onSelectIndicador={setSelectedIndicador}
             theme={theme}
           />
-          <AnalysisPanel
-            selectedIndicador={selectedIndicador}
+          <RightSidebar
             ciudad={ciudad}
+            selectedIndicador={selectedIndicador}
+            onFilterZona={setZonaFilter}
+            onFilterEtapas={setSelectedEtapas}
+            onSelectIndicador={setSelectedIndicador}
             onClearSelection={() => setSelectedIndicador(null)}
+            onSwitchTab={setActiveTab}
+            forcedPanel={forcedRightPanel}
+            onForcedPanelConsumed={() => setForcedRightPanel(null)}
           />
         </main>
       )}

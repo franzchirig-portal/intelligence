@@ -54,6 +54,8 @@ interface Props {
   onFilterEtapas?: (etapas: string[]) => void
   onSelectIndicador?: (ind: IndicadorFull | null) => void
   onSwitchTab?: (tab: 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial') => void
+  /** When true, the panel is embedded inside RightSidebar (no panel-left class, fills container) */
+  isEmbedded?: boolean
 }
 
 export default function ChatPanel({
@@ -62,6 +64,7 @@ export default function ChatPanel({
   onFilterEtapas,
   onSelectIndicador,
   onSwitchTab,
+  isEmbedded = false,
 }: Props) {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES)
   const [input, setInput] = useState('')
@@ -627,15 +630,18 @@ export default function ChatPanel({
   }
 
   return (
-    <div className="panel panel-left" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div
+      className={isEmbedded ? 'panel' : 'panel panel-left'}
+      style={{ display: 'flex', flexDirection: 'column', ...(isEmbedded ? { flex: 1, height: '100%', borderRight: 'none' } : {}) }}
+    >
       {/* Header */}
       <div className="panel-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div className="panel-title-dot" style={{ background: 'var(--accent-cyan)', boxShadow: '0 0 8px var(--accent-cyan)' }} />
-          <span style={{ fontWeight: 700, fontSize: 11.5 }}>AI Copilot</span>
+          <span style={{ fontWeight: 700, fontSize: 11.5 }}>IA Asistente</span>
         </div>
         <span style={{ fontSize: 9.5, color: 'var(--text-muted)', background: 'var(--bg-card)', padding: '2px 6px', borderRadius: 4, border: '1px solid var(--border-subtle)' }}>
-          NLP Analytics Engine
+          NLP Analytics
         </span>
       </div>
 
