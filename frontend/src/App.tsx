@@ -149,7 +149,7 @@ export default function App() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--bg-base, #040a0d)',
+        background: 'var(--bg-base, #181818)',
         gap: 12,
       }}>
         <div className="loading-shimmer" style={{ width: 180, height: 18 }} />

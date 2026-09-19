@@ -52,7 +52,6 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
           setSuccessMsg('¡Cuenta creada e iniciada con éxito!')
           setTimeout(() => onSuccess(), 1000)
         } else if (data.user) {
-          // If Supabase has email confirmation enabled
           setSuccessMsg('¡Usuario registrado exitosamente! Si tienes confirmación de correo habilitada en Supabase, revisa tu bandeja de entrada o intenta iniciar sesión.')
           setMode('login')
         }
@@ -70,32 +69,21 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
       position: 'fixed',
       inset: 0,
       zIndex: 9999,
-      background: 'radial-gradient(circle at 50% 30%, #061e24 0%, #040a0d 80%)',
+      background: 'var(--bg-base, #181818)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: 16,
-      fontFamily: "'Inter', sans-serif",
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     }}>
-      {/* Glow effect background */}
-      <div style={{
-        position: 'absolute',
-        width: 450,
-        height: 450,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(34, 211, 238, 0.08) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-
       <div style={{
         width: '100%',
-        maxWidth: 420,
-        background: 'rgba(9, 27, 34, 0.85)',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(20, 184, 166, 0.35)',
-        borderRadius: 12,
+        maxWidth: 400,
+        background: 'var(--bg-surface, #1e1e1e)',
+        border: '1px solid var(--border-subtle, #2b2d30)',
+        borderRadius: 8,
         padding: '32px 28px',
-        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(20, 184, 166, 0.1)',
+        boxShadow: '0 16px 48px rgba(0, 0, 0, 0.65)',
         position: 'relative',
         zIndex: 1,
       }}>
@@ -105,35 +93,35 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: 48,
-            height: 48,
-            borderRadius: 10,
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-default)',
-            boxShadow: 'none',
-            marginBottom: 12,
+            width: 46,
+            height: 46,
+            borderRadius: 8,
+            background: 'var(--bg-card, #252526)',
+            border: '1px solid var(--border-subtle, #2b2d30)',
+            marginBottom: 14,
           }}>
-            <svg width="26" height="26" viewBox="0 0 100 100" fill="none">
+            <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
               <path d="M 50 10 A 40 40 0 1 0 85 75 L 70 65 A 25 25 0 1 1 50 25 Z" fill="#ffffff" />
               <polygon points="50,38 60,50 50,62 40,50" fill="#9d9d9d" />
             </svg>
           </div>
+
           <h1 style={{
-            fontSize: 20,
-            fontWeight: 800,
-            color: '#f1f5f9',
+            fontSize: 18,
+            fontWeight: 700,
+            color: 'var(--text-primary, #f3f3f3)',
             margin: 0,
-            letterSpacing: 1.5,
+            letterSpacing: 2,
           }}>
             CITRINO
           </h1>
           <div style={{
             fontSize: 10,
-            fontWeight: 700,
-            color: 'var(--text-muted)',
+            fontWeight: 600,
+            color: 'var(--text-muted, #8e8e8e)',
             letterSpacing: 1.8,
             textTransform: 'uppercase',
-            marginTop: 3,
+            marginTop: 4,
           }}>
             Inteligencia Inmobiliaria
           </div>
@@ -142,26 +130,26 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         {/* Mode Switcher Tabs */}
         <div style={{
           display: 'flex',
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-base, #181818)',
           padding: 3,
-          borderRadius: 8,
+          borderRadius: 6,
           marginBottom: 20,
-          border: '1px solid var(--border-subtle)',
+          border: '1px solid var(--border-subtle, #2b2d30)',
         }}>
           <button
             type="button"
             onClick={() => { setMode('login'); setErrorMsg(null); setSuccessMsg(null); }}
             style={{
               flex: 1,
-              padding: '8px 0',
-              fontSize: 12,
-              fontWeight: 600,
-              background: mode === 'login' ? 'var(--bg-active)' : 'transparent',
-              color: mode === 'login' ? '#ffffff' : '#94a3b8',
-              border: mode === 'login' ? '1px solid var(--border-bright)' : 'none',
-              borderRadius: 6,
+              padding: '7px 0',
+              fontSize: 11.5,
+              fontWeight: mode === 'login' ? 600 : 500,
+              background: mode === 'login' ? 'var(--bg-card, #252526)' : 'transparent',
+              color: mode === 'login' ? 'var(--text-primary, #ffffff)' : 'var(--text-secondary, #9d9d9d)',
+              border: mode === 'login' ? '1px solid var(--border-default, #333842)' : '1px solid transparent',
+              borderRadius: 4,
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all 0.15s ease',
             }}>
             Iniciar Sesión
           </button>
@@ -170,15 +158,15 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             onClick={() => { setMode('register'); setErrorMsg(null); setSuccessMsg(null); }}
             style={{
               flex: 1,
-              padding: '8px 0',
-              fontSize: 12,
-              fontWeight: 600,
-              background: mode === 'register' ? 'var(--bg-active)' : 'transparent',
-              color: mode === 'register' ? '#ffffff' : '#94a3b8',
-              border: mode === 'register' ? '1px solid var(--border-bright)' : 'none',
-              borderRadius: 6,
+              padding: '7px 0',
+              fontSize: 11.5,
+              fontWeight: mode === 'register' ? 600 : 500,
+              background: mode === 'register' ? 'var(--bg-card, #252526)' : 'transparent',
+              color: mode === 'register' ? 'var(--text-primary, #ffffff)' : 'var(--text-secondary, #9d9d9d)',
+              border: mode === 'register' ? '1px solid var(--border-default, #333842)' : '1px solid transparent',
+              borderRadius: 4,
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all 0.15s ease',
             }}>
             Crear Cuenta
           </button>
@@ -187,10 +175,10 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         {/* Error Alert */}
         {errorMsg && (
           <div style={{
-            background: 'rgba(239, 68, 68, 0.12)',
-            border: '1px solid rgba(239, 68, 68, 0.35)',
-            color: '#fca5a5',
-            padding: '10px 12px',
+            background: 'rgba(244, 63, 94, 0.12)',
+            border: '1px solid rgba(244, 63, 94, 0.35)',
+            color: '#fda4af',
+            padding: '9px 12px',
             borderRadius: 6,
             fontSize: 11.5,
             marginBottom: 16,
@@ -205,7 +193,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             background: 'rgba(16, 185, 129, 0.12)',
             border: '1px solid rgba(16, 185, 129, 0.35)',
             color: '#86efac',
-            padding: '10px 12px',
+            padding: '9px 12px',
             borderRadius: 6,
             fontSize: 11.5,
             marginBottom: 16,
@@ -218,7 +206,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {mode === 'register' && (
             <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#94a3b8', marginBottom: 5 }}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: 'var(--text-secondary, #9d9d9d)', marginBottom: 5 }}>
                 Nombre Completo
               </label>
               <input
@@ -230,20 +218,23 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
                 style={{
                   width: '100%',
                   padding: '9px 12px',
-                  background: 'var(--bg-input, #061318)',
-                  border: '1px solid var(--border-default, #1a4354)',
+                  background: 'var(--bg-input, #1f1f1f)',
+                  border: '1px solid var(--border-subtle, #2b2d30)',
                   borderRadius: 6,
-                  color: '#f1f5f9',
-                  fontSize: 12.5,
+                  color: 'var(--text-primary, #f3f3f3)',
+                  fontSize: 12,
                   outline: 'none',
                   boxSizing: 'border-box',
+                  transition: 'border-color 0.15s ease',
                 }}
+                onFocus={(e) => (e.target.style.borderColor = 'var(--border-bright, #444c56)')}
+                onBlur={(e) => (e.target.style.borderColor = 'var(--border-subtle, #2b2d30)')}
               />
             </div>
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#94a3b8', marginBottom: 5 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: 'var(--text-secondary, #9d9d9d)', marginBottom: 5 }}>
               Correo Electrónico
             </label>
             <input
@@ -255,19 +246,22 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               style={{
                 width: '100%',
                 padding: '9px 12px',
-                background: 'var(--bg-input, #061318)',
-                border: '1px solid var(--border-default, #1a4354)',
+                background: 'var(--bg-input, #1f1f1f)',
+                border: '1px solid var(--border-subtle, #2b2d30)',
                 borderRadius: 6,
-                color: '#f1f5f9',
-                fontSize: 12.5,
+                color: 'var(--text-primary, #f3f3f3)',
+                fontSize: 12,
                 outline: 'none',
                 boxSizing: 'border-box',
+                transition: 'border-color 0.15s ease',
               }}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--border-bright, #444c56)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border-subtle, #2b2d30)')}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#94a3b8', marginBottom: 5 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: 'var(--text-secondary, #9d9d9d)', marginBottom: 5 }}>
               Contraseña
             </label>
             <input
@@ -280,33 +274,43 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               style={{
                 width: '100%',
                 padding: '9px 12px',
-                background: 'var(--bg-input, #061318)',
-                border: '1px solid var(--border-default, #1a4354)',
+                background: 'var(--bg-input, #1f1f1f)',
+                border: '1px solid var(--border-subtle, #2b2d30)',
                 borderRadius: 6,
-                color: '#f1f5f9',
-                fontSize: 12.5,
+                color: 'var(--text-primary, #f3f3f3)',
+                fontSize: 12,
                 outline: 'none',
                 boxSizing: 'border-box',
+                transition: 'border-color 0.15s ease',
               }}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--border-bright, #444c56)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border-subtle, #2b2d30)')}
             />
           </div>
 
+          {/* Primary Submit Button */}
           <button
             type="submit"
             disabled={loading}
             style={{
-              marginTop: 6,
-              padding: '11px 16px',
-              fontSize: 13,
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #0e7490, #14b8a6)',
-              color: '#ffffff',
+              marginTop: 4,
+              padding: '10px 16px',
+              fontSize: 12.5,
+              fontWeight: 600,
+              background: '#f3f3f3',
+              color: '#181818',
               border: 'none',
               borderRadius: 6,
               cursor: loading ? 'not-allowed' : 'pointer',
-              boxShadow: '0 4px 15px rgba(20, 184, 166, 0.3)',
-              transition: 'all 0.2s',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+              transition: 'all 0.15s ease',
               opacity: loading ? 0.7 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) (e.currentTarget as HTMLButtonElement).style.background = '#ffffff'
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) (e.currentTarget as HTMLButtonElement).style.background = '#f3f3f3'
             }}>
             {loading ? 'Procesando...' : mode === 'login' ? 'Entrar a la Plataforma' : 'Completar Registro'}
           </button>
@@ -316,37 +320,48 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            margin: '6px 0 2px',
+            margin: '4px 0 0',
           }}>
-            <div style={{ flex: 1, height: 1, background: 'var(--border-subtle, #133340)' }} />
-            <span style={{ fontSize: 10, color: 'var(--text-muted, #4e6b78)', textTransform: 'uppercase', letterSpacing: 1 }}>o</span>
-            <div style={{ flex: 1, height: 1, background: 'var(--border-subtle, #133340)' }} />
+            <div style={{ flex: 1, height: 1, background: 'var(--border-subtle, #2b2d30)' }} />
+            <span style={{ fontSize: 10, color: 'var(--text-muted, #6e6e6e)', textTransform: 'uppercase', letterSpacing: 1 }}>o</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--border-subtle, #2b2d30)' }} />
           </div>
 
+          {/* Quick Demo Access Button */}
           <button
             type="button"
             onClick={onSuccess}
             style={{
               padding: '9px 14px',
-              fontSize: 12,
-              fontWeight: 600,
-              background: 'var(--bg-card)',
-              color: 'var(--text-primary)',
-              border: '1px dashed var(--border-default)',
+              fontSize: 11.5,
+              fontWeight: 500,
+              background: 'var(--bg-card, #252526)',
+              color: 'var(--text-primary, #f3f3f3)',
+              border: '1px solid var(--border-subtle, #2b2d30)',
               borderRadius: 6,
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all 0.15s ease',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 6,
+            }}
+            onMouseEnter={(e) => {
+              const btn = e.currentTarget as HTMLButtonElement
+              btn.style.background = 'var(--bg-hover, #2a2d2e)'
+              btn.style.borderColor = 'var(--border-bright, #444c56)'
+            }}
+            onMouseLeave={(e) => {
+              const btn = e.currentTarget as HTMLButtonElement
+              btn.style.background = 'var(--bg-card, #252526)'
+              btn.style.borderColor = 'var(--border-subtle, #2b2d30)'
             }}>
             <span>Acceso Rápido (Modo Demostración / Invitado)</span>
           </button>
         </form>
 
         {/* Footer info & Supabase Auth note */}
-        <div style={{ marginTop: 20, textAlign: 'center', fontSize: 10.5, color: '#64748b', lineHeight: 1.5 }}>
+        <div style={{ marginTop: 20, textAlign: 'center', fontSize: 10.5, color: 'var(--text-muted, #6e6e6e)', lineHeight: 1.5 }}>
           <span>Control de accesos y perfiles empresariales con Supabase Auth.</span>
         </div>
       </div>
