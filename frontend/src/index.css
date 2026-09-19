@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ─── Design Tokens (Citrino Petrol Teal Brand Palette) ─────────────────── */
+/* ─── Design Tokens (Citrino Neutral Refined Palette) ───────────────────── */
 :root {
-  /* Citrino Brand Colors (Extracted from official logo #032E35) */
+  /* Citrino Brand Colors */
   --citrino-petrol:     #032e35;
   --citrino-teal:       #0e7490;
   --citrino-teal-light: #14b8a6;
   --citrino-cyan:       #06b6d4;
   --citrino-accent:     #22d3ee;
-  --citrino-glow:       rgba(34, 211, 238, 0.25);
+  --citrino-glow:       rgba(255,255,255,0);
   --citrino-dark:       #032e35;
 
   /* Backgrounds (Petrol Slate Dark Theme) */
@@ -21,11 +21,11 @@
   --bg-input:        #061318;
   --bg-card:         #0e2530;
 
-  /* Borders */
-  --border-subtle:   #133340;
-  --border-default:  #1a4354;
-  --border-bright:   #235e75;
-  --border-accent:   #14b8a6;
+  /* Borders — clean neutral grays, no neon */
+  --border-subtle:   #1e2d35;
+  --border-default:  #253845;
+  --border-bright:   #334d5c;
+  --border-accent:   #334d5c;
 
   /* Text */
   --text-primary:    #f1f5f9;
@@ -42,7 +42,7 @@
 
   /* Accents */
   --accent-blue:     #0e7490;
-  --accent-blue-glow:rgba(14, 116, 144, 0.3);
+  --accent-blue-glow:rgba(14, 116, 144, 0.15);
   --accent-cyan:     #22d3ee;
   --accent-emerald:  #10b981;
   --accent-ruby:     #ef4444;
@@ -50,17 +50,17 @@
   --accent-teal:     #14b8a6;
   --accent-amber:    #14b8a6;
   --citrino-amber:   #14b8a6;
-  --citrino-amber-glow: rgba(20, 184, 166, 0.25);
+  --citrino-amber-glow: rgba(255,255,255,0);
 
   /* Panels */
   --panel-left-w:    300px;
   --panel-right-w:   330px;
 
-  /* Effects */
+  /* Effects — no neon glow */
   --shadow-panel:    0 0 0 1px var(--border-subtle), 0 4px 24px rgba(0,0,0,0.7);
   --shadow-card:     0 2px 12px rgba(0,0,0,0.5);
-  --glow-citrino:    0 0 16px var(--citrino-glow);
-  --glow-blue:       0 0 20px rgba(14, 116, 144, 0.3);
+  --glow-citrino:    none;
+  --glow-blue:       none;
 
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -75,7 +75,7 @@
   --citrino-teal-light: #0f766e;
   --citrino-cyan:       #0284c7;
   --citrino-accent:     #0284c7;
-  --citrino-glow:       rgba(13, 148, 136, 0.15);
+  --citrino-glow:       rgba(255,255,255,0);
   --citrino-dark:       #f0fdfa;
 
   /* Backgrounds (Clean Modern Slate) */
@@ -92,7 +92,7 @@
   --border-subtle:   #e2e8f0;
   --border-default:  #cbd5e1;
   --border-bright:   #94a3b8;
-  --border-accent:   #0d9488;
+  --border-accent:   #94a3b8;
 
   /* Text */
   --text-primary:    #0f172a;
@@ -117,13 +117,13 @@
   --accent-teal:     #0d9488;
   --accent-amber:    #d97706;
   --citrino-amber:   #0d9488;
-  --citrino-amber-glow: rgba(13, 148, 136, 0.15);
+  --citrino-amber-glow: rgba(255,255,255,0);
 
   /* Effects */
   --shadow-panel:    0 0 0 1px var(--border-subtle), 0 2px 16px rgba(15, 23, 42, 0.08);
   --shadow-card:     0 1px 3px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
-  --glow-citrino:    0 0 12px rgba(13, 148, 136, 0.12);
-  --glow-blue:       0 0 12px rgba(2, 132, 199, 0.12);
+  --glow-citrino:    none;
+  --glow-blue:       none;
 }
 
 /* ─── Reset & Base ───────────────────────────────────────────────────────── */
@@ -283,7 +283,7 @@ html, body, #root {
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--accent-blue);
-  box-shadow: 0 0 6px var(--accent-blue);
+  box-shadow: none;
 }
 
 .panel-body {
@@ -773,7 +773,7 @@ html, body, #root {
   width: 5px; height: 5px;
   border-radius: 50%;
   background: var(--accent-emerald);
-  box-shadow: 0 0 4px var(--accent-emerald);
+  box-shadow: none;
 }
 
 .flex { display: flex; }
@@ -846,7 +846,7 @@ html, body, #root {
   background: #091b22 !important;
   border: 1px solid #1e4b5a !important;
   border-radius: 10px !important;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), 0 0 16px rgba(34, 211, 238, 0.2) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75) !important;
   color: #f1f5f9 !important;
   padding: 0 !important;
   overflow: hidden;
@@ -985,7 +985,7 @@ html, body, #root {
   height: 8px;
   border-radius: 50%;
   background: var(--citrino-accent);
-  box-shadow: 0 0 10px var(--citrino-accent);
+  box-shadow: none;
   animation: citrino-pulse 2s infinite ease-in-out;
 }
 .os-brand-title {
@@ -998,8 +998,8 @@ html, body, #root {
   font-size: 9px;
   padding: 2px 6px;
   border-radius: 10px;
-  background: rgba(34, 211, 238, 0.12);
-  border: 1px solid rgba(34, 211, 238, 0.3);
+  background: rgba(34, 211, 238, 0.06);
+  border: 1px solid rgba(34, 211, 238, 0.2);
   color: var(--citrino-accent);
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
@@ -1089,7 +1089,7 @@ html, body, #root {
   height: 6px;
   border-radius: 50%;
   background: var(--citrino-accent);
-  box-shadow: 0 0 6px var(--citrino-accent);
+  box-shadow: none;
 }
 
 .os-cmd-trigger {
@@ -1297,7 +1297,7 @@ html, body, #root {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 0 12px var(--citrino-glow);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 .os-btn-primary:hover {
   opacity: 0.92;
@@ -1545,7 +1545,7 @@ html, body, #root {
   background: var(--citrino-petrol);
   border-color: var(--citrino-teal-light);
   color: #ffffff;
-  box-shadow: 0 0 8px var(--citrino-glow);
+  box-shadow: none;
 }
 .os-dossier-actions {
   display: flex;
@@ -1805,7 +1805,7 @@ html, body, #root {
   background: #07171e;
   border: 1px solid var(--border-bright);
   border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 20px var(--citrino-glow);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1982,8 +1982,8 @@ html, body, #root {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, var(--citrino-petrol, #032e35) 0%, var(--citrino-dark, #061b22) 100%);
-  border: 1px solid var(--citrino-teal-light, #14b8a6);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
   color: var(--citrino-accent, #22d3ee);
   border-radius: 20px;
   padding: 4px 12px;
@@ -1991,14 +1991,14 @@ html, body, #root {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 8px var(--citrino-glow, rgba(34,211,238,0.15));
+  box-shadow: none;
   user-select: none;
   letter-spacing: 0.02em;
 }
 .ia-asistente-btn:hover {
   background: linear-gradient(135deg, #094754 0%, #032e35 100%);
   border-color: var(--citrino-accent, #22d3ee);
-  box-shadow: 0 0 16px var(--citrino-glow, rgba(34,211,238,0.4));
+  box-shadow: none;
   transform: translateY(-1px);
   color: #fff;
 }

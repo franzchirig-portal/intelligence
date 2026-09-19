@@ -69,7 +69,7 @@ export default function CommandPalette({
         subtitle: 'Dock de aplicaciones, comparador y control de pipeline',
         category: 'Vistas',
         badge: 'OS',
-        icon: '⚡',
+        icon: 'OS',
         action: () => {
           onSwitchTab('workspace_os')
           onClose()
@@ -81,7 +81,7 @@ export default function CommandPalette({
         subtitle: 'Comparar proyectos y zonas frente a frente en métricas y radar',
         category: 'Herramientas',
         badge: 'Herramienta',
-        icon: '⚖️',
+        icon: 'CMP',
         action: () => {
           onSwitchTab('workspace_os')
           if (onOpenApp) onOpenApp('comparador')
@@ -94,7 +94,7 @@ export default function CommandPalette({
         subtitle: 'Exportar informe corporativo PDF / CSV',
         category: 'Herramientas',
         badge: 'Exportar',
-        icon: '📑',
+        icon: 'DOC',
         action: () => {
           onSwitchTab('workspace_os')
           if (onOpenApp) onOpenApp('dossier')
@@ -107,7 +107,7 @@ export default function CommandPalette({
         subtitle: 'Monitoreo Bronze → Silver → Gold y visor de datos Supabase',
         category: 'Herramientas',
         badge: 'Data',
-        icon: '🔄',
+        icon: 'ETL',
         action: () => {
           onSwitchTab('workspace_os')
           if (onOpenApp) onOpenApp('pipeline')
@@ -120,7 +120,7 @@ export default function CommandPalette({
         subtitle: 'Gráficos de stock, ritmo de absorción y evolución temporal',
         category: 'Vistas',
         badge: 'Vista',
-        icon: '📊',
+        icon: 'MKT',
         action: () => {
           onSwitchTab('mercado')
           onClose()
@@ -132,7 +132,7 @@ export default function CommandPalette({
         subtitle: 'Mix de tipologías, m² promedio, precios USD y USD/m²',
         category: 'Vistas',
         badge: 'Vista',
-        icon: '📐',
+        icon: 'TIP',
         action: () => {
           onSwitchTab('tipologias')
           onClose()
@@ -144,7 +144,7 @@ export default function CommandPalette({
         subtitle: 'Catálogo con deep dive individual y radar',
         category: 'Vistas',
         badge: 'Vista',
-        icon: '🏢',
+        icon: 'PRY',
         action: () => {
           onSwitchTab('proyectos')
           onClose()
@@ -156,7 +156,7 @@ export default function CommandPalette({
         subtitle: 'Distribución geográfica, polígonos y ubicaciones',
         category: 'Vistas',
         badge: 'Vista',
-        icon: '🗺️',
+        icon: 'GEO',
         action: () => {
           onSwitchTab('geoespacial')
           onClose()
@@ -172,7 +172,7 @@ export default function CommandPalette({
         subtitle: currentCiudad === 'SCZ' ? 'Actualmente seleccionado' : 'Cambiar foco a mercado Santa Cruz',
         category: 'Ciudades',
         badge: 'Ciudad',
-        icon: '📍',
+        icon: 'SCZ',
         action: () => {
           onSelectCiudad('SCZ')
           onClose()
@@ -184,7 +184,7 @@ export default function CommandPalette({
         subtitle: currentCiudad === 'LPZ' ? 'Actualmente seleccionado' : 'Cambiar foco a mercado La Paz',
         category: 'Ciudades',
         badge: 'Ciudad',
-        icon: '📍',
+        icon: 'LPZ',
         action: () => {
           onSelectCiudad('LPZ')
           onClose()
@@ -196,7 +196,7 @@ export default function CommandPalette({
         subtitle: currentCiudad === 'CBB' ? 'Actualmente seleccionado' : 'Cambiar foco a mercado Cochabamba',
         category: 'Ciudades',
         badge: 'Ciudad',
-        icon: '📍',
+        icon: 'CBB',
         action: () => {
           onSelectCiudad('CBB')
           onClose()
@@ -208,7 +208,7 @@ export default function CommandPalette({
         subtitle: currentCiudad === 'ALL' ? 'Actualmente seleccionado' : 'Consolidar las 3 ciudades principales',
         category: 'Ciudades',
         badge: 'Nacional',
-        icon: '🇧🇴',
+        icon: 'BOL',
         action: () => {
           onSelectCiudad('ALL')
           onClose()
@@ -226,7 +226,7 @@ export default function CommandPalette({
         subtitle: `Filtrar análisis por la zona ${z}`,
         category: 'Zonas',
         badge: 'Zona',
-        icon: '📌',
+        icon: 'ZNA',
         action: () => {
           onSelectZona(z)
           onClose()
@@ -250,7 +250,7 @@ export default function CommandPalette({
         subtitle: `${p.ciudad} · Zona: ${p.ZONAS || '—'} · Etapa: ${p.etapa || '—'} · Stock: ${p.und_por_vender ?? 0} unds`,
         category: 'Proyectos',
         badge: p.ciudad,
-        icon: '🏢',
+        icon: 'PRY',
         action: () => {
           onSelectProject(p)
           onClose()
@@ -310,7 +310,7 @@ export default function CommandPalette({
       <div className="cmd-palette-modal" onKeyDown={handleKeyDown}>
         {/* Search Input Bar */}
         <div className="cmd-palette-search-bar">
-          <span className="cmd-palette-icon">⌘</span>
+          <svg className="cmd-palette-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input
             ref={inputRef}
             type="text"
@@ -345,7 +345,7 @@ export default function CommandPalette({
                     </div>
                     {item.subtitle && <div className="cmd-item-subtitle">{item.subtitle}</div>}
                   </div>
-                  {isSelected && <span className="cmd-item-enter">↵</span>}
+                  {isSelected && <span className="cmd-item-enter">Enter</span>}
                 </div>
               )
             })
@@ -356,7 +356,7 @@ export default function CommandPalette({
         <div className="cmd-palette-footer">
           <div className="cmd-footer-keys">
             <span><kbd>↑</kbd> <kbd>↓</kbd> Navegar</span>
-            <span><kbd>↵</kbd> Seleccionar</span>
+            <span><kbd>Enter</kbd> Seleccionar</span>
             <span><kbd>ESC</kbd> Cerrar</span>
           </div>
           <div className="cmd-footer-brand">

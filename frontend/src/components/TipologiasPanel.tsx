@@ -47,12 +47,12 @@ function fmtUSD(n: number | null | undefined): string {
 
 function getBedIcon(tipo: string): string {
   const t = tipo.toLowerCase()
-  if (t.includes('mono') || t.includes('estudio')) return '🚪'
-  if (t.includes('1')) return '🛏️'
-  if (t.includes('2')) return '🛋️'
-  if (t.includes('3') || t.includes('más') || t.includes('mas')) return '🏡'
-  if (t.includes('penthouse') || t.includes('ph')) return '⭐'
-  return '🏢'
+  if (t.includes('mono') || t.includes('estudio')) return 'M'
+  if (t.includes('1')) return '1D'
+  if (t.includes('2')) return '2D'
+  if (t.includes('3') || t.includes('más') || t.includes('mas')) return '3D+'
+  if (t.includes('penthouse') || t.includes('ph')) return 'PH'
+  return ''
 }
 
 export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador, onSelectIndicador }: Props) {
@@ -273,7 +273,7 @@ export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador
     <div className="panel panel-center" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Header */}
       <div className="panel-header">
-        <div className="panel-title-dot" style={{ background: 'var(--citrino-teal-light)', boxShadow: '0 0 6px var(--citrino-glow)' }} />
+        <div className="panel-title-dot" style={{ background: 'var(--citrino-teal-light)', boxShadow: 'none' }} />
         <span style={{ fontWeight: 700 }}>01-E ANÁLISIS DE TIPOLOGÍAS</span>
         <span style={{ marginLeft: 8, fontSize: 10, color: 'var(--text-muted)' }}>
           — Producto Inmobiliario (Área, Precios y Absorción)
@@ -288,12 +288,12 @@ export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador
           <button
             onClick={() => setViewMode('01-E')}
             className={`citrino-subtab-btn ${viewMode === '01-E' ? 'active' : ''}`}>
-            📊 Matriz Oficial 01-E
+            Matriz Oficial 01-E
           </button>
           <button
             onClick={() => setViewMode('charts')}
             className={`citrino-subtab-btn ${viewMode === 'charts' ? 'active' : ''}`}>
-            📈 Gráficos
+            Gráficos
           </button>
         </div>
       </div>
@@ -309,7 +309,7 @@ export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador
         flexWrap: 'wrap',
       }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--citrino-teal-light)', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span>🏢 Proyecto:</span>
+          <span>Proyecto:</span>
         </div>
 
         <div style={{ position: 'relative', flex: '1', minWidth: 220, maxWidth: 380 }}>
@@ -330,7 +330,7 @@ export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador
               borderRadius: 'var(--radius-md)',
               outline: 'none',
               cursor: 'pointer',
-              boxShadow: '0 0 8px var(--citrino-glow)',
+              boxShadow: 'none',
             }}>
             {proyectos.map((p) => (
               <option key={p.indicador_censo_id} value={p.indicador_censo_id}>
@@ -383,7 +383,7 @@ export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador
               <div>
                 {tipologias.length === 0 ? (
                   <div className="empty-state" style={{ padding: '30px 16px', textAlign: 'center' }}>
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
+                    <div style={{ fontSize: 20, marginBottom: 8, color: 'var(--text-muted)' }}>—</div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
                       Sin tipologías individuales en este censo
                     </div>
@@ -415,7 +415,7 @@ export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador
                             display: 'flex',
                             flexDirection: 'column',
                             gap: 10,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                            boxShadow: 'none',
                           }}>
                           {/* Card Header */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

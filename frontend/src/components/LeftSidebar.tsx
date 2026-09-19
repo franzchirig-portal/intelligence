@@ -109,9 +109,7 @@ export default function LeftSidebar({
               color: activePanel === id ? '#fff' : 'var(--text-muted)',
               transition: 'all 0.15s ease',
               outline: 'none',
-              boxShadow: activePanel === id
-                ? '0 0 10px var(--citrino-glow, rgba(34,211,238,0.35))'
-                : 'none',
+              boxShadow: 'none',
               position: 'relative',
             }}
             onMouseEnter={(e) => {

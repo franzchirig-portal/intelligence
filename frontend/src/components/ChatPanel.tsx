@@ -30,22 +30,22 @@ const INITIAL_MESSAGES: Message[] = [
     role: 'ai',
     text: '¿Qué quieres analizar hoy? Puedes pedirme por ejemplo:\n• *"Grafica el stock disponible por zona"*\n• *"Ranking de proyectos con mayor ritmo de venta"*\n• *"Distribución de inventario por etapa"*\n• *"¿Cuáles son los proyectos con mayor riesgo de sobreoferta?"*\n• *"Analiza la zona de Equipetrol"*',
     chips: [
-      '📊 Graficar stock por zona',
-      '⚡ Ranking ritmo de venta',
-      '🏗️ Distribución por etapa',
-      '⚠️ Proyectos con riesgo de stock',
-      '📍 Analizar Equipetrol',
+      'Stock por zona',
+      'Ranking ritmo de venta',
+      'Distribución por etapa',
+      'Proyectos con riesgo de stock',
+      'Analizar Equipetrol',
     ],
   },
 ]
 
 const QUICK_PROMPTS = [
-  '📊 Stock por zona',
-  '⚡ Ritmo de venta',
-  '🏗️ Etapas de obra',
-  '⚠️ Riesgo de stock',
-  '📍 Equipetrol',
-  '🏙️ Comparar ciudades',
+  'Stock por zona',
+  'Ritmo de venta',
+  'Etapas de obra',
+  'Riesgo de stock',
+  'Equipetrol',
+  'Comparar ciudades',
 ]
 
 interface Props {
@@ -184,17 +184,16 @@ export default function ChatPanel({
       if (onSwitchTab) {
         actions.push({
           label: 'Ver Proyectos en Mapa Geoespacial',
-          icon: '🗺️',
           onClick: () => onSwitchTab('geoespacial'),
         })
       }
 
       return {
-        text: `⚠️ **Diagnóstico de Riesgo de Sobreoferta (${currentCiudad})**:\n\nDetecté **${oversupply.length} proyectos con presión comercial** (>18 meses), de los cuales **${critical.length} están en zona crítica** (>24 meses de stock):\n\n${topList}\n\n*El gráfico clasifica la salud de absorción de los ${latest.length} desarrollos censados:*`,
+        text: `**Diagnóstico de Riesgo de Sobreoferta (${currentCiudad})**:\n\nDetecté **${oversupply.length} proyectos con presión comercial** (>18 meses), de los cuales **${critical.length} están en zona crítica** (>24 meses de stock):\n\n${topList}\n\n*El gráfico clasifica la salud de absorción de los ${latest.length} desarrollos censados:*`,
         chartTitle: 'Distribución por Horizonte de Liquidación',
         chartOption,
         actions,
-        chips: ['⚡ Ver proyectos más rápidos', '📍 Ver stock por zona', '🏗️ Filtrar por etapa'],
+        chips: ['Ver proyectos más rápidos', 'Ver stock por zona', 'Filtrar por etapa'],
       }
     }
 
@@ -264,14 +263,12 @@ export default function ChatPanel({
       if (onSelectIndicador && leader) {
         actions.push({
           label: `Analizar ${leader.proyecto}`,
-          icon: '📊',
           onClick: () => onSelectIndicador(leader),
         })
       }
       if (onSwitchTab) {
         actions.push({
           label: 'Ver en Vista Proyectos',
-          icon: '📋',
           onClick: () => onSwitchTab('proyectos'),
         })
       }
@@ -279,11 +276,11 @@ export default function ChatPanel({
       const listText = sorted.slice(0, 3).map((p, idx) => `**#${idx + 1} ${p.proyecto}** (${p.ZONAS || p.ciudad}): **${p.ritmo_venta?.toFixed(1)} und/mes** (${(p.pct_vendido ? p.pct_vendido * 100 : 0).toFixed(0)}% colocado)`).join('\n')
 
       return {
-        text: `⚡ **Líderes en Velocidad Comercial (${currentCiudad})**:\n\nEl proyecto más acelerado es **${leader.proyecto}** con **${leader.ritmo_venta?.toFixed(1)} und/mes**.\n\n${listText}\n\n*Gráfico comparativo de los 6 proyectos con mayor ritmo:*`,
+        text: `**Líderes en Velocidad Comercial (${currentCiudad})**:\n\nEl proyecto más acelerado es **${leader.proyecto}** con **${leader.ritmo_venta?.toFixed(1)} und/mes**.\n\n${listText}\n\n*Gráfico comparativo de los 6 proyectos con mayor ritmo:*`,
         chartTitle: 'Ranking de Ritmo de Venta (Unidades / Mes)',
         chartOption,
         actions,
-        chips: ['📊 Ver stock por zona', '🏗️ Etapas de obra', '⚠️ Proyectos con riesgo'],
+        chips: ['Ver stock por zona', 'Etapas de obra', 'Proyectos con riesgo'],
       }
     }
 
@@ -348,17 +345,16 @@ export default function ChatPanel({
       if (onFilterEtapas && entries[0]) {
         actions.push({
           label: `Filtrar Etapa: ${entries[0][0]}`,
-          icon: '🏗️',
           onClick: () => onFilterEtapas([entries[0][0]]),
         })
       }
 
       return {
-        text: `🏗️ **Distribución del Inventario por Etapa de Obra**:\n\n${summaryLines}\n\n*Gráfico de participación del stock disponible según estado constructivo:*`,
+        text: `**Distribución del Inventario por Etapa de Obra**:\n\n${summaryLines}\n\n*Gráfico de participación del stock disponible según estado constructivo:*`,
         chartTitle: 'Inventario Disponible por Etapa',
         chartOption,
         actions,
-        chips: ['⚡ ¿Qué etapa vende más rápido?', '📍 Ver stock por zona', '🗺️ Ver en mapa'],
+        chips: ['¿Qué etapa vende más rápido?', 'Ver stock por zona', 'Ver en mapa'],
       }
     }
 
@@ -415,24 +411,22 @@ export default function ChatPanel({
       if (onFilterZona) {
         actions.push({
           label: `Filtrar ${matchedZona} en Tablero`,
-          icon: '🎯',
           onClick: () => onFilterZona(matchedZona),
         })
       }
       if (onSwitchTab) {
         actions.push({
           label: 'Ver en Mapa Geoespacial',
-          icon: '🗺️',
           onClick: () => onSwitchTab('geoespacial'),
         })
       }
 
       return {
-        text: `📍 **Análisis Focalizado: ${matchedZona}**\n\n• **${zonaProjects.length} desarrollos censados**\n• Stock disponible: **${totalDisp.toLocaleString()} unidades** (${pctVend}% colocado)\n• Velocidad de colocación media: **${avgRitmo.toFixed(1)} und/mes**\n\n*Principales proyectos con stock en ${matchedZona}:*`,
+        text: `**Análisis Focalizado: ${matchedZona}**\n\n• **${zonaProjects.length} desarrollos censados**\n• Stock disponible: **${totalDisp.toLocaleString()} unidades** (${pctVend}% colocado)\n• Velocidad de colocación media: **${avgRitmo.toFixed(1)} und/mes**\n\n*Principales proyectos con stock en ${matchedZona}:*`,
         chartTitle: `Top Proyectos con Stock en ${matchedZona}`,
         chartOption,
         actions,
-        chips: ['⚡ Ver proyectos más rápidos', '⚠️ Proyectos en riesgo', '📊 Volver a stock general'],
+        chips: ['Ver proyectos más rápidos', 'Proyectos en riesgo', 'Volver a stock general'],
       }
     }
 
@@ -501,24 +495,22 @@ export default function ChatPanel({
       if (onFilterZona && leaderZona) {
         actions.push({
           label: `Filtrar ${leaderZona[0]}`,
-          icon: '🎯',
           onClick: () => onFilterZona(leaderZona[0]),
         })
       }
       if (onSwitchTab) {
         actions.push({
           label: 'Ver Mapa Geoespacial',
-          icon: '🗺️',
           onClick: () => onSwitchTab('geoespacial'),
         })
       }
 
       return {
-        text: `📊 **Inventario Disponible por Zona (${currentCiudad})**:\n\nLa mayor concentración de oferta activa se ubica en:\n\n${listText}\n\n*Gráfico de las 6 zonas con mayor volumen disponible:*`,
+        text: `**Inventario Disponible por Zona (${currentCiudad})**:\n\nLa mayor concentración de oferta activa se ubica en:\n\n${listText}\n\n*Gráfico de las 6 zonas con mayor volumen disponible:*`,
         chartTitle: 'Top Zonas por Stock Disponible',
         chartOption,
         actions,
-        chips: ['⚡ Ver ritmo de venta', '🏗️ Distribución por etapa', '⚠️ Proyectos en riesgo'],
+        chips: ['Ver ritmo de venta', 'Distribución por etapa', 'Proyectos en riesgo'],
       }
     }
 
@@ -579,10 +571,10 @@ export default function ChatPanel({
       }
 
       return {
-        text: `🏙️ **Comparativa Nacional de Mercado (Bolivia)**:\n\n• **Santa Cruz**: ${cityMap['SCZ']?.proy ?? 0} desarrollos · ${(cityMap['SCZ']?.disp ?? 0).toLocaleString()} und disponibles\n• **La Paz**: ${cityMap['LPZ']?.proy ?? 0} desarrollos · ${(cityMap['LPZ']?.disp ?? 0).toLocaleString()} und disponibles\n• **Cochabamba**: ${cityMap['CBB']?.proy ?? 0} desarrollos · ${(cityMap['CBB']?.disp ?? 0).toLocaleString()} und disponibles\n\n*Comparativa de unidades en stock por plaza:*`,
+        text: `**Comparativa Nacional de Mercado (Bolivia)**:\n\n• **Santa Cruz**: ${cityMap['SCZ']?.proy ?? 0} desarrollos · ${(cityMap['SCZ']?.disp ?? 0).toLocaleString()} und disponibles\n• **La Paz**: ${cityMap['LPZ']?.proy ?? 0} desarrollos · ${(cityMap['LPZ']?.disp ?? 0).toLocaleString()} und disponibles\n• **Cochabamba**: ${cityMap['CBB']?.proy ?? 0} desarrollos · ${(cityMap['CBB']?.disp ?? 0).toLocaleString()} und disponibles\n\n*Comparativa de unidades en stock por plaza:*`,
         chartTitle: 'Inventario Disponible por Ciudad',
         chartOption,
-        chips: ['📊 Stock por zona en SCZ', '⚡ Ranking ritmo de venta', '⚠️ Riesgo de sobreoferta'],
+        chips: ['Stock por zona en SCZ', 'Ranking ritmo de venta', 'Riesgo de sobreoferta'],
       }
     }
 
@@ -596,10 +588,10 @@ export default function ChatPanel({
     return {
       text: `Entendido. Analicé los **${latest.length} desarrollos censados** en **${currentCiudad}**:\n\n• Stock disponible total: **${totalDisp.toLocaleString()} unidades**\n• Nivel de absorción acumulado: **${pct}% colocado**\n• Velocidad media de colocación: **${avgR.toFixed(1)} und/mes**\n\n¿Quieres que te grafique alguna métrica específica? Puedes pedirme:`,
       chips: [
-        '📊 Graficar stock por zona',
-        '⚡ Ranking de velocidad',
-        '🏗️ Inventario por etapa',
-        '⚠️ Ver proyectos con sobreoferta',
+        'Graficar stock por zona',
+        'Ranking de velocidad',
+        'Inventario por etapa',
+        'Ver proyectos con sobreoferta',
       ],
     }
   }
@@ -666,7 +658,13 @@ export default function ChatPanel({
                   color: msg.role === 'ai' ? '#22d3ee' : '#cbd5e1',
                   border: `1px solid ${msg.role === 'ai' ? '#14b8a6' : 'var(--border-default)'}`,
                 }}>
-                {msg.role === 'ai' ? '⚡' : 'U'}
+                {msg.role === 'ai' ? (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/>
+                    <path d="M8 10h.01M12 10h.01M16 10h.01"/>
+                    <path d="M9 16c1-.5 2-.75 3-.75s2 .25 3 .75"/>
+                  </svg>
+                ) : 'U'}
               </div>
 
               <div
@@ -707,7 +705,6 @@ export default function ChatPanel({
                         alignItems: 'center',
                         gap: 4,
                       }}>
-                        <span>📈</span>
                         <span>{msg.chartTitle}</span>
                       </div>
                     )}
@@ -728,7 +725,7 @@ export default function ChatPanel({
                         onClick={act.onClick}
                         style={{
                           background: 'linear-gradient(135deg, #032e35 0%, #094754 100%)',
-                          border: '1px solid var(--citrino-teal-light, #14b8a6)',
+                          border: '1px solid var(--border-default, #1a4354)',
                           color: '#ffffff',
                           padding: '4px 9px',
                           borderRadius: 6,
@@ -741,7 +738,6 @@ export default function ChatPanel({
                           boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
                           transition: 'all 0.12s',
                         }}>
-                        {act.icon && <span>{act.icon}</span>}
                         <span>{act.label}</span>
                       </button>
                     ))}
@@ -792,7 +788,10 @@ export default function ChatPanel({
                 fontSize: 10,
                 color: '#22d3ee',
               }}>
-              ⚡
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/>
+                <path d="M8 10h.01M12 10h.01M16 10h.01"/>
+              </svg>
             </div>
             <div style={{
               background: 'var(--bg-card)',
@@ -879,18 +878,20 @@ export default function ChatPanel({
             onClick={() => handleSend()}
             disabled={!input.trim() || loading}
             style={{
-              background: 'var(--citrino-petrol, #032e35)',
-              border: '1px solid var(--citrino-teal-light, #14b8a6)',
-              color: '#ffffff',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-default)',
+              color: 'var(--text-secondary)',
               borderRadius: 6,
               padding: '0 12px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 12,
             }}>
-            ➤
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
           </button>
         </div>
       </div>

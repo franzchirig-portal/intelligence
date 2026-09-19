@@ -439,7 +439,7 @@ export default function WorkspacePanel({
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: -0.2 }}>
             Datos destacados
           </span>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)' }} title="Consolidado de oferta censada">🛈</span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }} title="Consolidado de oferta censada">(i)</span>
         </div>
         <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 10 }}>
           Datos de: Censos Inmobiliarios 2025 - 2026 · {ciudad === 'ALL' ? 'Bolivia' : ciudad}
@@ -544,7 +544,7 @@ export default function WorkspacePanel({
               fontWeight: 600,
               marginTop: 4
             }}>
-              {avgMesesStock <= 12 ? '● Absorción saludable (<12m)' : avgMesesStock <= 18 ? '▲ Presión moderada (12-18m)' : '🚨 Sobre-inventario (>18m)'}
+              {avgMesesStock <= 12 ? '● Absorción saludable (<12m)' : avgMesesStock <= 18 ? '▲ Presión moderada (12-18m)' : '! Sobre-inventario (>18m)'}
             </div>
           </div>
         </div>
@@ -574,13 +574,13 @@ export default function WorkspacePanel({
                   fontWeight: 700,
                   outline: 'none',
                   cursor: 'pointer',
-                  boxShadow: '0 0 10px var(--citrino-glow)',
+                  boxShadow: 'none',
                 }}>
-                <option value="stock_zona">📍 Stock por Zona (Unidades)</option>
-                <option value="evolucion_temporal">📈 Evolución Histórica (Snapshots)</option>
-                <option value="ritmo_zona">⚡ Ritmo de Ventas por Zona</option>
-                <option value="usd_zona">💰 Monto USD por Zona</option>
-                <option value="meses_zona">⚖️ Meses de Stock por Zona</option>
+                <option value="stock_zona">Stock por Zona (Unidades)</option>
+                <option value="evolucion_temporal">Evolución Histórica (Snapshots)</option>
+                <option value="ritmo_zona">Ritmo de Ventas por Zona</option>
+                <option value="usd_zona">Monto USD por Zona</option>
+                <option value="meses_zona">Meses de Stock por Zona</option>
               </select>
             </div>
           </div>
@@ -590,12 +590,12 @@ export default function WorkspacePanel({
             <button
               onClick={() => setViewMode('chart')}
               className={`citrino-subtab-btn ${viewMode === 'chart' ? 'active' : ''}`}>
-              📊 Gráfico
+              Gráfico
             </button>
             <button
               onClick={() => setViewMode('table')}
               className={`citrino-subtab-btn ${viewMode === 'table' ? 'active' : ''}`}>
-              ☰ Tabla Proyectos ({filteredProjects.length})
+              Tabla Proyectos ({filteredProjects.length})
             </button>
           </div>
         </div>

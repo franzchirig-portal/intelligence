@@ -224,7 +224,7 @@ export default function App() {
                 fontWeight: 600,
                 outline: 'none',
                 cursor: 'pointer',
-                boxShadow: zonaFilter !== 'ALL' ? '0 0 8px var(--citrino-glow)' : 'none',
+                boxShadow: 'none',
               }}>
               <option value="ALL">Zona: Todas ({availableZonas.length})</option>
               {availableZonas.map((z) => (

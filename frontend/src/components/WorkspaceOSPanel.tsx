@@ -592,7 +592,7 @@ export default function WorkspaceOSPanel({
                 {/* Project Selector Bar */}
                 <div className="os-comparator-picker">
                   <div className="os-comparator-picker-header">
-                    <span className="text-accent font-bold">⚖️ Selección de Proyectos a Comparar (2 a 4 simultáneos):</span>
+                    <span className="text-accent font-bold">Selección de Proyectos a Comparar (2 a 4 simultáneos):</span>
                     <span className="text-muted text-xs">
                       Actualmente {comparedProjects.length} seleccionados
                     </span>
@@ -658,7 +658,7 @@ export default function WorkspaceOSPanel({
 
                 {comparedProjects.length === 0 ? (
                   <div className="os-empty-state">
-                    <span className="os-empty-icon">⚖️</span>
+                    <span className="os-empty-icon">CMP</span>
                     <h3>No hay proyectos en el comparador</h3>
                     <p>Agrega proyectos arriba o desde Mission Control para contrastarlos en radar y métricas.</p>
                     <button
@@ -724,7 +724,7 @@ export default function WorkspaceOSPanel({
                                   <td key={p.proyecto_id}>
                                     <div className="os-metric-val font-bold text-success">
                                       {fmt(p.ritmo_venta, 1)} und/mes
-                                      {isWinner && <span className="os-winner-tag">🏆 Mayor Tracción</span>}
+                                      {isWinner && <span className="os-winner-tag">+ Mayor Tracción</span>}
                                     </div>
                                   </td>
                                 )
@@ -758,7 +758,7 @@ export default function WorkspaceOSPanel({
                                   <td key={p.proyecto_id}>
                                     <div className="os-metric-val text-warning">
                                       {fmt(p.meses_stock, 1)} meses
-                                      {isOptimal && <span className="os-winner-tag">⚡ Menor Exposición</span>}
+                                      {isOptimal && <span className="os-winner-tag">+ Menor Exposición</span>}
                                     </div>
                                   </td>
                                 )
@@ -809,7 +809,7 @@ export default function WorkspaceOSPanel({
                         <div className="os-panel-card-header">
                           <div className="os-card-title">Radar de Rendimiento Multidimensional</div>
                           <button className="os-btn-sm" onClick={handleExportChartPNG} title="Descargar Radar como imagen PNG">
-                            📷 Exportar PNG
+                            Exportar PNG
                           </button>
                         </div>
                         <div style={{ height: 320 }}>
@@ -834,7 +834,7 @@ export default function WorkspaceOSPanel({
                             return (
                               <div key={proj.proyecto_id} style={{ marginBottom: 12 }}>
                                 <div className="font-bold text-accent text-xs" style={{ marginBottom: 4 }}>
-                                  🏢 {proj.proyecto} ({proj.ZONAS || proj.ciudad}):
+                                  {proj.proyecto} ({proj.ZONAS || proj.ciudad}):
                                 </div>
                                 {pTipos.length === 0 ? (
                                   <div className="text-muted text-xs">Sin desglose de tipologías en este snapshot.</div>
@@ -875,26 +875,26 @@ export default function WorkspaceOSPanel({
                     <button
                       className={`os-btn-scope ${dossierScope === 'project' ? 'active' : ''}`}
                       onClick={() => setDossierScope('project')}>
-                      🏢 Proyecto {selectedIndicador ? `(${selectedIndicador.proyecto})` : ''}
+                      Proyecto {selectedIndicador ? `(${selectedIndicador.proyecto})` : ''}
                     </button>
                     <button
                       className={`os-btn-scope ${dossierScope === 'zona' ? 'active' : ''}`}
                       onClick={() => setDossierScope('zona')}>
-                      📍 Zona {zonaFilter !== 'ALL' ? `(${zonaFilter})` : 'Consolidada'}
+                      Zona {zonaFilter !== 'ALL' ? `(${zonaFilter})` : 'Consolidada'}
                     </button>
                     <button
                       className={`os-btn-scope ${dossierScope === 'market' ? 'active' : ''}`}
                       onClick={() => setDossierScope('market')}>
-                      🇧🇴 Mercado {ciudad}
+                      Mercado {ciudad}
                     </button>
                   </div>
 
                   <div className="os-dossier-actions">
                     <button className="os-btn-secondary" onClick={handleExportCSV}>
-                      📥 Exportar Datos (CSV)
+                      Exportar Datos (CSV)
                     </button>
                     <button className="os-btn-primary" onClick={() => window.print()}>
-                      🖨️ Imprimir / Guardar en PDF
+                      Imprimir / Guardar en PDF
                     </button>
                   </div>
                 </div>
@@ -1080,7 +1080,7 @@ export default function WorkspaceOSPanel({
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button className="os-btn-sm" onClick={loadPipelineCounts}>
-                        🔄 Refrescar Telemetría
+                        Refrescar Telemetría
                       </button>
                     </div>
                   </div>
@@ -1089,7 +1089,7 @@ export default function WorkspaceOSPanel({
                   <div className="os-pipeline-flow">
                     {/* Step 1: Bronze */}
                     <div className="os-pipe-step">
-                      <div className="os-pipe-badge bronze">🥉 BRONZE LAYER</div>
+                      <div className="os-pipe-badge bronze">BRONZE LAYER</div>
                       <div className="os-pipe-title">Google Sheets Raw</div>
                       <div className="os-pipe-desc">
                         9 Fuentes sincronizadas cada 6h vía GitHub Actions (SCZ, LPZ, CBB).
@@ -1104,7 +1104,7 @@ export default function WorkspaceOSPanel({
 
                     {/* Step 2: Silver */}
                     <div className="os-pipe-step">
-                      <div className="os-pipe-badge silver">🥈 SILVER LAYER</div>
+                      <div className="os-pipe-badge silver">SILVER LAYER</div>
                       <div className="os-pipe-title">Normalización & Reglas</div>
                       <div className="os-pipe-desc">
                         Limpieza de moneda boliviana, parseo de fechas, deduplicación y coordenadas.
@@ -1119,7 +1119,7 @@ export default function WorkspaceOSPanel({
 
                     {/* Step 3: Gold / Diamond */}
                     <div className="os-pipe-step">
-                      <div className="os-pipe-badge gold">🥇 GOLD / DIAMOND LAYER</div>
+                      <div className="os-pipe-badge gold">GOLD / DIAMOND LAYER</div>
                       <div className="os-pipe-title">Supabase PostgreSQL</div>
                       <div className="os-pipe-desc">
                         Modelo relacional optimizado para consultas analíticas y frontend.

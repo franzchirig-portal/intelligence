@@ -232,7 +232,7 @@ export default function GeoespacialPanel({
           </div>
 
           <div style="font-size: 11px; color: ${popupSub}; margin-bottom: 10px; display: flex; align-items: center; gap: 4px;">
-            <span>📍 ${p.ZONAS || 'Zona no especificada'}</span>
+            <span>${p.ZONAS || 'Zona no especificada'}</span>
             ${p.SUBZONAS ? `<span style="opacity: 0.7;">• ${p.SUBZONAS}</span>` : ''}
           </div>
 
