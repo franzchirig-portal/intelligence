@@ -397,14 +397,28 @@ export default function WorkspaceOSPanel({
           <button
             className={`os-dock-item ${activeApp === 'mission' ? 'active' : ''}`}
             onClick={() => setActiveApp('mission')}>
-            <span className="os-dock-icon">🌟</span>
+            <span className="os-dock-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="7" height="9" x="3" y="3" rx="1"/>
+                <rect width="7" height="5" x="14" y="3" rx="1"/>
+                <rect width="7" height="9" x="14" y="12" rx="1"/>
+                <rect width="7" height="5" x="3" y="16" rx="1"/>
+              </svg>
+            </span>
             <span className="os-dock-label">Mission Control</span>
           </button>
 
           <button
             className={`os-dock-item ${activeApp === 'comparador' ? 'active' : ''}`}
             onClick={() => setActiveApp('comparador')}>
-            <span className="os-dock-icon">⚖️</span>
+            <span className="os-dock-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="18" r="3"/>
+                <circle cx="6" cy="6" r="3"/>
+                <path d="M13 6h3a2 2 0 0 1 2 2v7"/>
+                <path d="M11 18H8a2 2 0 0 1-2-2V9"/>
+              </svg>
+            </span>
             <span className="os-dock-label">Comparador Head-to-Head</span>
             {comparedProjects.length > 0 && (
               <span className="os-dock-badge">{comparedProjects.length}</span>
@@ -414,14 +428,27 @@ export default function WorkspaceOSPanel({
           <button
             className={`os-dock-item ${activeApp === 'dossier' ? 'active' : ''}`}
             onClick={() => setActiveApp('dossier')}>
-            <span className="os-dock-icon">📑</span>
+            <span className="os-dock-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" x2="8" y1="13" y2="13"/>
+                <line x1="16" x2="8" y1="17" y2="17"/>
+              </svg>
+            </span>
             <span className="os-dock-label">Dossiers & Reportes</span>
           </button>
 
           <button
             className={`os-dock-item ${activeApp === 'pipeline' ? 'active' : ''}`}
             onClick={() => setActiveApp('pipeline')}>
-            <span className="os-dock-icon">🔄</span>
+            <span className="os-dock-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+              </svg>
+            </span>
             <span className="os-dock-label">Data & Pipeline Studio</span>
             <span className="os-dock-pill-green">LIVE</span>
           </button>
@@ -538,7 +565,7 @@ export default function WorkspaceOSPanel({
                       <button
                         className="os-btn-sm"
                         onClick={() => setActiveApp('comparador')}>
-                        Abrir en Comparador ⚖️
+                        Abrir en Comparador
                       </button>
                     </div>
 
@@ -559,7 +586,7 @@ export default function WorkspaceOSPanel({
                             <tr key={p.proyecto_id}>
                               <td className="font-semibold text-primary">{p.proyecto}</td>
                               <td className="text-muted">{p.ZONAS || '—'}</td>
-                              <td className="text-success font-semibold">⚡ {fmt(p.ritmo_venta, 1)}</td>
+                              <td className="text-success font-semibold">{fmt(p.ritmo_venta, 1)}</td>
                               <td>{p.und_por_vender ?? '—'}</td>
                               <td className="text-warning">{fmt(p.meses_stock, 1)} m</td>
                               <td>
@@ -1100,7 +1127,7 @@ export default function WorkspaceOSPanel({
                       </div>
                     </div>
 
-                    <div className="os-pipe-arrow">➜</div>
+                    <div className="os-pipe-arrow">→</div>
 
                     {/* Step 2: Silver */}
                     <div className="os-pipe-step">
@@ -1115,7 +1142,7 @@ export default function WorkspaceOSPanel({
                       </div>
                     </div>
 
-                    <div className="os-pipe-arrow">➜</div>
+                    <div className="os-pipe-arrow">→</div>
 
                     {/* Step 3: Gold / Diamond */}
                     <div className="os-pipe-step">

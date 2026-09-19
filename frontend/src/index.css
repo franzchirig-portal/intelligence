@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ─── Design Tokens (Citrino Neutral Refined Palette) ───────────────────── */
+/* ─── Design Tokens — Citrino Dark Petrol / Slate Palette (as in screenshot) ─── */
 :root {
   /* Citrino Brand Colors */
   --citrino-petrol:     #032e35;
@@ -8,31 +8,31 @@
   --citrino-teal-light: #14b8a6;
   --citrino-cyan:       #06b6d4;
   --citrino-accent:     #22d3ee;
-  --citrino-glow:       rgba(255,255,255,0);
-  --citrino-dark:       #032e35;
+  --citrino-glow:       rgba(34, 211, 238, 0.2);
+  --citrino-dark:       #040d12;
 
-  /* Backgrounds (Petrol Slate Dark Theme) */
-  --bg-base:         #040a0d;
-  --bg-surface:      #07141a;
-  --bg-panel:        #091b22;
-  --bg-panel-header: #0c232d;
-  --bg-hover:        #12313d;
-  --bg-active:       #163c4b;
-  --bg-input:        #061318;
-  --bg-card:         #0e2530;
+  /* Backgrounds (Petrol Slate Navy Dark Theme matching screenshot) */
+  --bg-base:         #040d12;
+  --bg-surface:      #06151e;
+  --bg-panel:        #071822;
+  --bg-panel-header: #0a202c;
+  --bg-hover:        #0e2a3b;
+  --bg-active:       #12374d;
+  --bg-input:        #061620;
+  --bg-card:         #081a25;
 
-  /* Borders — clean neutral grays, no neon */
-  --border-subtle:   #1e2d35;
-  --border-default:  #253845;
-  --border-bright:   #334d5c;
-  --border-accent:   #334d5c;
+  /* Borders — subtle elegant slate/petrol lines, no neon green */
+  --border-subtle:   #122b39;
+  --border-default:  #163749;
+  --border-bright:   #204d66;
+  --border-accent:   #06b6d4;
 
   /* Text */
-  --text-primary:    #f1f5f9;
+  --text-primary:    #f8fafc;
   --text-secondary:  #94a3b8;
-  --text-muted:      #4e6b78;
+  --text-muted:      #627d8e;
   --text-accent:     #22d3ee;
-  --text-citrino:    #14b8a6;
+  --text-citrino:    #22d3ee;
   --text-success:    #10b981;
   --text-warning:    #f59e0b;
   --text-danger:     #ef4444;
@@ -41,87 +41,87 @@
   --color-warning:   #f59e0b;
 
   /* Accents */
-  --accent-blue:     #0e7490;
-  --accent-blue-glow:rgba(14, 116, 144, 0.15);
+  --accent-blue:     #0891b2;
+  --accent-blue-glow:rgba(8, 145, 178, 0.2);
   --accent-cyan:     #22d3ee;
   --accent-emerald:  #10b981;
   --accent-ruby:     #ef4444;
   --accent-violet:   #a855f7;
   --accent-teal:     #14b8a6;
-  --accent-amber:    #14b8a6;
-  --citrino-amber:   #14b8a6;
-  --citrino-amber-glow: rgba(255,255,255,0);
+  --accent-amber:    #f59e0b;
+  --citrino-amber:   #f59e0b;
+  --citrino-amber-glow: rgba(245, 158, 11, 0.2);
 
   /* Panels */
   --panel-left-w:    300px;
   --panel-right-w:   330px;
 
-  /* Effects — no neon glow */
-  --shadow-panel:    0 0 0 1px var(--border-subtle), 0 4px 24px rgba(0,0,0,0.7);
-  --shadow-card:     0 2px 12px rgba(0,0,0,0.5);
-  --glow-citrino:    none;
-  --glow-blue:       none;
+  /* Effects */
+  --shadow-panel:    0 0 0 1px var(--border-subtle), 0 4px 24px rgba(0,0,0,0.6);
+  --shadow-card:     0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
+  --glow-citrino:    0 0 16px rgba(34, 211, 238, 0.2);
+  --glow-blue:       0 0 16px rgba(8, 145, 178, 0.2);
 
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;
 }
 
-/* ─── Light Theme (Diurno / Crisp Professional Modern Slate) ─────────────── */
+/* ─── Light Theme — Supabase light style ─────────────────────────────────── */
 [data-theme="light"] {
-  /* Citrino Brand Colors (Diurnal palette) */
-  --citrino-petrol:     #0f766e;
-  --citrino-teal:       #0d9488;
-  --citrino-teal-light: #0f766e;
-  --citrino-cyan:       #0284c7;
-  --citrino-accent:     #0284c7;
+  /* Brand accent stays green */
+  --citrino-petrol:     #f0fdf4;
+  --citrino-teal:       #16a34a;
+  --citrino-teal-light: #22c55e;
+  --citrino-cyan:       #22c55e;
+  --citrino-accent:     #22c55e;
   --citrino-glow:       rgba(255,255,255,0);
-  --citrino-dark:       #f0fdfa;
+  --citrino-dark:       #f9fafb;
 
-  /* Backgrounds (Clean Modern Slate) */
-  --bg-base:         #f1f5f9;
+  /* Backgrounds — clean white/light gray Supabase light */
+  --bg-base:         #f9fafb;
   --bg-surface:      #ffffff;
   --bg-panel:        #ffffff;
-  --bg-panel-header: #f8fafc;
-  --bg-hover:        #f1f5f9;
-  --bg-active:       #e2e8f0;
+  --bg-panel-header: #f9fafb;
+  --bg-hover:        #f3f4f6;
+  --bg-active:       #e5e7eb;
   --bg-input:        #ffffff;
   --bg-card:         #ffffff;
 
   /* Borders */
-  --border-subtle:   #e2e8f0;
-  --border-default:  #cbd5e1;
-  --border-bright:   #94a3b8;
-  --border-accent:   #94a3b8;
+  --border-subtle:   #e5e7eb;
+  --border-default:  #d1d5db;
+  --border-bright:   #9ca3af;
+  --border-accent:   #9ca3af;
 
   /* Text */
-  --text-primary:    #0f172a;
-  --text-secondary:  #334155;
-  --text-muted:      #64748b;
-  --text-accent:     #0284c7;
-  --text-citrino:    #0d9488;
-  --text-success:    #059669;
+  --text-primary:    #111827;
+  --text-secondary:  #374151;
+  --text-muted:      #6b7280;
+  --text-accent:     #16a34a;
+  --text-citrino:    #16a34a;
+  --text-success:    #16a34a;
   --text-warning:    #d97706;
   --text-danger:     #dc2626;
-  --color-positive:  #059669;
+  --color-positive:  #16a34a;
   --color-negative:  #dc2626;
   --color-warning:   #d97706;
 
   /* Accents */
-  --accent-blue:     #0284c7;
-  --accent-blue-glow:rgba(2, 132, 199, 0.15);
-  --accent-cyan:     #0284c7;
-  --accent-emerald:  #059669;
+  --accent-blue:     #22c55e;
+  --accent-blue-glow:rgba(34, 197, 94, 0.15);
+  --accent-cyan:     #22c55e;
+  --accent-emerald:  #22c55e;
   --accent-ruby:     #dc2626;
   --accent-violet:   #7c3aed;
-  --accent-teal:     #0d9488;
+  --accent-teal:     #22c55e;
   --accent-amber:    #d97706;
-  --citrino-amber:   #0d9488;
+  --citrino-amber:   #22c55e;
   --citrino-amber-glow: rgba(255,255,255,0);
 
   /* Effects */
-  --shadow-panel:    0 0 0 1px var(--border-subtle), 0 2px 16px rgba(15, 23, 42, 0.08);
-  --shadow-card:     0 1px 3px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
+  --shadow-panel:    0 0 0 1px var(--border-subtle), 0 2px 16px rgba(0,0,0,0.06);
+  --shadow-card:     0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
   --glow-citrino:    none;
   --glow-blue:       none;
 }
@@ -952,7 +952,7 @@ html, body, #root {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(circle at 50% 0%, #08212a 0%, #040a0d 75%);
+  background: radial-gradient(circle at 50% 0%, #08212e 0%, #040d12 75%);
 }
 
 .workspace-os-container {
@@ -1048,7 +1048,7 @@ html, body, #root {
 }
 .os-dock-badge {
   background: var(--citrino-accent);
-  color: #040a0d;
+  color: #0d0d0d;
   font-size: 9.5px;
   font-weight: 800;
   padding: 1px 5px;
@@ -1802,7 +1802,7 @@ html, body, #root {
 .cmd-palette-modal {
   width: 600px;
   max-width: 90vw;
-  background: #07171e;
+  background: var(--bg-card);
   border: 1px solid var(--border-bright);
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
