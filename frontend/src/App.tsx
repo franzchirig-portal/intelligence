@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './index.css'
 import LeftSidebar, { IconAssistant, type PanelId } from './components/LeftSidebar'
 import AnalysisPanel from './components/AnalysisPanel'
@@ -10,6 +10,31 @@ import CommandPalette from './components/CommandPalette'
 import AuthScreen from './components/AuthScreen'
 import { supabase, fetchIndicadores, getLatestPerProject } from './lib/supabase'
 import type { IndicadorFull } from './lib/supabase'
+
+/* ─── Profile & Account Icons (Antigravity IDE style) ─────────────────────── */
+const IconUser = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+)
+
+const IconSwitchUser = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+)
+
+const IconLogout = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+)
 
 type Ciudad = 'SCZ' | 'LPZ' | 'CBB' | 'ALL'
 type Tab = 'workspace_os' | 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial'
@@ -58,6 +83,29 @@ export default function App() {
   // Left sidebar — panel to force open (triggered by topbar button)
   const [forcedLeftPanel, setForcedLeftPanel] = useState<PanelId>(null)
   const [activeLeftPanel, setActiveLeftPanel] = useState<PanelId>(null)
+
+  // Profile Dropdown Menu State
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false)
+      }
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsProfileMenuOpen(false)
+    }
+    if (isProfileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isProfileMenuOpen])
 
   const toggleAssistant = () => {
     if (activeLeftPanel === 'assistant') {
@@ -251,41 +299,73 @@ export default function App() {
             <IconAssistant />
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-default)',
-              borderRadius: 4,
-              padding: '3px 10px',
-              fontSize: 11,
-              color: 'var(--text-secondary)',
-            }}>
-              <span style={{ maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, color: 'var(--text-primary)' }}>
-                {session?.user?.user_metadata?.full_name || session?.user?.email || 'Usuario Invitado'}
-              </span>
-            </div>
-
+          {/* Antigravity IDE Profile Account Menu */}
+          <div className="topbar-profile-wrapper" ref={profileMenuRef}>
             <button
-              onClick={async () => {
-                await supabase.auth.signOut().catch(() => {})
-                setSession(null)
-                setGuestMode(false)
-              }}
-              title="Cerrar sesión"
-              style={{
-                background: 'transparent',
-                border: '1px solid var(--border-default)',
-                color: 'var(--text-muted)',
-                borderRadius: 4,
-                padding: '3px 7px',
-                fontSize: 10,
-                cursor: 'pointer',
-              }}
+              className={`topbar-profile-btn ${isProfileMenuOpen ? 'active' : ''}`}
+              onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+              title={session?.user?.user_metadata?.full_name || session?.user?.email || 'Perfil (Invitado)'}
+              aria-label="Perfil de usuario"
             >
-              Salir
+              <IconUser />
             </button>
+
+            {isProfileMenuOpen && (
+              <div className="topbar-profile-dropdown">
+                {/* Header with profile name */}
+                <div className="profile-dropdown-header">
+                  <div className="profile-dropdown-avatar">
+                    {session?.user ? (
+                      (session.user.user_metadata?.full_name?.[0] || session.user.email?.[0] || 'U').toUpperCase()
+                    ) : (
+                      'I'
+                    )}
+                  </div>
+                  <div className="profile-dropdown-info">
+                    <span className="profile-dropdown-name">
+                      {session?.user ? (session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Usuario Registrado') : 'Invitado'}
+                    </span>
+                    <span className="profile-dropdown-role">
+                      {session?.user?.email || 'Modo Demostración'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="profile-dropdown-divider" />
+
+                {/* Cambiar de usuario */}
+                <button
+                  type="button"
+                  className="profile-dropdown-item"
+                  onClick={async () => {
+                    setIsProfileMenuOpen(false)
+                    await supabase.auth.signOut().catch(() => {})
+                    setSession(null)
+                    setGuestMode(false)
+                  }}
+                  title="Iniciar sesión con otra cuenta"
+                >
+                  <IconSwitchUser />
+                  <span>Cambiar de usuario</span>
+                </button>
+
+                {/* Salir / Cerrar sesión */}
+                <button
+                  type="button"
+                  className="profile-dropdown-item danger"
+                  onClick={async () => {
+                    setIsProfileMenuOpen(false)
+                    await supabase.auth.signOut().catch(() => {})
+                    setSession(null)
+                    setGuestMode(false)
+                  }}
+                  title="Cerrar la sesión actual"
+                >
+                  <IconLogout />
+                  <span>Salir / Cerrar sesión</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
