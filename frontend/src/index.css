@@ -1959,28 +1959,22 @@ html, body, #root {
 .theme-toggle-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: var(--bg-card);
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
   border: 1px solid var(--border-default);
-  color: var(--text-primary);
-  border-radius: 20px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 0;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: var(--shadow-card);
-  user-select: none;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 .theme-toggle-btn:hover {
-  border-color: var(--citrino-teal-light);
-  color: var(--text-accent);
+  border-color: var(--border-bright);
+  color: var(--text-primary);
   background: var(--bg-hover);
-  transform: translateY(-1px);
-}
-.theme-toggle-icon {
-  font-size: 12px;
-  line-height: 1;
 }
 
 /* ─── IA Asistente Topbar Button ──────────────────────────────────────────── */
@@ -2008,9 +2002,7 @@ html, body, #root {
   transform: translateY(-1px);
   color: #fff;
 }
-.ia-asistente-btn span:first-child {
-  font-size: 13px;
-}
+
 
 /* Smooth transitions for theme switching */
 html, body, .app-shell, .panel, .topbar, .panel-header, .panel-body, .workspace-os-wrapper {

@@ -11,7 +11,6 @@ interface MultiSelectProps {
 
 export default function MultiSelectDropdown({
   label,
-  icon = '🏗️',
   options,
   counts = {},
   selected,
@@ -91,7 +90,6 @@ export default function MultiSelectDropdown({
           outline: 'none',
           whiteSpace: 'nowrap',
         }}>
-        <span>{icon}</span>
         <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>{buttonText}</span>
         <span style={{ fontSize: 9, opacity: 0.7, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>▼</span>
       </button>

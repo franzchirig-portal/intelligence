@@ -23,7 +23,7 @@ const CIUDAD_LABELS: Record<Ciudad, string> = {
 }
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'workspace_os', label: '⚡ Workspace OS' },
+  { id: 'workspace_os', label: 'Workspace OS' },
   { id: 'mercado',     label: '01 · Oferta Nueva' },
   { id: 'tipologias', label: '01-E · Tipologías' },
   { id: 'proyectos',  label: 'Proyectos' },
@@ -224,9 +224,9 @@ export default function App() {
                 cursor: 'pointer',
                 boxShadow: zonaFilter !== 'ALL' ? '0 0 8px var(--citrino-glow)' : 'none',
               }}>
-              <option value="ALL">📍 Zona: Todas ({availableZonas.length})</option>
+              <option value="ALL">Zona: Todas ({availableZonas.length})</option>
               {availableZonas.map((z) => (
-                <option key={z} value={z}>📍 {z}</option>
+                <option key={z} value={z}>{z}</option>
               ))}
             </select>
           </div>
@@ -234,7 +234,6 @@ export default function App() {
           {/* Etapa Multi-Select Filter Pill */}
           <MultiSelectDropdown
             label="Etapa"
-            icon="🏗️"
             options={availableEtapas}
             counts={etapaCounts}
             selected={selectedEtapas}
@@ -279,14 +278,29 @@ export default function App() {
 
           <div className="topbar-divider" />
 
-          {/* Theme Toggle Button (Nocturno / Diurno) */}
+          {/* Theme Toggle — Supabase-style SVG icon */}
           <button
             className="theme-toggle-btn"
             onClick={toggleTheme}
-            title={theme === 'dark' ? 'Cambiar a Modo Diurno (Claro)' : 'Cambiar a Modo Nocturno (Oscuro)'}
+            title={theme === 'dark' ? 'Cambiar a Modo Diurno' : 'Cambiar a Modo Nocturno'}
           >
-            <span className="theme-toggle-icon">{theme === 'dark' ? '🌙' : '☀️'}</span>
-            <span>{theme === 'dark' ? 'Nocturno' : 'Diurno'}</span>
+            {theme === 'dark' ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            )}
           </button>
 
           {/* IA Asistente Quick-Open Button */}
@@ -295,7 +309,11 @@ export default function App() {
             onClick={() => setForcedLeftPanel('assistant')}
             title="Abrir IA Asistente"
           >
-            <span>🤖</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/>
+              <path d="M8 10h.01M12 10h.01M16 10h.01"/>
+              <path d="M9 16c1-.5 2-.75 3-.75s2 .25 3 .75"/>
+            </svg>
             <span>IA Asistente</span>
           </button>
 
