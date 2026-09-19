@@ -248,9 +248,9 @@ function NotificationsPanel() {
           marginLeft: 'auto',
           fontSize: 9.5,
           fontWeight: 700,
-          background: 'var(--citrino-teal, #0d9488)',
+          background: 'var(--bg-active)',
           color: '#fff',
-          borderRadius: 10,
+          borderRadius: 4,
           padding: '1px 6px',
         }}>
           {notifications.length}
@@ -263,7 +263,7 @@ function NotificationsPanel() {
           <div key={n.id} style={{
             background: 'var(--bg-card)',
             border: '1px solid var(--border-default)',
-            borderRadius: 10,
+            borderRadius: 6,
             padding: '10px 12px',
             display: 'flex',
             gap: 10,

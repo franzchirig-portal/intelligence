@@ -21,11 +21,11 @@
   --bg-input:        #1f1f1f;
   --bg-card:         #252526;
 
-  /* Borders — Clean Neutral Grays (No Purple, No Blue) */
-  --border-subtle:   #2d2d2d;
-  --border-default:  #383838;
-  --border-bright:   #505050;
-  --border-accent:   #505050;
+  /* Borders — Antigravity IDE Exact Tokens */
+  --border-subtle:   #2b2d30;
+  --border-default:  #333842;
+  --border-bright:   #444c56;
+  --border-accent:   #444c56;
 
   /* Text */
   --text-primary:    #f3f3f3;
@@ -64,7 +64,7 @@
 
   --radius-sm: 4px;
   --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-lg: 6px;
 }
 
 /* ─── Light Theme — Antigravity Crisp Light ─────────────────────────────── */
@@ -199,26 +199,34 @@ html, body, #root {
 
 .topbar-nav {
   display: flex;
-  align-items: center;
-  gap: 2px;
-  flex: 1;
+  align-items: stretch;
+  gap: 0;
+  height: 100%;
 }
 
 .topbar-nav-item {
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  border-radius: 0;
   cursor: pointer;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
   transition: all 0.15s;
-  border: 1px solid transparent;
+  border-right: 1px solid var(--border-subtle);
+  border-top: 2px solid transparent;
+  background: transparent;
 }
-.topbar-nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
-.topbar-nav-item.active {
-  background: var(--bg-active);
+.topbar-nav-item:hover {
+  background: var(--bg-hover);
   color: var(--text-primary);
-  border-color: var(--border-bright);
+}
+.topbar-nav-item.active {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  border-top: 2px solid #525866;
+  border-right: 1px solid var(--border-subtle);
   font-weight: 600;
 }
 
@@ -232,10 +240,10 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3px 10px;
-  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  border-radius: 4px;
   border: 1px solid var(--border-default);
-  background: var(--bg-input);
+  background: var(--bg-card);
   cursor: pointer;
   font-size: 11px;
   color: var(--text-secondary);
@@ -778,10 +786,10 @@ html, body, #root {
 
 /* ─── Citrino Sub-Modules & Filter Pills ─────────────────────────────────── */
 .citrino-filter-pill {
-  padding: 4px 12px;
+  padding: 3px 10px;
   background: var(--bg-card);
   border: 1px solid var(--border-default);
-  border-radius: 20px;
+  border-radius: 4px;
   font-size: 11px;
   font-weight: 500;
   color: var(--text-primary);
@@ -913,17 +921,17 @@ html, body, #root {
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   color: var(--text-secondary);
-  border-radius: 20px;
-  padding: 4px 12px;
+  border-radius: 4px;
+  padding: 3px 10px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s ease;
   margin-left: 6px;
 }
 .topbar-cmd-btn:hover {
-  border-color: var(--citrino-accent);
+  border-color: var(--border-bright);
   color: var(--text-primary);
   background: var(--bg-hover);
-  box-shadow: 0 0 10px var(--citrino-glow);
+  box-shadow: none;
 }
 .topbar-cmd-badge {
   background: var(--citrino-petrol);
@@ -998,10 +1006,10 @@ html, body, #root {
 .os-dock-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: var(--bg-surface);
-  padding: 3px 6px;
-  border-radius: 24px;
+  padding: 3px 4px;
+  border-radius: 6px;
   border: 1px solid var(--border-subtle);
 }
 
@@ -1009,15 +1017,15 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  border-radius: 18px;
+  padding: 4px 10px;
+  border-radius: 4px;
   background: transparent;
   border: 1px solid transparent;
   color: var(--text-secondary);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s;
 }
 .os-dock-item:hover {
   color: var(--text-primary);
@@ -1042,7 +1050,7 @@ html, body, #root {
   font-size: 9.5px;
   font-weight: 800;
   padding: 1px 5px;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 .os-dock-pill-green {
   background: rgba(16, 185, 129, 0.15);
@@ -1051,7 +1059,7 @@ html, body, #root {
   font-size: 9px;
   font-weight: 800;
   padding: 1px 5px;
-  border-radius: 10px;
+  border-radius: 4px;
   letter-spacing: 0.5px;
 }
 
@@ -1068,8 +1076,8 @@ html, body, #root {
   gap: 6px;
   background: var(--bg-card);
   border: 1px solid var(--border-default);
-  border-radius: 16px;
-  padding: 4px 10px;
+  border-radius: 4px;
+  padding: 3px 8px;
   font-size: 11px;
   font-weight: 600;
   color: var(--text-primary);
@@ -1217,7 +1225,7 @@ html, body, #root {
 .os-panel-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: 10px;
+  border-radius: 6px;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -1332,7 +1340,7 @@ html, body, #root {
 .os-comparator-picker {
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: 10px;
+  border-radius: 6px;
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
@@ -1354,11 +1362,10 @@ html, body, #root {
   align-items: center;
   gap: 6px;
   background: var(--bg-card);
-  border: 1px solid var(--border-bright);
-  border-radius: 20px;
-  padding: 4px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 3px 8px;
   font-size: 11px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 .os-chip-dot {
   display: none !important;
@@ -1502,7 +1509,7 @@ html, body, #root {
   justify-content: space-between;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: 10px;
+  border-radius: 6px;
   padding: 12px 18px;
 }
 .os-dossier-scope-selector {
@@ -1514,8 +1521,8 @@ html, body, #root {
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   color: var(--text-secondary);
-  border-radius: 16px;
-  padding: 5px 12px;
+  border-radius: 4px;
+  padding: 4px 10px;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -1788,8 +1795,8 @@ html, body, #root {
   max-width: 90vw;
   background: var(--bg-card);
   border: 1px solid var(--border-bright);
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  border-radius: 6px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8);
   display: flex;
   flex-direction: column;
   overflow: hidden;

@@ -308,11 +308,11 @@ function NotificationsPanel() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-panel-header)' }}>
         <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Notificaciones</span>
-        <span style={{ marginLeft: 'auto', fontSize: 9.5, fontWeight: 700, background: 'var(--bg-active)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 10, padding: '1px 6px' }}>{notifications.length}</span>
+        <span style={{ marginLeft: 'auto', fontSize: 9.5, fontWeight: 700, background: 'var(--bg-active)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 4, padding: '1px 6px' }}>{notifications.length}</span>
       </div>
       <div style={{ flex: 1, overflow: 'auto', padding: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {notifications.map((n) => (
-          <div key={n.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: 8, padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', transition: 'border-color 0.15s' }}
+          <div key={n.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: 6, padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', transition: 'border-color 0.15s' }}
             onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--border-bright)')}
             onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border-default)')}
           >

@@ -270,8 +270,8 @@ export default function App() {
               alignItems: 'center',
               background: 'var(--bg-card)',
               border: '1px solid var(--border-default)',
-              borderRadius: 20,
-              padding: '3px 12px',
+              borderRadius: 4,
+              padding: '3px 10px',
               fontSize: 11,
               color: 'var(--text-secondary)',
             }}>
