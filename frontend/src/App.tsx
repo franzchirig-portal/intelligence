@@ -23,7 +23,6 @@ const CIUDAD_LABELS: Record<Ciudad, string> = {
 }
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'workspace_os', label: 'Workspace OS' },
   { id: 'mercado',     label: '01 · Oferta Nueva' },
   { id: 'tipologias', label: '01-E · Tipologías' },
   { id: 'proyectos',  label: 'Proyectos' },
@@ -36,7 +35,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true)
 
   const [ciudad, setCiudad] = useState<Ciudad>('SCZ')
-  const [activeTab, setActiveTab] = useState<Tab>('workspace_os')
+  const [activeTab, setActiveTab] = useState<Tab>('mercado')
   const [selectedIndicador, setSelectedIndicador] = useState<IndicadorFull | null>(null)
 
   // Citrino Global Filters
@@ -362,20 +361,32 @@ export default function App() {
         </div>
       </header>
 
-      {/* Workspace OS tab (Modular Command Center) */}
+      {/* Workspace OS (Modular Command Center) */}
       {activeTab === 'workspace_os' && (
-        <main className="workspace-os-wrapper">
-          <WorkspaceOSPanel
+        <main className="workspace">
+          <LeftSidebar
             ciudad={ciudad}
-            zonaFilter={zonaFilter}
-            etapaFilter={selectedEtapas}
-            selectedIndicador={selectedIndicador}
+            activeTab={activeTab}
+            onFilterZona={setZonaFilter}
+            onFilterEtapas={setSelectedEtapas}
             onSelectIndicador={setSelectedIndicador}
             onSwitchTab={setActiveTab}
-            initialApp={osInitialApp}
-            onOpenCommandPalette={() => setIsCmdOpen(true)}
-            theme={theme}
+            forcedPanel={forcedLeftPanel}
+            onForcedPanelConsumed={() => setForcedLeftPanel(null)}
           />
+          <div style={{ flex: 1, overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <WorkspaceOSPanel
+              ciudad={ciudad}
+              zonaFilter={zonaFilter}
+              etapaFilter={selectedEtapas}
+              selectedIndicador={selectedIndicador}
+              onSelectIndicador={setSelectedIndicador}
+              onSwitchTab={setActiveTab}
+              initialApp={osInitialApp}
+              onOpenCommandPalette={() => setIsCmdOpen(true)}
+              theme={theme}
+            />
+          </div>
         </main>
       )}
 
@@ -384,6 +395,7 @@ export default function App() {
         <main className="workspace">
           <LeftSidebar
             ciudad={ciudad}
+            activeTab={activeTab}
             onFilterZona={setZonaFilter}
             onFilterEtapas={setSelectedEtapas}
             onSelectIndicador={setSelectedIndicador}
@@ -411,6 +423,7 @@ export default function App() {
         <main className="workspace">
           <LeftSidebar
             ciudad={ciudad}
+            activeTab={activeTab}
             onFilterZona={setZonaFilter}
             onFilterEtapas={setSelectedEtapas}
             onSelectIndicador={setSelectedIndicador}
@@ -438,6 +451,7 @@ export default function App() {
         <main className="workspace">
           <LeftSidebar
             ciudad={ciudad}
+            activeTab={activeTab}
             onFilterZona={setZonaFilter}
             onFilterEtapas={setSelectedEtapas}
             onSelectIndicador={setSelectedIndicador}
@@ -464,6 +478,7 @@ export default function App() {
         <main className="workspace">
           <LeftSidebar
             ciudad={ciudad}
+            activeTab={activeTab}
             onFilterZona={setZonaFilter}
             onFilterEtapas={setSelectedEtapas}
             onSelectIndicador={setSelectedIndicador}

@@ -6,6 +6,7 @@ type PanelId = 'assistant' | 'notifications' | 'settings' | null
 
 interface Props {
   ciudad: string
+  activeTab?: string
   onFilterZona: (zona: string) => void
   onFilterEtapas: (etapas: string[]) => void
   onSelectIndicador: (ind: IndicadorFull | null) => void
@@ -15,6 +16,16 @@ interface Props {
 }
 
 /* ── Supabase-style SVG icons (Lucide stroke, 20×20) ───────────────────────── */
+const IconIWS = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="3" width="20" height="14" rx="2.5" />
+    <path d="M8 21h8" />
+    <path d="M12 17v4" />
+    <path d="M7 8.5l3 2.5-3 2.5" />
+    <line x1="12" y1="13.5" x2="16.5" y2="13.5" />
+  </svg>
+)
+
 const IconAssistant = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/>
@@ -47,6 +58,7 @@ const PANEL_WIDTH = 340
 
 export default function LeftSidebar({
   ciudad,
+  activeTab,
   onFilterZona,
   onFilterEtapas,
   onSelectIndicador,
@@ -89,6 +101,71 @@ export default function LeftSidebar({
         height: '100%',
         zIndex: 10,
       }}>
+        {/* ─── IWS Workspace OS Icon (Primary Sidebar Trigger) ─── */}
+        <button
+          title="IWS — Workspace OS"
+          onClick={() => {
+            setActivePanel(null)
+            onSwitchTab('workspace_os')
+          }}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            border: activeTab === 'workspace_os' ? '1px solid var(--citrino-teal-light, #14b8a6)' : '1px solid transparent',
+            background: activeTab === 'workspace_os'
+              ? 'linear-gradient(135deg, rgba(3, 46, 53, 0.95), rgba(14, 116, 144, 0.85))'
+              : 'transparent',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: activeTab === 'workspace_os' ? 'var(--citrino-accent, #22d3ee)' : 'var(--text-muted)',
+            transition: 'all 0.15s ease',
+            outline: 'none',
+            boxShadow: activeTab === 'workspace_os' ? '0 0 10px var(--citrino-glow, rgba(34,211,238,0.3))' : 'none',
+            position: 'relative',
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== 'workspace_os') {
+              const btn = e.currentTarget as HTMLButtonElement
+              btn.style.background = 'var(--bg-card, rgba(255,255,255,0.06))'
+              btn.style.color = 'var(--citrino-accent, #22d3ee)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== 'workspace_os') {
+              const btn = e.currentTarget as HTMLButtonElement
+              btn.style.background = 'transparent'
+              btn.style.color = 'var(--text-muted)'
+            }
+          }}
+        >
+          <IconIWS />
+          {/* Active indicator bar on right edge */}
+          {activeTab === 'workspace_os' && (
+            <span style={{
+              position: 'absolute',
+              right: -1,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: 3,
+              height: 18,
+              borderRadius: '2px 0 0 2px',
+              background: 'var(--citrino-accent, #22d3ee)',
+            }} />
+          )}
+        </button>
+
+        {/* Separator between IWS OS and tools */}
+        <div style={{
+          width: 22,
+          height: 1,
+          background: 'var(--border-subtle)',
+          margin: '2px 0 4px 0',
+        }} />
+
         {ICONS.map(({ id, Icon, label }) => (
           <button
             key={id}
