@@ -287,18 +287,6 @@ export default function App() {
               Salir
             </button>
           </div>
-
-          <div className="topbar-divider" />
-
-          <button className="ide-window-btn" title="Toggle Primary Side Bar">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
-          </button>
-          <button className="ide-window-btn" title="Toggle Secondary Side Bar">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg>
-          </button>
-          <button className="ide-window-btn" title="Minimizar">―</button>
-          <button className="ide-window-btn" title="Maximizar">□</button>
-          <button className="ide-window-btn close" title="Cerrar">✕</button>
         </div>
       </header>
 
