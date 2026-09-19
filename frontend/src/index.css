@@ -1976,30 +1976,31 @@ html, body, #root {
   background: var(--bg-hover);
 }
 
-/* ─── IA Asistente Topbar Button ──────────────────────────────────────────── */
-.ia-asistente-btn {
+/* ─── Topbar Square Icon Button (Theme Toggle, IA Asistente) ─────────────── */
+.topbar-icon-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: var(--bg-card);
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
   border: 1px solid var(--border-default);
-  color: var(--citrino-accent, #22d3ee);
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 11px;
-  font-weight: 700;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 0;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: none;
-  user-select: none;
-  letter-spacing: 0.02em;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
-.ia-asistente-btn:hover {
-  background: linear-gradient(135deg, #094754 0%, #032e35 100%);
-  border-color: var(--citrino-accent, #22d3ee);
-  box-shadow: none;
-  transform: translateY(-1px);
-  color: #fff;
+.topbar-icon-btn:hover {
+  border-color: var(--border-bright);
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+.topbar-icon-btn.active {
+  border-color: var(--citrino-accent);
+  color: var(--citrino-accent);
+  background: var(--bg-active);
 }
 
 

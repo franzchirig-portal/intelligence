@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import ChatPanel from './ChatPanel'
 import type { IndicadorFull } from '../lib/supabase'
 
-type PanelId = 'assistant' | 'notifications' | 'settings' | null
+export type PanelId = 'assistant' | 'notifications' | 'settings' | 'close' | null
 
 interface Props {
   ciudad: string
@@ -13,6 +13,7 @@ interface Props {
   onSwitchTab: (tab: string) => void
   forcedPanel?: PanelId
   onForcedPanelConsumed?: () => void
+  onPanelChange?: (panel: PanelId) => void
 }
 
 /* ── Supabase-style SVG icons (Lucide stroke, 20×20) ───────────────────────── */
@@ -26,7 +27,7 @@ const IconIWS = () => (
   </svg>
 )
 
-const IconAssistant = () => (
+export const IconAssistant = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/>
     <path d="M8 10h.01M12 10h.01M16 10h.01"/>
@@ -49,7 +50,6 @@ const IconSettings = () => (
 )
 
 const ICONS: { id: string; Icon: React.FC; label: string }[] = [
-  { id: 'assistant',     Icon: IconAssistant,  label: 'IA Asistente'   },
   { id: 'notifications', Icon: IconBell,        label: 'Notificaciones' },
   { id: 'settings',      Icon: IconSettings,    label: 'Ajustes'       },
 ]
@@ -65,17 +65,24 @@ export default function LeftSidebar({
   onSwitchTab,
   forcedPanel,
   onForcedPanelConsumed,
+  onPanelChange,
 }: Props) {
   const [activePanel, setActivePanel] = useState<PanelId>(null)
-  const prevForcedPanel = useRef<PanelId>(null)
 
   useEffect(() => {
-    if (forcedPanel && forcedPanel !== prevForcedPanel.current) {
-      setActivePanel(forcedPanel as PanelId)
-      prevForcedPanel.current = forcedPanel
+    if (forcedPanel) {
+      if ((forcedPanel as string) === 'close') {
+        setActivePanel(null)
+      } else {
+        setActivePanel(forcedPanel as PanelId)
+      }
       onForcedPanelConsumed?.()
     }
   }, [forcedPanel, onForcedPanelConsumed])
+
+  useEffect(() => {
+    onPanelChange?.(activePanel)
+  }, [activePanel, onPanelChange])
 
   const handleIconClick = (id: string) => {
     setActivePanel((prev) => (prev === id ? null : id as PanelId))

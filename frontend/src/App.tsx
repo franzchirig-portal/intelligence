@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import './index.css'
-import LeftSidebar from './components/LeftSidebar'
+import LeftSidebar, { IconAssistant, type PanelId } from './components/LeftSidebar'
 import AnalysisPanel from './components/AnalysisPanel'
 import WorkspacePanel from './components/WorkspacePanel'
 import TipologiasPanel from './components/TipologiasPanel'
@@ -56,7 +56,16 @@ export default function App() {
   })
 
   // Left sidebar — panel to force open (triggered by topbar button)
-  const [forcedLeftPanel, setForcedLeftPanel] = useState<'assistant' | 'notifications' | 'settings' | null>(null)
+  const [forcedLeftPanel, setForcedLeftPanel] = useState<PanelId>(null)
+  const [activeLeftPanel, setActiveLeftPanel] = useState<PanelId>(null)
+
+  const toggleAssistant = () => {
+    if (activeLeftPanel === 'assistant') {
+      setForcedLeftPanel('close')
+    } else {
+      setForcedLeftPanel('assistant')
+    }
+  }
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -246,18 +255,13 @@ export default function App() {
             )}
           </button>
 
-          {/* IA Asistente Quick-Open Button */}
+          {/* IA Asistente Icon Button (moved from sidebar) */}
           <button
-            className="ia-asistente-btn"
-            onClick={() => setForcedLeftPanel('assistant')}
-            title="Abrir IA Asistente"
+            className={`topbar-icon-btn ${activeLeftPanel === 'assistant' ? 'active' : ''}`}
+            onClick={toggleAssistant}
+            title={activeLeftPanel === 'assistant' ? 'Cerrar IA Asistente' : 'Abrir IA Asistente'}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/>
-              <path d="M8 10h.01M12 10h.01M16 10h.01"/>
-              <path d="M9 16c1-.5 2-.75 3-.75s2 .25 3 .75"/>
-            </svg>
-            <span>IA Asistente</span>
+            <IconAssistant />
           </button>
 
           {/* User Profile & Logout */}
@@ -315,6 +319,7 @@ export default function App() {
             onSwitchTab={setActiveTab}
             forcedPanel={forcedLeftPanel}
             onForcedPanelConsumed={() => setForcedLeftPanel(null)}
+            onPanelChange={setActiveLeftPanel}
           />
           <div style={{ flex: 1, overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
             <WorkspaceOSPanel
@@ -344,6 +349,7 @@ export default function App() {
             onSwitchTab={setActiveTab}
             forcedPanel={forcedLeftPanel}
             onForcedPanelConsumed={() => setForcedLeftPanel(null)}
+            onPanelChange={setActiveLeftPanel}
           />
           <WorkspacePanel
             ciudad={ciudad}
@@ -372,6 +378,7 @@ export default function App() {
             onSwitchTab={setActiveTab}
             forcedPanel={forcedLeftPanel}
             onForcedPanelConsumed={() => setForcedLeftPanel(null)}
+            onPanelChange={setActiveLeftPanel}
           />
           <WorkspacePanel
             ciudad={ciudad}
@@ -400,6 +407,7 @@ export default function App() {
             onSwitchTab={setActiveTab}
             forcedPanel={forcedLeftPanel}
             onForcedPanelConsumed={() => setForcedLeftPanel(null)}
+            onPanelChange={setActiveLeftPanel}
           />
           <TipologiasPanel
             ciudad={ciudad}
@@ -427,6 +435,7 @@ export default function App() {
             onSwitchTab={setActiveTab}
             forcedPanel={forcedLeftPanel}
             onForcedPanelConsumed={() => setForcedLeftPanel(null)}
+            onPanelChange={setActiveLeftPanel}
           />
           <GeoespacialPanel
             ciudad={ciudad}
