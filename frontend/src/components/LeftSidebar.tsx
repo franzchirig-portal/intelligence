@@ -14,10 +14,33 @@ interface Props {
   onForcedPanelConsumed?: () => void
 }
 
-const ICONS: { id: string; emoji: string; label: string }[] = [
-  { id: 'assistant',     emoji: '🤖', label: 'IA Asistente'   },
-  { id: 'notifications', emoji: '🔔', label: 'Notificaciones' },
-  { id: 'settings',      emoji: '⚙️', label: 'Ajustes'       },
+/* ── Supabase-style SVG icons (Lucide stroke, 20×20) ───────────────────────── */
+const IconAssistant = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/>
+    <path d="M8 10h.01M12 10h.01M16 10h.01"/>
+    <path d="M9 16c1-.5 2-.75 3-.75s2 .25 3 .75"/>
+  </svg>
+)
+
+const IconBell = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+  </svg>
+)
+
+const IconSettings = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+)
+
+const ICONS: { id: string; Icon: React.FC; label: string }[] = [
+  { id: 'assistant',     Icon: IconAssistant,  label: 'IA Asistente'   },
+  { id: 'notifications', Icon: IconBell,        label: 'Notificaciones' },
+  { id: 'settings',      Icon: IconSettings,    label: 'Ajustes'       },
 ]
 
 const PANEL_WIDTH = 340
@@ -66,14 +89,14 @@ export default function LeftSidebar({
         height: '100%',
         zIndex: 10,
       }}>
-        {ICONS.map(({ id, emoji, label }) => (
+        {ICONS.map(({ id, Icon, label }) => (
           <button
             key={id}
             title={label}
             onClick={() => handleIconClick(id)}
             style={{
-              width: 32,
-              height: 32,
+              width: 36,
+              height: 36,
               borderRadius: 8,
               border: 'none',
               background: activePanel === id
@@ -83,7 +106,7 @@ export default function LeftSidebar({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 15,
+              color: activePanel === id ? '#fff' : 'var(--text-muted)',
               transition: 'all 0.15s ease',
               outline: 'none',
               boxShadow: activePanel === id
@@ -92,15 +115,21 @@ export default function LeftSidebar({
               position: 'relative',
             }}
             onMouseEnter={(e) => {
-              if (activePanel !== id)
-                (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg-card, rgba(255,255,255,0.06))'
+              if (activePanel !== id) {
+                const btn = e.currentTarget as HTMLButtonElement
+                btn.style.background = 'var(--bg-card, rgba(255,255,255,0.06))'
+                btn.style.color = 'var(--text-secondary)'
+              }
             }}
             onMouseLeave={(e) => {
-              if (activePanel !== id)
-                (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+              if (activePanel !== id) {
+                const btn = e.currentTarget as HTMLButtonElement
+                btn.style.background = 'transparent'
+                btn.style.color = 'var(--text-muted)'
+              }
             }}
           >
-            <span role="img" aria-label={label}>{emoji}</span>
+            <Icon />
             {/* Active indicator — right-edge bar */}
             {activePanel === id && (
               <span style={{
@@ -124,20 +153,27 @@ export default function LeftSidebar({
             title="Cerrar panel"
             onClick={() => setActivePanel(null)}
             style={{
-              width: 32, height: 32, borderRadius: 8, border: 'none',
+              width: 36, height: 36, borderRadius: 8, border: 'none',
               background: 'transparent', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, color: 'var(--text-muted)', transition: 'all 0.15s ease',
+              color: 'var(--text-muted)', transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg-card, rgba(255,255,255,0.06))'
-              ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)'
+              const btn = e.currentTarget as HTMLButtonElement
+              btn.style.background = 'var(--bg-card, rgba(255,255,255,0.06))'
+              btn.style.color = 'var(--text-secondary)'
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
-              ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'
+              const btn = e.currentTarget as HTMLButtonElement
+              btn.style.background = 'transparent'
+              btn.style.color = 'var(--text-muted)'
             }}
-          >✕</button>
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         )}
       </div>
 
