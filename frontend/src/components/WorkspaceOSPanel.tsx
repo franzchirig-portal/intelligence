@@ -235,7 +235,7 @@ export default function WorkspaceOSPanel({
       if (echartsInstance) {
         const dataUrl = echartsInstance.getDataURL({
           pixelRatio: 2,
-          backgroundColor: '#161724',
+          backgroundColor: '#1e1e1e',
         })
         const link = document.createElement('a')
         link.href = dataUrl
@@ -259,14 +259,14 @@ export default function WorkspaceOSPanel({
     const maxTotal = Math.max(...comparedProjects.map((p) => p.und_totales ?? 0), 100)
     const maxUSD = Math.max(...comparedProjects.map((p) => p.stock_total ?? 0), 5_000_000)
 
-    const colors = ['#818cf8', '#6366f1', '#a78bfa', '#38bdf8', '#10b981']
+    const colors = ['#3794ff', '#38bdf8', '#10b981', '#f59e0b', '#0078d4']
 
     return {
       backgroundColor: 'transparent',
       legend: {
         data: comparedProjects.map((p) => p.proyecto),
         bottom: 0,
-        textStyle: { color: isLight ? '#475569' : '#9ca3af', fontSize: 11 },
+        textStyle: { color: isLight ? '#475569' : '#9d9d9d', fontSize: 11 },
       },
       radar: {
         indicator: [
@@ -279,7 +279,7 @@ export default function WorkspaceOSPanel({
         shape: 'polygon',
         splitNumber: 4,
         axisName: {
-          color: isLight ? '#4f46e5' : '#818cf8',
+          color: isLight ? '#0078d4' : '#3794ff',
           fontSize: 10,
           fontWeight: 600,
         },
@@ -287,7 +287,7 @@ export default function WorkspaceOSPanel({
           lineStyle: {
             color: isLight
               ? ['#cbd5e1', '#e2e8f0', '#cbd5e1', '#e2e8f0']
-              : ['#222436', '#2d3047', '#222436', '#2d3047'],
+              : ['#2d2d2d', '#383838', '#2d2d2d', '#383838'],
           },
         },
         splitArea: {
@@ -295,11 +295,11 @@ export default function WorkspaceOSPanel({
           areaStyle: {
             color: isLight
               ? ['rgba(241, 245, 249, 0.7)', 'rgba(255, 255, 255, 0.9)']
-              : ['rgba(99, 102, 241, 0.08)', 'rgba(22, 23, 36, 0.4)'],
+              : ['rgba(55, 148, 255, 0.04)', 'rgba(32, 32, 32, 0.4)'],
           },
         },
         axisLine: {
-          lineStyle: { color: isLight ? '#cbd5e1' : '#2d3047' },
+          lineStyle: { color: isLight ? '#cbd5e1' : '#383838' },
         },
       },
       series: [
@@ -333,22 +333,22 @@ export default function WorkspaceOSPanel({
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
-        backgroundColor: isLight ? '#ffffff' : '#161724',
-        borderColor: isLight ? '#cbd5e1' : '#2d3047',
-        textStyle: { color: isLight ? '#0f172a' : '#f3f4f8' },
+        backgroundColor: isLight ? '#ffffff' : '#252526',
+        borderColor: isLight ? '#cbd5e1' : '#383838',
+        textStyle: { color: isLight ? '#0f172a' : '#f3f3f3' },
       },
       grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true },
       xAxis: {
         type: 'category',
         data: topZonas.map((z) => z.zona),
-        axisLine: { lineStyle: { color: isLight ? '#cbd5e1' : '#2d3047' } },
-        axisLabel: { color: isLight ? '#475569' : '#9ca3af', fontSize: 10, rotate: 20 },
+        axisLine: { lineStyle: { color: isLight ? '#cbd5e1' : '#383838' } },
+        axisLabel: { color: isLight ? '#475569' : '#9d9d9d', fontSize: 10, rotate: 20 },
       },
       yAxis: {
         type: 'value',
-        axisLine: { lineStyle: { color: isLight ? '#cbd5e1' : '#2d3047' } },
-        splitLine: { lineStyle: { color: isLight ? '#e2e8f0' : '#222436' } },
-        axisLabel: { color: isLight ? '#475569' : '#9ca3af', fontSize: 10 },
+        axisLine: { lineStyle: { color: isLight ? '#cbd5e1' : '#383838' } },
+        splitLine: { lineStyle: { color: isLight ? '#e2e8f0' : '#2d2d2d' } },
+        axisLabel: { color: isLight ? '#475569' : '#9d9d9d', fontSize: 10 },
       },
       series: [
         {
@@ -363,8 +363,8 @@ export default function WorkspaceOSPanel({
               x2: 0,
               y2: 1,
               colorStops: [
-                { offset: 0, color: '#818cf8' },
-                { offset: 1, color: '#4f46e5' },
+                { offset: 0, color: '#3794ff' },
+                { offset: 1, color: '#0078d4' },
               ],
             },
             borderRadius: [4, 4, 0, 0],
@@ -375,7 +375,7 @@ export default function WorkspaceOSPanel({
           type: 'line',
           yAxisIndex: 0,
           data: topZonas.map((z) => z.ritmoVentaMensual),
-          itemStyle: { color: '#38bdf8' },
+          itemStyle: { color: '#10b981' },
           lineStyle: { width: 2.5 },
         },
       ],
