@@ -18,11 +18,11 @@ interface Props {
   onForcedPanelConsumed?: () => void
 }
 
-const ICONS: { id: PanelId & string; emoji: string; label: string }[] = [
-  { id: 'assistant',     emoji: '🤖', label: 'IA Asistente' },
-  { id: 'inspector',     emoji: '🔍', label: 'Inspector'    },
-  { id: 'notifications', emoji: '🔔', label: 'Notificaciones' },
-  { id: 'settings',      emoji: '⚙️', label: 'Ajustes'     },
+const ICONS: { id: PanelId & string; label: string }[] = [
+  { id: 'assistant',     label: 'IA Asistente' },
+  { id: 'inspector',     label: 'Inspector'    },
+  { id: 'notifications', label: 'Notificaciones' },
+  { id: 'settings',      label: 'Ajustes'     },
 ]
 
 const PANEL_WIDTH = 340
@@ -176,7 +176,7 @@ export default function RightSidebar({
                 width: 3,
                 height: 16,
                 borderRadius: '0 2px 2px 0',
-                background: 'var(--citrino-accent, #22d3ee)',
+                background: 'var(--text-primary)',
               }} />
             )}
           </button>
@@ -224,10 +224,10 @@ export default function RightSidebar({
 /* ── Embedded Notification Panel ─────────────────────────────────────────── */
 function NotificationsPanel() {
   const notifications = [
-    { id: 1, type: 'info', icon: '📊', title: 'Datos actualizados', desc: 'Pipeline ETL completado exitosamente', time: 'Hace 2h' },
-    { id: 2, type: 'warn', icon: '⚠️', title: 'Sobreoferta detectada', desc: 'Zona Equipetrol supera umbral del 35%', time: 'Hace 4h' },
-    { id: 3, type: 'ok',   icon: '✅', title: 'Sync completado',      desc: 'SCZ · LPZ · CBB sincronizadas', time: 'Ayer' },
-    { id: 4, type: 'info', icon: '🗺️', title: 'Nuevo layer geoespacial', desc: 'Polígonos de zonas actualizados', time: 'Ayer' },
+    { id: 1, type: 'info', title: 'Datos actualizados', desc: 'Pipeline ETL completado exitosamente', time: 'Hace 2h' },
+    { id: 2, type: 'warn', title: 'Sobreoferta detectada', desc: 'Zona Equipetrol supera umbral del 35%', time: 'Hace 4h' },
+    { id: 3, type: 'ok',   title: 'Sync completado',      desc: 'SCZ · LPZ · CBB sincronizadas', time: 'Ayer' },
+    { id: 4, type: 'info', title: 'Nuevo layer geoespacial', desc: 'Polígonos de zonas actualizados', time: 'Ayer' },
   ]
 
   return (
@@ -241,7 +241,6 @@ function NotificationsPanel() {
         gap: 8,
         background: 'var(--bg-panel-header)',
       }}>
-        <span style={{ fontSize: 12 }}>🔔</span>
         <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
           Notificaciones
         </span>
@@ -301,7 +300,6 @@ function SettingsPanel() {
         gap: 8,
         background: 'var(--bg-panel-header)',
       }}>
-        <span style={{ fontSize: 12 }}>⚙️</span>
         <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
           Ajustes
         </span>

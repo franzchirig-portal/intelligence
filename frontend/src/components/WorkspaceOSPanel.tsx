@@ -259,7 +259,7 @@ export default function WorkspaceOSPanel({
     const maxTotal = Math.max(...comparedProjects.map((p) => p.und_totales ?? 0), 100)
     const maxUSD = Math.max(...comparedProjects.map((p) => p.stock_total ?? 0), 5_000_000)
 
-    const colors = ['#3794ff', '#38bdf8', '#10b981', '#f59e0b', '#0078d4']
+    const colors = ['#f3f3f3', '#a3a3a3', '#10b981', '#f59e0b', '#737373']
 
     return {
       backgroundColor: 'transparent',
@@ -279,7 +279,7 @@ export default function WorkspaceOSPanel({
         shape: 'polygon',
         splitNumber: 4,
         axisName: {
-          color: isLight ? '#0078d4' : '#3794ff',
+          color: isLight ? '#475569' : '#9d9d9d',
           fontSize: 10,
           fontWeight: 600,
         },
@@ -363,8 +363,8 @@ export default function WorkspaceOSPanel({
               x2: 0,
               y2: 1,
               colorStops: [
-                { offset: 0, color: '#3794ff' },
-                { offset: 1, color: '#0078d4' },
+                { offset: 0, color: '#e5e5e5' },
+                { offset: 1, color: '#737373' },
               ],
             },
             borderRadius: [4, 4, 0, 0],
@@ -458,7 +458,6 @@ export default function WorkspaceOSPanel({
         <div className="os-dock-actions">
           {selectedIndicador && (
             <div className="os-dock-selected-pill" title={`Proyecto activo: ${selectedIndicador.proyecto}`}>
-              <span className="dot" />
               <span>{selectedIndicador.proyecto}</span>
             </div>
           )}
@@ -629,12 +628,6 @@ export default function WorkspaceOSPanel({
                   <div className="os-compare-chips">
                     {comparedProjects.map((p, idx) => (
                       <div key={p.proyecto_id} className="os-compare-chip">
-                        <span
-                          className="os-chip-dot"
-                          style={{
-                            backgroundColor: ['#22d3ee', '#10b981', '#f59e0b', '#a855f7'][idx % 4],
-                          }}
-                        />
                         <span className="os-chip-name">{p.proyecto}</span>
                         <span className="os-chip-zona">({p.ZONAS || p.ciudad})</span>
                         <button
@@ -714,14 +707,6 @@ export default function WorkspaceOSPanel({
                               {comparedProjects.map((p, idx) => (
                                 <th key={p.proyecto_id} style={{ width: `${78 / comparedProjects.length}%` }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    <span
-                                      style={{
-                                        width: 8,
-                                        height: 8,
-                                        borderRadius: '50%',
-                                        backgroundColor: ['#22d3ee', '#10b981', '#f59e0b', '#a855f7'][idx % 4],
-                                      }}
-                                    />
                                     <span>{p.proyecto}</span>
                                   </div>
                                   <div className="text-muted text-xs font-normal">

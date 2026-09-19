@@ -182,7 +182,7 @@ export default function App() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--citrino-teal-light, #22d3ee)',
+            color: 'var(--text-primary)',
             transition: 'all 0.15s ease'
           }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">

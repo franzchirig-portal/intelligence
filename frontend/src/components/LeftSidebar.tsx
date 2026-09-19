@@ -119,26 +119,24 @@ export default function LeftSidebar({
             width: 36,
             height: 36,
             borderRadius: 8,
-            border: activeTab === 'workspace_os' ? '1px solid var(--citrino-teal-light, #14b8a6)' : '1px solid transparent',
-            background: activeTab === 'workspace_os'
-              ? 'linear-gradient(135deg, rgba(3, 46, 53, 0.95), rgba(14, 116, 144, 0.85))'
-              : 'transparent',
+            border: activeTab === 'workspace_os' ? '1px solid var(--border-bright)' : '1px solid transparent',
+            background: activeTab === 'workspace_os' ? 'var(--bg-active)' : 'transparent',
             cursor: 'pointer',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            color: activeTab === 'workspace_os' ? 'var(--citrino-accent, #22d3ee)' : 'var(--text-muted)',
+            color: activeTab === 'workspace_os' ? 'var(--text-primary)' : 'var(--text-muted)',
             transition: 'all 0.15s ease',
             outline: 'none',
-            boxShadow: activeTab === 'workspace_os' ? '0 0 10px var(--citrino-glow, rgba(34,211,238,0.3))' : 'none',
+            boxShadow: 'none',
             position: 'relative',
           }}
           onMouseEnter={(e) => {
             if (activeTab !== 'workspace_os') {
               const btn = e.currentTarget as HTMLButtonElement
               btn.style.background = 'var(--bg-card, rgba(255,255,255,0.06))'
-              btn.style.color = 'var(--citrino-accent, #22d3ee)'
+              btn.style.color = 'var(--text-primary)'
             }
           }}
           onMouseLeave={(e) => {
@@ -160,7 +158,7 @@ export default function LeftSidebar({
               width: 3,
               height: 18,
               borderRadius: '2px 0 0 2px',
-              background: 'var(--citrino-accent, #22d3ee)',
+              background: 'var(--text-primary)',
             }} />
           )}
         </button>
@@ -184,7 +182,7 @@ export default function LeftSidebar({
               borderRadius: 8,
               border: 'none',
               background: activePanel === id
-                ? 'var(--citrino-teal, #0d9488)'
+                ? 'var(--bg-active)'
                 : 'transparent',
               cursor: 'pointer',
               display: 'flex',
@@ -222,7 +220,7 @@ export default function LeftSidebar({
                 width: 3,
                 height: 16,
                 borderRadius: '2px 0 0 2px',
-                background: 'var(--citrino-accent, #22d3ee)',
+                background: 'var(--text-primary)',
               }} />
             )}
           </button>
@@ -301,25 +299,23 @@ export default function LeftSidebar({
 /* ── Notifications Panel ─────────────────────────────────────────────────── */
 function NotificationsPanel() {
   const notifications = [
-    { id: 1, icon: '📊', title: 'Datos actualizados',       desc: 'Pipeline ETL completado exitosamente',      time: 'Hace 2h' },
-    { id: 2, icon: '⚠️', title: 'Sobreoferta detectada',    desc: 'Zona Equipetrol supera umbral del 35%',     time: 'Hace 4h' },
-    { id: 3, icon: '✅', title: 'Sync completado',           desc: 'SCZ · LPZ · CBB sincronizadas',            time: 'Ayer' },
-    { id: 4, icon: '🗺️', title: 'Nuevo layer geoespacial',  desc: 'Polígonos de zonas actualizados',           time: 'Ayer' },
+    { id: 1, title: 'Datos actualizados',       desc: 'Pipeline ETL completado exitosamente',      time: 'Hace 2h' },
+    { id: 2, title: 'Sobreoferta detectada',    desc: 'Zona Equipetrol supera umbral del 35%',     time: 'Hace 4h' },
+    { id: 3, title: 'Sync completado',           desc: 'SCZ · LPZ · CBB sincronizadas',            time: 'Ayer' },
+    { id: 4, title: 'Nuevo layer geoespacial',  desc: 'Polígonos de zonas actualizados',           time: 'Ayer' },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-panel-header)' }}>
-        <span style={{ fontSize: 12 }}>🔔</span>
         <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Notificaciones</span>
-        <span style={{ marginLeft: 'auto', fontSize: 9.5, fontWeight: 700, background: 'var(--citrino-teal, #0d9488)', color: '#fff', borderRadius: 10, padding: '1px 6px' }}>{notifications.length}</span>
+        <span style={{ marginLeft: 'auto', fontSize: 9.5, fontWeight: 700, background: 'var(--bg-active)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 10, padding: '1px 6px' }}>{notifications.length}</span>
       </div>
       <div style={{ flex: 1, overflow: 'auto', padding: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {notifications.map((n) => (
-          <div key={n.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: 10, padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', transition: 'border-color 0.15s' }}
+          <div key={n.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: 8, padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', transition: 'border-color 0.15s' }}
             onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--border-bright)')}
             onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border-default)')}
           >
-            <span style={{ fontSize: 18, lineHeight: 1 }}>{n.icon}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>{n.title}</div>
               <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4 }}>{n.desc}</div>
@@ -337,7 +333,6 @@ function SettingsPanel() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-panel-header)' }}>
-        <span style={{ fontSize: 12 }}>⚙️</span>
         <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Ajustes</span>
       </div>
       <div style={{ flex: 1, overflow: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 16 }}>

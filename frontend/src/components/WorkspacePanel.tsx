@@ -162,15 +162,15 @@ export default function WorkspacePanel({
           data: timelineData.map((d) => d.porVender),
           symbol: 'circle',
           symbolSize: 6,
-          lineStyle: { color: '#38bdf8', width: 2.5 },
-          itemStyle: { color: '#38bdf8' },
+          lineStyle: { color: '#d4d4d8', width: 2.5 },
+          itemStyle: { color: '#d4d4d8' },
           areaStyle: {
             color: {
               type: 'linear',
               x: 0, y: 0, x2: 0, y2: 1,
               colorStops: [
-                { offset: 0, color: 'rgba(56, 189, 248, 0.25)' },
-                { offset: 1, color: 'rgba(56, 189, 248, 0.0)' },
+                { offset: 0, color: 'rgba(212, 212, 216, 0.2)' },
+                { offset: 1, color: 'rgba(212, 212, 216, 0.0)' },
               ],
             },
           },
@@ -182,19 +182,19 @@ export default function WorkspacePanel({
         grid: { left: 20, right: 30, top: 20, bottom: 25, containLabel: true },
         tooltip: {
           trigger: 'axis',
-          backgroundColor: '#0c1a2d',
-          borderColor: '#1f395d',
+          backgroundColor: '#1e2127',
+          borderColor: '#333842',
           textStyle: { color: '#f1f5f9', fontSize: 11 },
         },
         xAxis: {
           type: 'category',
           data: dates,
-          axisLine: { lineStyle: { color: '#182c48' } },
+          axisLine: { lineStyle: { color: '#2a2e39' } },
           axisLabel: { fontSize: 10, color: '#94a3b8' },
         },
         yAxis: {
           type: 'value',
-          splitLine: { lineStyle: { color: '#182c48' } },
+          splitLine: { lineStyle: { color: '#2a2e39' } },
           axisLabel: { fontSize: 10, color: '#94a3b8' },
         },
         series: seriesList,
@@ -209,17 +209,17 @@ export default function WorkspacePanel({
         grid: { left: 10, right: 45, top: 10, bottom: 10, containLabel: true },
         tooltip: {
           trigger: 'axis',
-          backgroundColor: '#0c1a2d',
-          borderColor: '#1f395d',
+          backgroundColor: '#1e2127',
+          borderColor: '#333842',
           textStyle: { color: '#f1f5f9', fontSize: 11 },
           formatter: (params: any) => {
             const p = params[0]
-            return `<b>${p.name}</b><br/>Stock disponible: <b style="color:#38bdf8">${Number(p.value).toLocaleString('es-BO')} unds</b>`
+            return `<b>${p.name}</b><br/>Stock disponible: <b style="color:#ffffff">${Number(p.value).toLocaleString('es-BO')} unds</b>`
           },
         },
         xAxis: {
           type: 'value',
-          splitLine: { lineStyle: { color: '#182c48' } },
+          splitLine: { lineStyle: { color: '#2a2e39' } },
           axisLabel: { fontSize: 10, color: '#94a3b8' },
         },
         yAxis: {
@@ -237,7 +237,7 @@ export default function WorkspacePanel({
               color: {
                 type: 'linear',
                 x: 0, y: 0, x2: 1, y2: 0,
-                colorStops: [{ offset: 0, color: '#1565c0' }, { offset: 1, color: '#0284c7' }],
+                colorStops: [{ offset: 0, color: '#52525b' }, { offset: 1, color: '#a1a1aa' }],
               },
               borderRadius: [0, 4, 4, 0],
             },
@@ -246,7 +246,7 @@ export default function WorkspacePanel({
               position: 'right',
               fontSize: 10,
               fontWeight: 600,
-              color: '#38bdf8',
+              color: '#f4f4f5',
               formatter: (p: any) => (p.value > 0 ? Number(p.value).toLocaleString('es-BO') : ''),
             },
           },
@@ -320,7 +320,7 @@ export default function WorkspacePanel({
           textStyle: { color: '#f1f5f9', fontSize: 11 },
           formatter: (params: any) => {
             const p = params[0]
-            return `<b>${p.name}</b><br/>Monto en stock: <b style="color:#22d3ee">${fmtUSD(p.value)} USD</b>`
+            return `<b>${p.name}</b><br/>Monto en stock: <b style="color:#f1f5f9">${fmtUSD(p.value)} USD</b>`
           },
         },
         xAxis: {
@@ -347,7 +347,7 @@ export default function WorkspacePanel({
               color: {
                 type: 'linear',
                 x: 0, y: 0, x2: 1, y2: 0,
-                colorStops: [{ offset: 0, color: '#032e35' }, { offset: 1, color: '#0e7490' }],
+                colorStops: [{ offset: 0, color: '#333842' }, { offset: 1, color: '#737373' }],
               },
               borderRadius: [0, 4, 4, 0],
             },
@@ -356,7 +356,7 @@ export default function WorkspacePanel({
               position: 'right',
               fontSize: 10,
               fontWeight: 600,
-              color: '#22d3ee',
+              color: '#f1f5f9',
               formatter: (p: any) => (p.value > 0 ? fmtUSD(p.value) : ''),
             },
           },
@@ -371,12 +371,12 @@ export default function WorkspacePanel({
       grid: { left: 10, right: 40, top: 10, bottom: 10, containLabel: true },
       tooltip: {
         trigger: 'axis',
-        backgroundColor: '#0c1a2d',
-        borderColor: '#1f395d',
+        backgroundColor: '#1e1e1e',
+        borderColor: '#383838',
         textStyle: { color: '#f1f5f9', fontSize: 11 },
         formatter: (params: any) => {
           const p = params[0]
-          return `<b>${p.name}</b><br/>Meses de stock: <b style="color:#22d3ee">${Number(p.value).toFixed(1)} meses</b>`
+          return `<b>${p.name}</b><br/>Meses de stock: <b style="color:#f1f5f9">${Number(p.value).toFixed(1)} meses</b>`
         },
       },
       xAxis: {
@@ -566,12 +566,12 @@ export default function WorkspacePanel({
                 onChange={(e) => setMetricType(e.target.value as MetricType)}
                 style={{
                   background: 'var(--bg-card)',
-                  color: 'var(--citrino-teal-light)',
-                  border: '1px solid var(--border-accent)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-default)',
                   borderRadius: 20,
                   padding: '5px 14px',
                   fontSize: 11.5,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   outline: 'none',
                   cursor: 'pointer',
                   boxShadow: 'none',

@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ─── Design Tokens — Antigravity Neutral Dark Palette (Charcoal / Pure Dark & Blue) ─── */
+/* ─── Design Tokens — Antigravity Neutral Dark Palette (Charcoal / Pure Dark & Neutral) ─── */
 :root {
-  /* Antigravity Blue Accent (Clean IDE Blue, zero purple) */
+  /* Antigravity Neutral Monochrome Tokens (Zero Blue, Zero Purple) */
   --citrino-petrol:     #252526;
-  --citrino-teal:       #0078d4;
-  --citrino-teal-light: #3794ff;
-  --citrino-cyan:       #38bdf8;
-  --citrino-accent:     #3794ff;
-  --citrino-glow:       rgba(55, 148, 255, 0.2);
+  --citrino-teal:       #737373;
+  --citrino-teal-light: #e5e5e5;
+  --citrino-cyan:       #e5e5e5;
+  --citrino-accent:     #ffffff;
+  --citrino-glow:       none;
   --citrino-dark:       #181818;
 
   /* Backgrounds (Antigravity Neutral Dark Slate / Charcoal - Zero Purple) */
@@ -21,18 +21,18 @@
   --bg-input:        #1f1f1f;
   --bg-card:         #252526;
 
-  /* Borders — Clean Neutral Grays (No Purple) */
+  /* Borders — Clean Neutral Grays (No Purple, No Blue) */
   --border-subtle:   #2d2d2d;
   --border-default:  #383838;
-  --border-bright:   #4a4a4a;
-  --border-accent:   #3794ff;
+  --border-bright:   #505050;
+  --border-accent:   #505050;
 
   /* Text */
   --text-primary:    #f3f3f3;
   --text-secondary:  #9d9d9d;
   --text-muted:      #6e6e6e;
-  --text-accent:     #3794ff;
-  --text-citrino:    #3794ff;
+  --text-accent:     #f3f3f3;
+  --text-citrino:    #f3f3f3;
   --text-success:    #10b981;
   --text-warning:    #f59e0b;
   --text-danger:     #f43f5e;
@@ -41,16 +41,16 @@
   --color-warning:   #f59e0b;
 
   /* Accents */
-  --accent-blue:     #3794ff;
-  --accent-blue-glow:rgba(55, 148, 255, 0.2);
-  --accent-cyan:     #38bdf8;
+  --accent-blue:     #e5e5e5;
+  --accent-blue-glow:transparent;
+  --accent-cyan:     #e5e5e5;
   --accent-emerald:  #10b981;
   --accent-ruby:     #f43f5e;
-  --accent-violet:   #3794ff;
-  --accent-teal:     #3794ff;
+  --accent-violet:   #e5e5e5;
+  --accent-teal:     #e5e5e5;
   --accent-amber:    #f59e0b;
   --citrino-amber:   #f59e0b;
-  --citrino-amber-glow: rgba(245, 158, 11, 0.2);
+  --citrino-amber-glow: transparent;
 
   /* Panels */
   --panel-left-w:    300px;
@@ -59,8 +59,8 @@
   /* Effects */
   --shadow-panel:    0 0 0 1px var(--border-subtle), 0 4px 20px rgba(0, 0, 0, 0.6);
   --shadow-card:     0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.3);
-  --glow-citrino:    0 0 14px rgba(55, 148, 255, 0.2);
-  --glow-blue:       0 0 14px rgba(55, 148, 255, 0.2);
+  --glow-citrino:    none;
+  --glow-blue:       none;
 
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -70,11 +70,11 @@
 /* ─── Light Theme — Antigravity Crisp Light ─────────────────────────────── */
 [data-theme="light"] {
   --citrino-petrol:     #f4f4f5;
-  --citrino-teal:       #0078d4;
-  --citrino-teal-light: #0078d4;
-  --citrino-cyan:       #0284c7;
-  --citrino-accent:     #0078d4;
-  --citrino-glow:       rgba(0, 120, 212, 0.15);
+  --citrino-teal:       #64748b;
+  --citrino-teal-light: #334155;
+  --citrino-cyan:       #334155;
+  --citrino-accent:     #0f172a;
+  --citrino-glow:       none;
   --citrino-dark:       #f8fafc;
 
   /* Backgrounds */
@@ -91,14 +91,14 @@
   --border-subtle:   #e2e8f0;
   --border-default:  #cbd5e1;
   --border-bright:   #94a3b8;
-  --border-accent:   #0078d4;
+  --border-accent:   #94a3b8;
 
   /* Text */
   --text-primary:    #0f172a;
   --text-secondary:  #334155;
   --text-muted:      #64748b;
-  --text-accent:     #0078d4;
-  --text-citrino:    #0078d4;
+  --text-accent:     #0f172a;
+  --text-citrino:    #0f172a;
   --text-success:    #059669;
   --text-warning:    #d97706;
   --text-danger:     #dc2626;
@@ -107,16 +107,16 @@
   --color-warning:   #d97706;
 
   /* Accents */
-  --accent-blue:     #0078d4;
-  --accent-blue-glow:rgba(0, 120, 212, 0.15);
-  --accent-cyan:     #0284c7;
+  --accent-blue:     #0f172a;
+  --accent-blue-glow:transparent;
+  --accent-cyan:     #334155;
   --accent-emerald:  #059669;
   --accent-ruby:     #dc2626;
-  --accent-violet:   #0078d4;
-  --accent-teal:     #0078d4;
+  --accent-violet:   #334155;
+  --accent-teal:     #334155;
   --accent-amber:    #d97706;
-  --citrino-amber:   #0078d4;
-  --citrino-amber-glow: rgba(0, 120, 212, 0.15);
+  --citrino-amber:   #64748b;
+  --citrino-amber-glow: transparent;
 
   /* Effects */
   --shadow-panel:    0 0 0 1px var(--border-subtle), 0 2px 16px rgba(15, 23, 42, 0.08);
@@ -180,14 +180,15 @@ html, body, #root {
 .topbar-logo .logo-icon {
   width: 22px;
   height: 22px;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
   border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
 }
 
 .topbar-divider {
@@ -286,10 +287,7 @@ html, body, #root {
 }
 
 .panel-header .panel-title-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--accent-blue);
-  box-shadow: none;
+  display: none !important;
 }
 
 .panel-body {
@@ -436,7 +434,7 @@ html, body, #root {
   transition: all 0.15s;
   flex-shrink: 0;
 }
-.btn-send:hover { background: #2563eb; box-shadow: var(--glow-blue); }
+.btn-send:hover { background: #ffffff; color: #181a1f; box-shadow: none; }
 .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ─── CENTER PANEL ───────────────────────────────────────────────────────── */
@@ -664,15 +662,8 @@ html, body, #root {
   gap: 6px;
 }
 .insight-card-title .icon-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  flex-shrink: 0;
+  display: none !important;
 }
-.icon-dot.blue { background: var(--accent-blue); }
-.icon-dot.green { background: var(--accent-emerald); }
-.icon-dot.teal { background: var(--citrino-teal-light); }
-.icon-dot.amber { background: var(--citrino-teal-light); }
-.icon-dot.violet { background: var(--accent-violet); }
 
 .insight-card-body {
   font-size: 11.5px;
@@ -776,10 +767,7 @@ html, body, #root {
   color: var(--text-muted);
 }
 .status-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--accent-emerald);
-  box-shadow: none;
+  display: none !important;
 }
 
 .flex { display: flex; }
@@ -805,9 +793,9 @@ html, body, #root {
 }
 .citrino-filter-pill:hover,
 .citrino-filter-pill.active {
-  border-color: var(--citrino-teal-light);
+  border-color: var(--border-bright);
   background: var(--bg-hover);
-  box-shadow: 0 0 10px var(--citrino-glow);
+  box-shadow: none;
 }
 .citrino-subtabs {
   display: flex;
@@ -837,9 +825,9 @@ html, body, #root {
 }
 .citrino-subtab-btn.active {
   background: var(--bg-card);
-  color: var(--citrino-accent);
-  border-color: var(--citrino-teal-light);
-  box-shadow: 0 0 8px var(--citrino-glow);
+  color: var(--text-primary);
+  border-color: var(--border-bright);
+  box-shadow: none;
 }
 
 /* ─── LEAFLET CITRINO DARK THEME ────────────────────────────────────────── */
@@ -877,23 +865,23 @@ html, body, #root {
   right: 6px !important;
 }
 .leaflet-popup-close-button:hover {
-  color: #22d3ee !important;
+  color: #ffffff !important;
 }
 
 .leaflet-bar {
-  border: 1px solid #1e4b5a !important;
+  border: 1px solid var(--border-default) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
 }
 
 .leaflet-bar a {
-  background-color: #091b22 !important;
-  border-bottom: 1px solid #163642 !important;
-  color: #22d3ee !important;
+  background-color: var(--bg-card) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--text-primary) !important;
   transition: all 0.15s;
 }
 
 .leaflet-bar a:hover {
-  background-color: #0d2731 !important;
+  background-color: var(--bg-card-hover) !important;
   color: #ffffff !important;
 }
 
@@ -987,12 +975,7 @@ html, body, #root {
   gap: 8px;
 }
 .os-badge-pulse {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--citrino-accent);
-  box-shadow: none;
-  animation: citrino-pulse 2s infinite ease-in-out;
+  display: none !important;
 }
 .os-brand-title {
   font-weight: 800;
@@ -1004,9 +987,9 @@ html, body, #root {
   font-size: 9px;
   padding: 2px 6px;
   border-radius: 10px;
-  background: rgba(34, 211, 238, 0.06);
-  border: 1px solid rgba(34, 211, 238, 0.2);
-  color: var(--citrino-accent);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
 }
@@ -1016,7 +999,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(4, 10, 13, 0.6);
+  background: var(--bg-surface);
   padding: 3px 6px;
   border-radius: 24px;
   border: 1px solid var(--border-subtle);
@@ -1041,10 +1024,10 @@ html, body, #root {
   background: var(--bg-hover);
 }
 .os-dock-item.active {
-  background: rgba(55, 148, 255, 0.16);
-  border-color: var(--citrino-accent);
+  background: var(--bg-card);
+  border-color: var(--border-bright);
   color: #ffffff;
-  box-shadow: 0 0 12px var(--citrino-glow);
+  box-shadow: none;
 }
 .os-dock-icon {
   font-size: 13px;
@@ -1053,15 +1036,16 @@ html, body, #root {
   letter-spacing: 0.2px;
 }
 .os-dock-badge {
-  background: var(--citrino-accent);
+  background: var(--bg-hover);
   color: #ffffff;
+  border: 1px solid var(--border-default);
   font-size: 9.5px;
   font-weight: 800;
   padding: 1px 5px;
   border-radius: 10px;
 }
 .os-dock-pill-green {
-  background: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.15);
   border: 1px solid var(--color-positive);
   color: var(--color-positive);
   font-size: 9px;
@@ -1083,19 +1067,15 @@ html, body, #root {
   align-items: center;
   gap: 6px;
   background: var(--bg-card);
-  border: 1px solid var(--border-bright);
+  border: 1px solid var(--border-default);
   border-radius: 16px;
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--citrino-accent);
+  color: var(--text-primary);
 }
 .os-dock-selected-pill .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--citrino-accent);
-  box-shadow: none;
+  display: none !important;
 }
 
 .os-cmd-trigger {
@@ -1381,9 +1361,7 @@ html, body, #root {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 .os-chip-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  display: none !important;
 }
 .os-chip-name {
   font-weight: 600;

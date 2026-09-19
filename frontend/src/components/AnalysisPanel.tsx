@@ -154,10 +154,10 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
 
   function getPerformanceBadge(): { label: string; color: string; bg: string } {
     if (!ind || ind.meses_stock == null) return { label: 'Etapa Inicial', color: '#94a3b8', bg: '#1e293b' }
-    if (ind.meses_stock < 6) return { label: '🔥 Alta Tracción (<6m)', color: '#10b981', bg: 'rgba(16,185,129,0.15)' }
-    if (ind.meses_stock <= 12) return { label: '⚡ Tracción Estable (6-12m)', color: '#38bdf8', bg: 'rgba(56,189,248,0.15)' }
-    if (ind.meses_stock <= 18) return { label: '⚠️ Presión Moderada (12-18m)', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' }
-    return { label: '🚨 Sobre-inventario (>18m)', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' }
+    if (ind.meses_stock < 6) return { label: 'Alta Tracción (<6m)', color: '#10b981', bg: 'rgba(16,185,129,0.15)' }
+    if (ind.meses_stock <= 12) return { label: 'Tracción Estable (6-12m)', color: 'var(--text-primary)', bg: 'var(--bg-active)' }
+    if (ind.meses_stock <= 18) return { label: 'Presión Moderada (12-18m)', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' }
+    return { label: 'Sobre-inventario (>18m)', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' }
   }
 
   const badge = getPerformanceBadge()
@@ -166,7 +166,6 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
     <div className="panel panel-right" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Panel Header */}
       <div className="panel-header">
-        <div className="panel-title-dot" style={{ background: 'var(--accent-violet)', boxShadow: '0 0 6px var(--accent-violet)' }} />
         <span>Interpretación & Diagnóstico</span>
         {ind && (
           <button
@@ -177,7 +176,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
               background: 'transparent',
               border: '1px solid var(--border-default)',
               borderRadius: 4,
-              color: 'var(--text-accent)',
+              color: 'var(--text-primary)',
               fontSize: 10,
               padding: '2px 8px',
               cursor: 'pointer',
@@ -197,7 +196,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
             {/* Executive Market Narrative */}
             <div className="analysis-section">
               <div className="analysis-section-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>🌐 Diagnóstico General de Plaza ({ciudad === 'ALL' ? 'Bolivia' : ciudad})</span>
+                <span>Diagnóstico General de Plaza ({ciudad === 'ALL' ? 'Bolivia' : ciudad})</span>
               </div>
               <div style={{
                 fontSize: 11.5,
@@ -284,7 +283,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
 
             {/* Top Market Drivers */}
             <div className="analysis-section">
-              <div className="analysis-section-title">🏆 Proyectos Líderes de Absorción (Top Movers)</div>
+              <div className="analysis-section-title">Proyectos Líderes de Absorción (Top Movers)</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {topPerformers.map((p, idx) => (
                   <div key={p.proyecto_id} style={{
@@ -299,7 +298,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{
                         width: 20, height: 20, borderRadius: 10,
-                        background: 'rgba(56,189,248,0.15)', color: 'var(--accent-cyan)',
+                        background: 'var(--bg-hover)', color: 'var(--text-primary)',
                         fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
                         #{idx + 1}
@@ -325,7 +324,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
             {/* Market Tipology Benchmarks */}
             {Object.keys(benchmarks).length > 0 && (
               <div className="analysis-section">
-                <div className="analysis-section-title">📊 Benchmarks de Tipología en Plaza</div>
+                <div className="analysis-section-title">Benchmarks de Tipología en Plaza</div>
                 <div style={{
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border-subtle)',
@@ -342,7 +341,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                         <div style={{ fontSize: 9.5, color: 'var(--text-muted)' }}>{fmt(b.avgArea)} m² constr. prom.</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-cyan)' }}>{fmtUSD(b.avgPrecio)}</div>
+                        <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-primary)' }}>{fmtUSD(b.avgPrecio)}</div>
                         <div style={{ fontSize: 9.5, color: 'var(--accent-emerald)' }}>{fmt(b.avgSusM2)} $US/m²</div>
                       </div>
                     </div>
@@ -353,17 +352,17 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
 
             {/* Strategic Directive Alertas */}
             <div className="analysis-section">
-              <div className="analysis-section-title">💡 Dictamen Estratégico de Mercado</div>
+              <div className="analysis-section-title">Dictamen Estratégico de Mercado</div>
               <div style={{
-                background: 'rgba(56, 189, 248, 0.05)',
-                border: '1px solid rgba(56, 189, 248, 0.2)',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-default)',
                 borderRadius: 'var(--radius-md)',
                 padding: '10px 12px',
                 fontSize: 11,
                 color: 'var(--text-secondary)',
                 lineHeight: 1.6,
               }}>
-                <div style={{ fontWeight: 700, color: 'var(--accent-cyan)', marginBottom: 4 }}>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
                   Recomendación para Desarrolladores:
                 </div>
                 Los proyectos con ritmo superior a 2.0 und/mes demuestran que el rango de $US 950 - $US 1,200/m² en tipologías de 1 y 2 dormitorios concentra el 68% de la demanda efectiva. Unidades sobre $US 1,400/m² sin diferenciación sufren estancamiento de más de 18 meses.
@@ -451,13 +450,13 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
 
                 {zoneContext && (
                   <p style={{ margin: 0, marginBottom: 8 }}>
-                    En su micro-zona (<strong style={{ color: 'var(--citrino-teal-light)' }}>{ind.ZONAS}</strong>), compite directamente con <strong style={{ color: 'var(--text-primary)' }}>{zoneContext.count} proyectos</strong>, ocupando la posición <strong style={{ color: 'var(--accent-cyan)' }}>#{zoneContext.rankInZone}</strong> por ritmo comercial. Esta zona mantiene <strong style={{ color: 'var(--text-primary)' }}>{zoneContext.zoneStock} unidades</strong> disponibles con una velocidad de absorción zonal de <strong style={{ color: 'var(--accent-emerald)' }}>{zoneContext.zoneRitmo} und/mes</strong> ({zoneContext.zoneMeses} meses de stock medio).
+                    En su micro-zona (<strong style={{ color: 'var(--text-primary)' }}>{ind.ZONAS}</strong>), compite directamente con <strong style={{ color: 'var(--text-primary)' }}>{zoneContext.count} proyectos</strong>, ocupando la posición <strong style={{ color: 'var(--text-primary)' }}>#{zoneContext.rankInZone}</strong> por ritmo comercial. Esta zona mantiene <strong style={{ color: 'var(--text-primary)' }}>{zoneContext.zoneStock} unidades</strong> disponibles con una velocidad de absorción zonal de <strong style={{ color: 'var(--text-primary)' }}>{zoneContext.zoneRitmo} und/mes</strong> ({zoneContext.zoneMeses} meses de stock medio).
                   </p>
                 )}
 
                 {ind.meses_stock != null && ind.meses_stock > 0 && (
                   <p style={{ margin: 0 }}>
-                    Al ritmo actual, el stock se agotaría en <strong style={{ color: ind.meses_stock > 18 ? 'var(--text-danger)' : 'var(--text-primary)' }}>{ind.meses_stock.toFixed(1)} meses</strong> {projectedSoldOutDate ? `(estimado hacia ${projectedSoldOutDate})` : ''}. {ind.meses_stock < 8 ? 'La presión sobre inventario es baja con alto poder de absorción.' : ind.meses_stock > 18 ? '⚠️ Requiere revisión de condiciones comerciales para evitar costo de acarreo prolongado.' : 'El inventario se desenvuelve dentro del rango operativo normal.'}
+                    Al ritmo actual, el stock se agotaría en <strong style={{ color: ind.meses_stock > 18 ? 'var(--text-danger)' : 'var(--text-primary)' }}>{ind.meses_stock.toFixed(1)} meses</strong> {projectedSoldOutDate ? `(estimado hacia ${projectedSoldOutDate})` : ''}. {ind.meses_stock < 8 ? 'La presión sobre inventario es baja con alto poder de absorción.' : ind.meses_stock > 18 ? 'Requiere revisión de condiciones comerciales para evitar costo de acarreo prolongado.' : 'El inventario se desenvuelve dentro del rango operativo normal.'}
                   </p>
                 )}
               </div>
@@ -465,7 +464,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
 
             {/* Inventory & Capital Exposure */}
             <div className="analysis-section">
-              <div className="analysis-section-title">💰 Exposición de Capital & Inventario</div>
+              <div className="analysis-section-title">Exposición de Capital & Inventario</div>
               <div className="insight-card">
                 <div className="metric-row">
                   <span className="metric-label">Unidades Totales</span>
@@ -477,11 +476,11 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                 </div>
                 <div className="metric-row">
                   <span className="metric-label">Unidades Disponibles</span>
-                  <span className="metric-value teal">{fmt(ind.und_por_vender, 0)}</span>
+                  <span className="metric-value">{fmt(ind.und_por_vender, 0)}</span>
                 </div>
                 <div className="metric-row">
                   <span className="metric-label">Ritmo Comercial</span>
-                  <span className="metric-value blue">{fmt(ind.ritmo_venta)} und/mes</span>
+                  <span className="metric-value">{fmt(ind.ritmo_venta)} und/mes</span>
                 </div>
                 <div className="metric-row">
                   <span className="metric-label">Meses de Stock</span>
@@ -490,7 +489,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                 {ind.stock_total != null && ind.stock_total > 0 && (
                   <div className="metric-row">
                     <span className="metric-label">Valor Stock Remanente</span>
-                    <span className="metric-value cyan">{fmtUSD(ind.stock_total)}</span>
+                    <span className="metric-value">{fmtUSD(ind.stock_total)}</span>
                   </div>
                 )}
               </div>
@@ -499,7 +498,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
             {/* Typology Deep Dive */}
             {avgData.length > 0 && (
               <div className="analysis-section">
-                <div className="analysis-section-title">🛏️ Análisis por Tipología de Dormitorios</div>
+                <div className="analysis-section-title">Análisis por Tipología de Dormitorios</div>
                 {starTypology && (
                   <div style={{
                     background: 'rgba(16, 185, 129, 0.08)',
@@ -510,7 +509,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                     fontSize: 11,
                   }}>
                     <div style={{ fontWeight: 700, color: 'var(--accent-emerald)', marginBottom: 2 }}>
-                      ⭐ Tipología Más Demandada: {starTypology.avg_tipologia}
+                      Tipología Más Demandada: {starTypology.avg_tipologia}
                     </div>
                     <div style={{ color: 'var(--text-secondary)' }}>
                       Concentra {starTypology.und_vendidas ?? 0} unidades colocadas a un valor medio de {fmtUSD(starTypology.avg_precio)} ({fmt(starTypology.avg_sus_m2)} $US/m²).
@@ -534,7 +533,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{t.avg_tipologia}</span>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent-cyan)' }}>{fmtUSD(t.avg_precio)}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{fmtUSD(t.avg_precio)}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-muted)' }}>
                           <span>Área: {fmt(t.avg_construccion_m2)} m²</span>
@@ -556,7 +555,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
             {/* Historical Snapshots Trend */}
             {history.length > 1 && (
               <div className="analysis-section">
-                <div className="analysis-section-title">📈 Evolución Temporal (Historial Censos)</div>
+                <div className="analysis-section-title">Evolución Temporal (Historial Censos)</div>
                 <div style={{
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border-subtle)',
@@ -582,7 +581,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                         paddingBottom: i < history.length - 1 ? 6 : 0,
                       }}>
                         <div>
-                          <div style={{ fontWeight: 600, color: h.indicador_censo_id === ind.indicador_censo_id ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>
+                          <div style={{ fontWeight: 600, color: h.indicador_censo_id === ind.indicador_censo_id ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                             {h.fecha_snapshot} {h.indicador_censo_id === ind.indicador_censo_id ? '(Activo)' : ''}
                           </div>
                           <div style={{ fontSize: 9.5, color: 'var(--text-muted)' }}>
@@ -590,7 +589,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                           </div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontWeight: 700, color: 'var(--accent-blue)' }}>
+                          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
                             {fmt(h.ritmo_venta)} und/mes
                           </div>
                           {diffVend != null && (
@@ -608,7 +607,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
 
             {/* Strategic Recommendation */}
             <div className="analysis-section">
-              <div className="analysis-section-title">🎯 Dictamen Técnico & Recomendación</div>
+              <div className="analysis-section-title">Dictamen Técnico & Recomendación</div>
               <div style={{
                 background: 'var(--bg-surface)',
                 border: '1px solid var(--border-default)',

@@ -108,14 +108,14 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             width: 48,
             height: 48,
             borderRadius: 10,
-            background: 'var(--citrino-dark, #032e35)',
-            border: '1px solid var(--citrino-teal-light, #14b8a6)',
-            boxShadow: '0 0 15px rgba(34, 211, 238, 0.25)',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-default)',
+            boxShadow: 'none',
             marginBottom: 12,
           }}>
             <svg width="26" height="26" viewBox="0 0 100 100" fill="none">
-              <path d="M 50 10 A 40 40 0 1 0 85 75 L 70 65 A 25 25 0 1 1 50 25 Z" fill="#22d3ee" />
-              <polygon points="50,38 60,50 50,62 40,50" fill="#14b8a6" />
+              <path d="M 50 10 A 40 40 0 1 0 85 75 L 70 65 A 25 25 0 1 1 50 25 Z" fill="#ffffff" />
+              <polygon points="50,38 60,50 50,62 40,50" fill="#9d9d9d" />
             </svg>
           </div>
           <h1 style={{
@@ -130,7 +130,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
           <div style={{
             fontSize: 10,
             fontWeight: 700,
-            color: 'var(--citrino-teal-light, #14b8a6)',
+            color: 'var(--text-muted)',
             letterSpacing: 1.8,
             textTransform: 'uppercase',
             marginTop: 3,
@@ -142,11 +142,11 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         {/* Mode Switcher Tabs */}
         <div style={{
           display: 'flex',
-          background: 'rgba(4, 10, 13, 0.7)',
+          background: 'var(--bg-surface)',
           padding: 3,
           borderRadius: 8,
           marginBottom: 20,
-          border: '1px solid var(--border-subtle, #133340)',
+          border: '1px solid var(--border-subtle)',
         }}>
           <button
             type="button"
@@ -156,9 +156,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               padding: '8px 0',
               fontSize: 12,
               fontWeight: 600,
-              background: mode === 'login' ? 'var(--citrino-petrol, #032e35)' : 'transparent',
-              color: mode === 'login' ? '#22d3ee' : '#94a3b8',
-              border: mode === 'login' ? '1px solid rgba(20, 184, 166, 0.5)' : 'none',
+              background: mode === 'login' ? 'var(--bg-active)' : 'transparent',
+              color: mode === 'login' ? '#ffffff' : '#94a3b8',
+              border: mode === 'login' ? '1px solid var(--border-bright)' : 'none',
               borderRadius: 6,
               cursor: 'pointer',
               transition: 'all 0.2s',
@@ -173,9 +173,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               padding: '8px 0',
               fontSize: 12,
               fontWeight: 600,
-              background: mode === 'register' ? 'var(--citrino-petrol, #032e35)' : 'transparent',
-              color: mode === 'register' ? '#22d3ee' : '#94a3b8',
-              border: mode === 'register' ? '1px solid rgba(20, 184, 166, 0.5)' : 'none',
+              background: mode === 'register' ? 'var(--bg-active)' : 'transparent',
+              color: mode === 'register' ? '#ffffff' : '#94a3b8',
+              border: mode === 'register' ? '1px solid var(--border-bright)' : 'none',
               borderRadius: 6,
               cursor: 'pointer',
               transition: 'all 0.2s',
@@ -194,11 +194,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             borderRadius: 6,
             fontSize: 11.5,
             marginBottom: 16,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
           }}>
-            <span>⚠️</span>
             <span>{errorMsg}</span>
           </div>
         )}
@@ -213,11 +209,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             borderRadius: 6,
             fontSize: 11.5,
             marginBottom: 16,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
           }}>
-            <span>✓</span>
             <span>{successMsg}</span>
           </div>
         )}
@@ -338,9 +330,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               padding: '9px 14px',
               fontSize: 12,
               fontWeight: 600,
-              background: 'rgba(20, 184, 166, 0.08)',
-              color: 'var(--citrino-accent, #22d3ee)',
-              border: '1px dashed rgba(34, 211, 238, 0.35)',
+              background: 'var(--bg-card)',
+              color: 'var(--text-primary)',
+              border: '1px dashed var(--border-default)',
               borderRadius: 6,
               cursor: 'pointer',
               transition: 'all 0.2s',
@@ -349,7 +341,6 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               justifyContent: 'center',
               gap: 6,
             }}>
-            <span>⚡</span>
             <span>Acceso Rápido (Modo Demostración / Invitado)</span>
           </button>
         </form>

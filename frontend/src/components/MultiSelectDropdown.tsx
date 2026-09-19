@@ -130,7 +130,7 @@ export default function MultiSelectDropdown({
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: isAllSelected ? 'var(--citrino-accent, #22d3ee)' : 'var(--text-muted, #94a3b8)',
+                  color: isAllSelected ? 'var(--text-primary)' : 'var(--text-muted)',
                   fontSize: 10,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -144,7 +144,7 @@ export default function MultiSelectDropdown({
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: 'var(--text-muted, #94a3b8)',
+                  color: 'var(--text-muted)',
                   fontSize: 10,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -172,8 +172,8 @@ export default function MultiSelectDropdown({
                     borderRadius: 6,
                     cursor: 'pointer',
                     fontSize: 11.5,
-                    color: checked ? 'var(--text-primary, #f1f5f9)' : 'var(--text-secondary, #94a3b8)',
-                    background: checked ? 'rgba(34, 211, 238, 0.12)' : 'transparent',
+                    color: checked ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    background: checked ? 'var(--bg-active)' : 'transparent',
                     userSelect: 'none',
                     transition: 'background 0.12s',
                   }}>
@@ -182,7 +182,7 @@ export default function MultiSelectDropdown({
                     checked={checked}
                     onChange={() => handleToggle(opt)}
                     style={{
-                      accentColor: '#22d3ee',
+                      accentColor: 'var(--text-primary)',
                       cursor: 'pointer',
                       width: 14,
                       height: 14,
@@ -234,7 +234,7 @@ export default function MultiSelectDropdown({
                 fontWeight: 600,
                 cursor: 'pointer',
               }}>
-              Listo ✓
+              Listo
             </button>
           </div>
         </div>

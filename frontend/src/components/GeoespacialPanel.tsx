@@ -109,7 +109,7 @@ export default function GeoespacialPanel({
       const m = p.meses_stock
       if (m == null) return '#64748b'
       if (m < 12) return '#10b981' // Verde: Alta absorción
-      if (m <= 18) return '#38bdf8' // Cian: Equilibrado
+      if (m <= 18) return '#94a3b8' // Gris: Equilibrado
       if (m <= 24) return '#f59e0b' // Ámbar: Presión moderada
       return '#ef4444' // Rojo: Sobreoferta
     }
@@ -118,18 +118,18 @@ export default function GeoespacialPanel({
       const r = p.ritmo_venta
       if (r == null) return '#64748b'
       if (r >= 2.0) return '#10b981'
-      if (r >= 1.0) return '#38bdf8'
+      if (r >= 1.0) return '#94a3b8'
       if (r >= 0.4) return '#f59e0b'
       return '#ef4444'
     }
 
     // By Etapa
     const e = (p.etapa || '').toLowerCase()
-    if (e.includes('pozo')) return '#c084fc'
-    if (e.includes('obra')) return '#14b8a6'
-    if (e.includes('preventa')) return '#f43f5e'
+    if (e.includes('pozo')) return '#a1a1aa'
+    if (e.includes('obra')) return '#71717a'
+    if (e.includes('preventa')) return '#d4d4d8'
     if (e.includes('terminada') || e.includes('entrega')) return '#10b981'
-    return '#38bdf8'
+    return '#94a3b8'
   }
 
   // 3. Initialize Leaflet map
@@ -213,7 +213,7 @@ export default function GeoespacialPanel({
       const marker = L.circleMarker([lat, lng], {
         radius: isSelected ? 11 : 7,
         fillColor: color,
-        color: isSelected ? (isLight ? '#0284c7' : '#22d3ee') : (isLight ? '#334155' : '#ffffff'),
+        color: isSelected ? '#ffffff' : (isLight ? '#334155' : '#71717a'),
         weight: isSelected ? 3 : 1.5,
         opacity: 1,
         fillOpacity: 0.88,
@@ -226,7 +226,7 @@ export default function GeoespacialPanel({
             <div style="font-weight: 700; font-size: 13px; color: ${popupText}; line-height: 1.25;">
               ${p.proyecto}
             </div>
-            <span style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(20, 184, 166, 0.15); color: #0d9488; border: 1px solid rgba(20, 184, 166, 0.3); white-space: nowrap;">
+            <span style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); color: ${popupText}; border: 1px solid rgba(255, 255, 255, 0.15); white-space: nowrap;">
               ${p.etapa || 'En Curso'}
             </span>
           </div>
@@ -246,7 +246,7 @@ export default function GeoespacialPanel({
             </div>
             <div>
               <div style="font-size: 9.5px; color: ${metricsTextMuted}; text-transform: uppercase;">Meses Stock</div>
-              <div style="font-size: 12px; font-weight: 700; color: #0284c7; font-family: 'JetBrains Mono', monospace;">
+              <div style="font-size: 12px; font-weight: 700; color: ${popupText}; font-family: 'JetBrains Mono', monospace;">
                 ${p.meses_stock != null ? `${Number(p.meses_stock).toFixed(1)} m` : '—'}
               </div>
             </div>
@@ -280,7 +280,7 @@ export default function GeoespacialPanel({
             justify-content: center;
             gap: 6px;
           ">
-            <span>📊 Analizar en Diagnóstico</span>
+            <span>Analizar en Diagnóstico</span>
           </button>
         </div>
       `
@@ -313,7 +313,6 @@ export default function GeoespacialPanel({
       {/* Top Header & Map Controls */}
       <div className="panel-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div className="panel-title-dot" style={{ background: 'var(--accent-cyan)', boxShadow: '0 0 8px var(--accent-cyan)' }} />
           <span style={{ fontWeight: 700, fontSize: 12 }}>Vista Geoespacial de Proyectos</span>
           <span style={{
             fontSize: 10,
@@ -324,7 +323,7 @@ export default function GeoespacialPanel({
             border: '1px solid var(--border-subtle)',
             fontFamily: "'JetBrains Mono', monospace",
           }}>
-            📍 {filteredProjects.length} georreferenciados
+            {filteredProjects.length} georreferenciados
           </span>
         </div>
 
@@ -367,7 +366,6 @@ export default function GeoespacialPanel({
               alignItems: 'center',
               gap: 4,
             }}>
-            <span>📋</span>
             <span>Lista ({filteredProjects.length})</span>
           </button>
         </div>
@@ -412,7 +410,10 @@ export default function GeoespacialPanel({
           padding: '4px 10px',
           width: 260,
         }}>
-          <span style={{ fontSize: 12, marginRight: 6, opacity: 0.7 }}>🔍</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6, opacity: 0.7 }}>
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
           <input
             type="text"
             placeholder="Buscar proyecto en el mapa..."
@@ -465,19 +466,19 @@ export default function GeoespacialPanel({
           {colorMetric === 'meses_stock' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#10b981' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#10b981' }} />
                 <span style={{ color: 'var(--text-primary)' }}>&lt; 12 meses (Alta rotación)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#38bdf8' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#94a3b8' }} />
                 <span style={{ color: 'var(--text-primary)' }}>12 - 18 meses (Equilibrado)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#f59e0b' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#f59e0b' }} />
                 <span style={{ color: 'var(--text-primary)' }}>18 - 24 meses (Presión moderada)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#ef4444' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#ef4444' }} />
                 <span style={{ color: 'var(--text-primary)' }}>&gt; 24 meses (Sobreoferta)</span>
               </div>
             </div>
@@ -486,19 +487,19 @@ export default function GeoespacialPanel({
           {colorMetric === 'ritmo_venta' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#10b981' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#10b981' }} />
                 <span style={{ color: 'var(--text-primary)' }}>&gt; 2.0 und/mes (Rápido)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#38bdf8' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#94a3b8' }} />
                 <span style={{ color: 'var(--text-primary)' }}>1.0 - 2.0 und/mes (Medio)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#f59e0b' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#f59e0b' }} />
                 <span style={{ color: 'var(--text-primary)' }}>0.4 - 1.0 und/mes (Lento)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#ef4444' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#ef4444' }} />
                 <span style={{ color: 'var(--text-primary)' }}>&lt; 0.4 und/mes (Crítico)</span>
               </div>
             </div>
@@ -507,19 +508,19 @@ export default function GeoespacialPanel({
           {colorMetric === 'etapa' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#14b8a6' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#71717a' }} />
                 <span style={{ color: 'var(--text-primary)' }}>Obra bruta / fina</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#c084fc' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#a1a1aa' }} />
                 <span style={{ color: 'var(--text-primary)' }}>En Pozo</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#f43f5e' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#d4d4d8' }} />
                 <span style={{ color: 'var(--text-primary)' }}>Preventa temprana</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#10b981' }} />
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: '#10b981' }} />
                 <span style={{ color: 'var(--text-primary)' }}>Terminada / Entrega</span>
               </div>
             </div>
@@ -582,8 +583,8 @@ export default function GeoespacialPanel({
                     style={{
                       padding: '8px 10px',
                       borderRadius: 6,
-                      background: isSelected ? 'rgba(34, 211, 238, 0.12)' : 'var(--bg-card)',
-                      border: `1px solid ${isSelected ? 'var(--accent-cyan)' : 'var(--border-subtle)'}`,
+                      background: isSelected ? 'var(--bg-active)' : 'var(--bg-card)',
+                      border: `1px solid ${isSelected ? 'var(--border-bright)' : 'var(--border-subtle)'}`,
                       cursor: 'pointer',
                       transition: 'all 0.12s',
                     }}>
@@ -591,12 +592,11 @@ export default function GeoespacialPanel({
                       <span style={{ fontWeight: 600, fontSize: 11.5, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {p.proyecto}
                       </span>
-                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: markerColor, flexShrink: 0 }} />
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-muted)' }}>
-                      <span>📍 {p.ZONAS || '—'}</span>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--accent-cyan)' }}>
+                      <span>{p.ZONAS || '—'}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--text-primary)' }}>
                         {p.und_por_vender ?? '0'} disp
                       </span>
                     </div>

@@ -168,7 +168,7 @@ export default function ChatPanel({
             type: 'bar',
             data: [
               { value: rotacion, itemStyle: { color: '#10b981', borderRadius: [4, 4, 0, 0] } },
-              { value: equilibrado, itemStyle: { color: '#38bdf8', borderRadius: [4, 4, 0, 0] } },
+              { value: equilibrado, itemStyle: { color: '#71717a', borderRadius: [4, 4, 0, 0] } },
               { value: moderado, itemStyle: { color: '#f59e0b', borderRadius: [4, 4, 0, 0] } },
               { value: sobreoferta, itemStyle: { color: '#ef4444', borderRadius: [4, 4, 0, 0] } },
             ],
@@ -247,13 +247,13 @@ export default function ChatPanel({
                 type: 'linear',
                 x: 0, y: 0, x2: 1, y2: 0,
                 colorStops: [
-                  { offset: 0, color: '#0d9488' },
-                  { offset: 1, color: '#22d3ee' },
+                  { offset: 0, color: '#52525b' },
+                  { offset: 1, color: '#a1a1aa' },
                 ],
               },
               borderRadius: [0, 4, 4, 0],
             },
-            label: { show: true, position: 'right', color: '#22d3ee', fontSize: 10.5, fontWeight: 'bold' },
+            label: { show: true, position: 'right', color: '#f1f5f9', fontSize: 10.5, fontWeight: 'bold' },
           },
         ],
       }
@@ -329,7 +329,7 @@ export default function ChatPanel({
               borderColor: '#040a0d',
               borderWidth: 2,
             },
-            color: ['#14b8a6', '#22d3ee', '#38bdf8', '#818cf8', '#c084fc', '#f43f5e', '#10b981'],
+            color: ['#f4f4f5', '#d4d4d8', '#a1a1aa', '#71717a', '#52525b', '#3f3f46', '#27272a'],
             label: { show: false },
             emphasis: {
               label: { show: true, fontSize: 11, fontWeight: 'bold', color: '#f1f5f9' },
@@ -401,8 +401,8 @@ export default function ChatPanel({
             name: 'Und Disponibles',
             type: 'bar',
             data: topProjects.map((p) => p.und_por_vender ?? 0).reverse(),
-            itemStyle: { color: '#22d3ee', borderRadius: [0, 4, 4, 0] },
-            label: { show: true, position: 'right', color: '#22d3ee', fontSize: 10 },
+            itemStyle: { color: '#a1a1aa', borderRadius: [0, 4, 4, 0] },
+            label: { show: true, position: 'right', color: '#f1f5f9', fontSize: 10 },
           },
         ],
       }
@@ -476,8 +476,8 @@ export default function ChatPanel({
                 type: 'linear',
                 x: 0, y: 0, x2: 0, y2: 1,
                 colorStops: [
-                  { offset: 0, color: '#22d3ee' },
-                  { offset: 1, color: '#0d9488' },
+                  { offset: 0, color: '#d4d4d8' },
+                  { offset: 1, color: '#71717a' },
                 ],
               },
               borderRadius: [4, 4, 0, 0],
@@ -561,11 +561,11 @@ export default function ChatPanel({
             type: 'bar',
             data: dispData,
             itemStyle: {
-              color: '#14b8a6',
+              color: '#a1a1aa',
               borderRadius: [4, 4, 0, 0],
             },
             barMaxWidth: 35,
-            label: { show: true, position: 'top', color: '#22d3ee', fontSize: 10, fontWeight: 'bold' },
+            label: { show: true, position: 'top', color: '#f1f5f9', fontSize: 10, fontWeight: 'bold' },
           },
         ],
       }
@@ -654,9 +654,9 @@ export default function ChatPanel({
                   fontSize: 10,
                   fontWeight: 700,
                   flexShrink: 0,
-                  background: msg.role === 'ai' ? 'linear-gradient(135deg, #032e35 0%, #0e7490 100%)' : 'var(--bg-card)',
-                  color: msg.role === 'ai' ? '#22d3ee' : '#cbd5e1',
-                  border: `1px solid ${msg.role === 'ai' ? '#14b8a6' : 'var(--border-default)'}`,
+                  background: msg.role === 'ai' ? 'var(--bg-card-hover)' : 'var(--bg-card)',
+                  color: msg.role === 'ai' ? '#ffffff' : '#cbd5e1',
+                  border: `1px solid var(--border-default)`,
                 }}>
                 {msg.role === 'ai' ? (
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -671,8 +671,8 @@ export default function ChatPanel({
                 className={`chat-bubble ${msg.role}`}
                 style={{
                   flex: 1,
-                  background: msg.role === 'ai' ? 'var(--bg-card, #091b22)' : 'rgba(20, 184, 166, 0.15)',
-                  border: `1px solid ${msg.role === 'ai' ? 'var(--border-subtle, #163642)' : 'var(--citrino-teal-light)'}`,
+                  background: msg.role === 'ai' ? 'var(--bg-card)' : 'var(--bg-card-hover)',
+                  border: `1px solid var(--border-default)`,
                   borderRadius: 8,
                   padding: '10px 12px',
                   fontSize: 11.5,
@@ -752,12 +752,12 @@ export default function ChatPanel({
                         key={c}
                         onClick={() => handleSend(c)}
                         style={{
-                          background: 'var(--bg-surface, #0d222b)',
-                          border: '1px solid var(--border-default, #1e3a47)',
+                          background: 'var(--bg-card-hover)',
+                          border: '1px solid var(--border-default)',
                           borderRadius: 12,
                           padding: '2px 8px',
                           fontSize: 10,
-                          color: 'var(--accent-cyan, #22d3ee)',
+                          color: 'var(--text-primary)',
                           cursor: 'pointer',
                           transition: 'all 0.12s',
                         }}>
@@ -780,13 +780,13 @@ export default function ChatPanel({
                 width: 24,
                 height: 24,
                 borderRadius: 6,
-                background: '#032e35',
-                border: '1px solid #14b8a6',
+                background: 'var(--bg-card-hover)',
+                border: '1px solid var(--border-default)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: 10,
-                color: '#22d3ee',
+                color: '#ffffff',
               }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/>
@@ -809,7 +809,7 @@ export default function ChatPanel({
                     width: 5,
                     height: 5,
                     borderRadius: '50%',
-                    background: 'var(--accent-cyan)',
+                    background: 'var(--text-secondary)',
                     animation: `pulse 1s ${d}s infinite`,
                   }}
                 />
