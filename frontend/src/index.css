@@ -1,53 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ─── Design Tokens — Citrino Dark Petrol / Slate Palette (as in screenshot) ─── */
+/* ─── Design Tokens — Antigravity Dark Cosmic Palette ───────────────────── */
 :root {
-  /* Citrino Brand Colors */
-  --citrino-petrol:     #032e35;
-  --citrino-teal:       #0e7490;
-  --citrino-teal-light: #14b8a6;
-  --citrino-cyan:       #06b6d4;
-  --citrino-accent:     #22d3ee;
-  --citrino-glow:       rgba(34, 211, 238, 0.2);
-  --citrino-dark:       #040d12;
+  /* Antigravity Signature Accent (Electric Indigo & Gemini Violet) */
+  --citrino-petrol:     #1a1b28;
+  --citrino-teal:       #6366f1;
+  --citrino-teal-light: #818cf8;
+  --citrino-cyan:       #a78bfa;
+  --citrino-accent:     #818cf8;
+  --citrino-glow:       rgba(99, 102, 241, 0.25);
+  --citrino-dark:       #0d0e14;
 
-  /* Backgrounds (Petrol Slate Navy Dark Theme matching screenshot) */
-  --bg-base:         #040d12;
-  --bg-surface:      #06151e;
-  --bg-panel:        #071822;
-  --bg-panel-header: #0a202c;
-  --bg-hover:        #0e2a3b;
-  --bg-active:       #12374d;
-  --bg-input:        #061620;
-  --bg-card:         #081a25;
+  /* Backgrounds (Antigravity Obsidian / Dark Slate Zinc) */
+  --bg-base:         #0d0e14;
+  --bg-surface:      #12131c;
+  --bg-panel:        #161724;
+  --bg-panel-header: #1b1c2c;
+  --bg-hover:        #23253a;
+  --bg-active:       #2b2e47;
+  --bg-input:        #12131c;
+  --bg-card:         #191a29;
 
-  /* Borders — subtle elegant slate/petrol lines, no neon green */
-  --border-subtle:   #122b39;
-  --border-default:  #163749;
-  --border-bright:   #204d66;
-  --border-accent:   #06b6d4;
+  /* Borders — Antigravity subtle cosmic borders */
+  --border-subtle:   #222436;
+  --border-default:  #2d3047;
+  --border-bright:   #3d4160;
+  --border-accent:   #6366f1;
 
   /* Text */
-  --text-primary:    #f8fafc;
-  --text-secondary:  #94a3b8;
-  --text-muted:      #627d8e;
-  --text-accent:     #22d3ee;
-  --text-citrino:    #22d3ee;
+  --text-primary:    #f3f4f8;
+  --text-secondary:  #9ca3af;
+  --text-muted:      #646982;
+  --text-accent:     #818cf8;
+  --text-citrino:    #818cf8;
   --text-success:    #10b981;
   --text-warning:    #f59e0b;
-  --text-danger:     #ef4444;
+  --text-danger:     #f43f5e;
   --color-positive:  #10b981;
-  --color-negative:  #ef4444;
+  --color-negative:  #f43f5e;
   --color-warning:   #f59e0b;
 
   /* Accents */
-  --accent-blue:     #0891b2;
-  --accent-blue-glow:rgba(8, 145, 178, 0.2);
-  --accent-cyan:     #22d3ee;
+  --accent-blue:     #6366f1;
+  --accent-blue-glow:rgba(99, 102, 241, 0.25);
+  --accent-cyan:     #38bdf8;
   --accent-emerald:  #10b981;
-  --accent-ruby:     #ef4444;
-  --accent-violet:   #a855f7;
-  --accent-teal:     #14b8a6;
+  --accent-ruby:     #f43f5e;
+  --accent-violet:   #8b5cf6;
+  --accent-teal:     #6366f1;
   --accent-amber:    #f59e0b;
   --citrino-amber:   #f59e0b;
   --citrino-amber-glow: rgba(245, 158, 11, 0.2);
@@ -57,71 +57,70 @@
   --panel-right-w:   330px;
 
   /* Effects */
-  --shadow-panel:    0 0 0 1px var(--border-subtle), 0 4px 24px rgba(0,0,0,0.6);
-  --shadow-card:     0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
-  --glow-citrino:    0 0 16px rgba(34, 211, 238, 0.2);
-  --glow-blue:       0 0 16px rgba(8, 145, 178, 0.2);
+  --shadow-panel:    0 0 0 1px var(--border-subtle), 0 4px 24px rgba(0, 0, 0, 0.65);
+  --shadow-card:     0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.35);
+  --glow-citrino:    0 0 16px rgba(99, 102, 241, 0.25);
+  --glow-blue:       0 0 16px rgba(99, 102, 241, 0.25);
 
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;
 }
 
-/* ─── Light Theme — Supabase light style ─────────────────────────────────── */
+/* ─── Light Theme — Antigravity Crisp Light ─────────────────────────────── */
 [data-theme="light"] {
-  /* Brand accent stays green */
-  --citrino-petrol:     #f0fdf4;
-  --citrino-teal:       #16a34a;
-  --citrino-teal-light: #22c55e;
-  --citrino-cyan:       #22c55e;
-  --citrino-accent:     #22c55e;
-  --citrino-glow:       rgba(255,255,255,0);
-  --citrino-dark:       #f9fafb;
+  --citrino-petrol:     #f5f3ff;
+  --citrino-teal:       #4f46e5;
+  --citrino-teal-light: #6366f1;
+  --citrino-cyan:       #6366f1;
+  --citrino-accent:     #6366f1;
+  --citrino-glow:       rgba(99, 102, 241, 0.15);
+  --citrino-dark:       #f8fafc;
 
-  /* Backgrounds — clean white/light gray Supabase light */
-  --bg-base:         #f9fafb;
+  /* Backgrounds */
+  --bg-base:         #f8fafc;
   --bg-surface:      #ffffff;
   --bg-panel:        #ffffff;
-  --bg-panel-header: #f9fafb;
-  --bg-hover:        #f3f4f6;
-  --bg-active:       #e5e7eb;
+  --bg-panel-header: #f8fafc;
+  --bg-hover:        #f1f5f9;
+  --bg-active:       #e2e8f0;
   --bg-input:        #ffffff;
   --bg-card:         #ffffff;
 
   /* Borders */
-  --border-subtle:   #e5e7eb;
-  --border-default:  #d1d5db;
-  --border-bright:   #9ca3af;
-  --border-accent:   #9ca3af;
+  --border-subtle:   #e2e8f0;
+  --border-default:  #cbd5e1;
+  --border-bright:   #94a3b8;
+  --border-accent:   #6366f1;
 
   /* Text */
-  --text-primary:    #111827;
-  --text-secondary:  #374151;
-  --text-muted:      #6b7280;
-  --text-accent:     #16a34a;
-  --text-citrino:    #16a34a;
-  --text-success:    #16a34a;
+  --text-primary:    #0f172a;
+  --text-secondary:  #334155;
+  --text-muted:      #64748b;
+  --text-accent:     #4f46e5;
+  --text-citrino:    #4f46e5;
+  --text-success:    #059669;
   --text-warning:    #d97706;
   --text-danger:     #dc2626;
-  --color-positive:  #16a34a;
+  --color-positive:  #059669;
   --color-negative:  #dc2626;
   --color-warning:   #d97706;
 
   /* Accents */
-  --accent-blue:     #22c55e;
-  --accent-blue-glow:rgba(34, 197, 94, 0.15);
-  --accent-cyan:     #22c55e;
-  --accent-emerald:  #22c55e;
+  --accent-blue:     #4f46e5;
+  --accent-blue-glow:rgba(79, 70, 229, 0.15);
+  --accent-cyan:     #0284c7;
+  --accent-emerald:  #059669;
   --accent-ruby:     #dc2626;
   --accent-violet:   #7c3aed;
-  --accent-teal:     #22c55e;
+  --accent-teal:     #4f46e5;
   --accent-amber:    #d97706;
-  --citrino-amber:   #22c55e;
-  --citrino-amber-glow: rgba(255,255,255,0);
+  --citrino-amber:   #4f46e5;
+  --citrino-amber-glow: rgba(79, 70, 229, 0.15);
 
   /* Effects */
-  --shadow-panel:    0 0 0 1px var(--border-subtle), 0 2px 16px rgba(0,0,0,0.06);
-  --shadow-card:     0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+  --shadow-panel:    0 0 0 1px var(--border-subtle), 0 2px 16px rgba(15, 23, 42, 0.08);
+  --shadow-card:     0 1px 3px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
   --glow-citrino:    none;
   --glow-blue:       none;
 }
@@ -952,7 +951,7 @@ html, body, #root {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(circle at 50% 0%, #08212e 0%, #040d12 75%);
+  background: radial-gradient(circle at 50% 0%, #1e2034 0%, #0d0e14 75%);
 }
 
 .workspace-os-container {
@@ -1032,11 +1031,11 @@ html, body, #root {
 }
 .os-dock-item:hover {
   color: var(--text-primary);
-  background: rgba(18, 49, 61, 0.6);
+  background: var(--bg-hover);
 }
 .os-dock-item.active {
-  background: linear-gradient(135deg, rgba(14, 116, 144, 0.8), rgba(3, 46, 53, 0.95));
-  border-color: var(--citrino-teal-light);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(43, 46, 71, 0.8));
+  border-color: var(--citrino-accent);
   color: #ffffff;
   box-shadow: 0 0 12px var(--citrino-glow);
 }
@@ -1048,7 +1047,7 @@ html, body, #root {
 }
 .os-dock-badge {
   background: var(--citrino-accent);
-  color: #0d0d0d;
+  color: #ffffff;
   font-size: 9.5px;
   font-weight: 800;
   padding: 1px 5px;
