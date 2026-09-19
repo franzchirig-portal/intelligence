@@ -160,26 +160,28 @@ export default function App() {
       {/* Top Bar */}
       <header className="topbar">
         {/* Citrino Brand Logo */}
-        <div className="topbar-logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }} onClick={() => setActiveTab('mercado')}>
+        <div
+          className="topbar-logo"
+          title="Citrino"
+          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+          onClick={() => setActiveTab('mercado')}
+        >
           <div style={{
-            width: 28, height: 28, borderRadius: 6,
-            background: 'var(--citrino-dark)',
-            border: '1px solid var(--citrino-teal-light)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 10px var(--citrino-glow)',
+            width: 30,
+            height: 30,
+            borderRadius: 6,
+            border: '1px solid var(--border-subtle, rgba(255,255,255,0.08))',
+            background: 'var(--bg-card, rgba(255,255,255,0.03))',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--citrino-teal-light, #22d3ee)',
+            transition: 'all 0.15s ease'
           }}>
-            <svg width="18" height="18" viewBox="0 0 100 100" fill="none">
-              <path d="M 50 10 A 40 40 0 1 0 85 75 L 70 65 A 25 25 0 1 1 50 25 Z" fill="#22d3ee" />
-              <polygon points="50,38 60,50 50,62 40,50" fill="#14b8a6" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M 18.5 7.5 A 8 8 0 1 0 18.5 16.5" />
+              <polygon points="12 8.5 15.5 12 12 15.5 8.5 12" />
             </svg>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <span style={{ fontWeight: 900, letterSpacing: 1.2, color: '#ffffff', fontSize: 14 }}>
-              CITRINO
-            </span>
-            <span style={{ fontSize: 7.5, color: 'var(--citrino-teal-light)', fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase' }}>
-              Inteligencia Inmobiliaria
-            </span>
           </div>
         </div>
 
