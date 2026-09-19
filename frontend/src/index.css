@@ -216,8 +216,9 @@ html, body, #root {
 .topbar-nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
 .topbar-nav-item.active {
   background: var(--bg-active);
-  color: var(--text-accent);
-  border-color: var(--border-accent);
+  color: var(--text-primary);
+  border-color: var(--border-bright);
+  font-weight: 600;
 }
 
 .topbar-right {
@@ -229,7 +230,7 @@ html, body, #root {
 .city-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   padding: 3px 10px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
@@ -239,11 +240,17 @@ html, body, #root {
   color: var(--text-secondary);
   transition: all 0.15s;
 }
-.city-badge:hover { border-color: var(--accent-blue); color: var(--text-primary); }
-.city-badge.active { border-color: var(--accent-blue); color: var(--accent-blue); background: var(--accent-blue-glow); }
-.city-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-emerald); }
-.city-badge.lpz .dot { background: var(--accent-violet); }
-.city-badge.cbb .dot { background: var(--citrino-teal-light); }
+.city-badge:hover {
+  border-color: var(--border-bright);
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+.city-badge.active {
+  border-color: var(--border-bright);
+  color: var(--text-primary);
+  background: var(--bg-active);
+  font-weight: 600;
+}
 
 /* ─── Main Workspace ─────────────────────────────────────────────────────── */
 .workspace {
@@ -1998,8 +2005,8 @@ html, body, #root {
   background: var(--bg-hover);
 }
 .topbar-icon-btn.active {
-  border-color: var(--citrino-accent);
-  color: var(--citrino-accent);
+  border-color: var(--border-bright);
+  color: var(--text-primary);
   background: var(--bg-active);
 }
 

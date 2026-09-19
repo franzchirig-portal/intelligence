@@ -235,7 +235,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                 {/* Quadrant 1: High Demand */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
-                    <span style={{ color: 'var(--accent-emerald)', fontWeight: 600 }}>🟢 Alta Rotación (&lt;6 meses)</span>
+                    <span style={{ color: 'var(--accent-emerald)', fontWeight: 600 }}>Alta Rotación (&lt;6 meses)</span>
                     <span style={{ color: 'var(--text-primary)' }}>{riskLow.length} proyectos ({allLatest.length > 0 ? Math.round((riskLow.length / allLatest.length) * 100) : 0}%)</span>
                   </div>
                   <div className="progress-bar" style={{ height: 5 }}>
@@ -247,7 +247,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                 {/* Quadrant 2: Healthy */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
-                    <span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>🔵 Ritmo Equilibrado (6 - 12 meses)</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Ritmo Equilibrado (6 - 12 meses)</span>
                     <span style={{ color: 'var(--text-primary)' }}>{riskHealthy.length} proyectos ({allLatest.length > 0 ? Math.round((riskHealthy.length / allLatest.length) * 100) : 0}%)</span>
                   </div>
                   <div className="progress-bar" style={{ height: 5 }}>
@@ -259,7 +259,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                 {/* Quadrant 3: Moderate */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
-                    <span style={{ color: '#f59e0b', fontWeight: 600 }}>🟡 Presión Moderada (12 - 18 meses)</span>
+                    <span style={{ color: '#f59e0b', fontWeight: 600 }}>Presión Moderada (12 - 18 meses)</span>
                     <span style={{ color: 'var(--text-primary)' }}>{riskModerate.length} proyectos ({allLatest.length > 0 ? Math.round((riskModerate.length / allLatest.length) * 100) : 0}%)</span>
                   </div>
                   <div className="progress-bar" style={{ height: 5 }}>
@@ -271,7 +271,7 @@ export default function AnalysisPanel({ selectedIndicador, ciudad, onClearSelect
                 {/* Quadrant 4: High Risk */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
-                    <span style={{ color: 'var(--text-danger)', fontWeight: 600 }}>🔴 Riesgo de Sobreoferta (&gt;18 meses)</span>
+                    <span style={{ color: 'var(--text-danger)', fontWeight: 600 }}>Riesgo de Sobreoferta (&gt;18 meses)</span>
                     <span style={{ color: 'var(--text-primary)' }}>{riskHigh.length} proyectos ({allLatest.length > 0 ? Math.round((riskHigh.length / allLatest.length) * 100) : 0}%)</span>
                   </div>
                   <div className="progress-bar" style={{ height: 5 }}>

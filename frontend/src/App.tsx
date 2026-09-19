@@ -222,7 +222,6 @@ export default function App() {
               <button key={c}
                 className={`city-badge ${c.toLowerCase()} ${ciudad === c ? 'active' : ''}`}
                 onClick={() => handleCiudadChange(c)}>
-                <span className="dot" />
                 {c === 'ALL' ? 'Bolivia' : c}
               </button>
             ))}
@@ -269,15 +268,13 @@ export default function App() {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 6,
               background: 'var(--bg-card)',
               border: '1px solid var(--border-default)',
               borderRadius: 20,
-              padding: '3px 10px',
+              padding: '3px 12px',
               fontSize: 11,
               color: 'var(--text-secondary)',
             }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-positive, #10b981)' }} />
               <span style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {session?.user?.user_metadata?.full_name || session?.user?.email || 'Usuario Invitado'}
               </span>
