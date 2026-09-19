@@ -8,7 +8,6 @@ import GeoespacialPanel from './components/GeoespacialPanel'
 import WorkspaceOSPanel from './components/WorkspaceOSPanel'
 import CommandPalette from './components/CommandPalette'
 import AuthScreen from './components/AuthScreen'
-import MultiSelectDropdown from './components/MultiSelectDropdown'
 import { supabase, fetchIndicadores, getLatestPerProject } from './lib/supabase'
 import type { IndicadorFull } from './lib/supabase'
 
@@ -206,65 +205,8 @@ export default function App() {
           <span className="topbar-cmd-text">Buscar o comando...</span>
         </button>
 
-        {/* Citrino Filters (Zona, Etapa & Reset) */}
+        {/* Topbar Right Controls */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* Zona Filter Pill */}
-          <div style={{ position: 'relative' }}>
-            <select
-              value={zonaFilter}
-              onChange={(e) => setZonaFilter(e.target.value)}
-              style={{
-                background: 'var(--bg-card)',
-                color: zonaFilter !== 'ALL' ? 'var(--citrino-accent)' : 'var(--text-secondary)',
-                border: `1px solid ${zonaFilter !== 'ALL' ? 'var(--citrino-teal-light)' : 'var(--border-default)'}`,
-                padding: '4px 10px',
-                borderRadius: 20,
-                fontSize: 11,
-                fontWeight: 600,
-                outline: 'none',
-                cursor: 'pointer',
-                boxShadow: 'none',
-              }}>
-              <option value="ALL">Zona: Todas ({availableZonas.length})</option>
-              {availableZonas.map((z) => (
-                <option key={z} value={z}>{z}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Etapa Multi-Select Filter Pill */}
-          <MultiSelectDropdown
-            label="Etapa"
-            options={availableEtapas}
-            counts={etapaCounts}
-            selected={selectedEtapas}
-            onChange={(newSelected) => {
-              setSelectedEtapas(newSelected)
-              setSelectedIndicador(null)
-            }}
-          />
-
-          {/* Reset Button */}
-          {(zonaFilter !== 'ALL' || selectedEtapas.length > 0 || selectedIndicador) && (
-            <button
-              onClick={resetFilters}
-              style={{
-                background: 'transparent',
-                border: '1px solid var(--border-default)',
-                borderRadius: 20,
-                color: 'var(--text-muted)',
-                padding: '3px 10px',
-                fontSize: 10.5,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-              title="Restablecer todos los filtros">
-              ✕ Reset
-            </button>
-          )}
-
-          <div className="topbar-divider" />
-
           {/* City Badges */}
           <div className="topbar-right" style={{ marginLeft: 0 }}>
             {(['SCZ', 'LPZ', 'CBB', 'ALL'] as Ciudad[]).map((c) => (
