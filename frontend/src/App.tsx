@@ -164,162 +164,141 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className="ide-header">
-        {/* 1. Extreme Top: Antigravity IDE Title Bar */}
-        <div className="ide-titlebar">
-          <div className="ide-titlebar-left">
-            <div
-              className="ide-titlebar-logo"
-              title="Citrino"
-              style={{ cursor: 'pointer' }}
-              onClick={() => setActiveTab('mercado')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M 18.5 7.5 A 8 8 0 1 0 18.5 16.5" />
-                <polygon points="12 8.5 15.5 12 12 15.5 8.5 12" />
-              </svg>
-            </div>
-            <span className="ide-menu-item">Archivo</span>
-            <span className="ide-menu-item">Editar</span>
-            <span className="ide-menu-item">Selección</span>
-            <span className="ide-menu-item">Ver</span>
-            <span className="ide-menu-item">Ir</span>
-            <span className="ide-menu-item">Ejecutar</span>
-            <span className="ide-menu-item">Terminal</span>
-            <span className="ide-menu-item">Ayuda</span>
+      <header className="ide-topbar">
+        {/* Left: Logo + Navigation Tabs */}
+        <div className="ide-topbar-left">
+          <div
+            className="ide-topbar-logo"
+            title="Citrino"
+            onClick={() => setActiveTab('mercado')}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M 18.5 7.5 A 8 8 0 1 0 18.5 16.5" />
+              <polygon points="12 8.5 15.5 12 12 15.5 8.5 12" />
+            </svg>
           </div>
 
-          <div className="ide-titlebar-center">
-            proyecto intelligence · Antigravity IDE · {TABS.find(t => t.id === activeTab)?.label || 'Bolivia Platform'}
-          </div>
-
-          <div className="ide-titlebar-right">
-            <button className="ide-window-btn" title="Toggle Primary Side Bar">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
-            </button>
-            <button className="ide-window-btn" title="Toggle Secondary Side Bar">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg>
-            </button>
-            <button className="ide-window-btn" title="Minimizar">―</button>
-            <button className="ide-window-btn" title="Maximizar">□</button>
-            <button className="ide-window-btn close" title="Cerrar">✕</button>
-          </div>
-        </div>
-
-        {/* 2. Antigravity IDE Editor Tabs Strip */}
-        <div className="ide-tabbar">
-          <div className="ide-tabs-strip">
+          <div className="ide-topbar-tabs">
             {TABS.map((t) => (
               <div
                 key={t.id}
                 className={`ide-tab ${activeTab === t.id ? 'active' : ''}`}
                 onClick={() => setActiveTab(t.id)}
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.75, flexShrink: 0 }}>
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                </svg>
                 <span>{t.label}</span>
-                <span className="ide-tab-close" onClick={(e) => { e.stopPropagation(); }}>✕</span>
               </div>
             ))}
           </div>
+        </div>
 
-          <div className="ide-tabbar-right">
-            {/* Command Palette Quick Search Button */}
-            <button
-              className="topbar-cmd-btn"
-              onClick={() => setIsCmdOpen(true)}
-              title="Abrir Command Palette (Ctrl+K / Cmd+K)">
-              <span className="topbar-cmd-badge">⌘K</span>
-              <span className="topbar-cmd-text">Buscar o comando...</span>
-            </button>
+        {/* Center: Institutional Title */}
+        <div className="ide-topbar-center">
+          proyecto intelligence · Antigravity IDE · {TABS.find(t => t.id === activeTab)?.label || 'Bolivia Platform'}
+        </div>
 
-            {/* City Badges */}
-            <div className="topbar-right" style={{ marginLeft: 0 }}>
-              {(['SCZ', 'LPZ', 'CBB', 'ALL'] as Ciudad[]).map((c) => (
-                <button key={c}
-                  className={`city-badge ${c.toLowerCase()} ${ciudad === c ? 'active' : ''}`}
-                  onClick={() => handleCiudadChange(c)}>
-                  {c === 'ALL' ? 'Bolivia' : c}
-                </button>
-              ))}
-            </div>
+        {/* Right: Quick Command + Cities + Theme + AI + User + Window Controls */}
+        <div className="ide-topbar-right">
+          <button
+            className="topbar-cmd-btn"
+            onClick={() => setIsCmdOpen(true)}
+            title="Abrir Command Palette (Ctrl+K / Cmd+K)">
+            <span className="topbar-cmd-badge">⌘K</span>
+            <span className="topbar-cmd-text">Buscar o comando...</span>
+          </button>
 
-            <div className="topbar-divider" />
-
-            {/* Theme Toggle */}
-            <button
-              className="theme-toggle-btn"
-              onClick={toggleTheme}
-              title={theme === 'dark' ? 'Cambiar a Modo Diurno' : 'Cambiar a Modo Nocturno'}
-            >
-              {theme === 'dark' ? (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="5"/>
-                  <line x1="12" y1="1" x2="12" y2="3"/>
-                  <line x1="12" y1="21" x2="12" y2="23"/>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                  <line x1="1" y1="12" x2="3" y2="12"/>
-                  <line x1="21" y1="12" x2="23" y2="12"/>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                </svg>
-              ) : (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
-              )}
-            </button>
-
-            {/* IA Asistente Icon Button */}
-            <button
-              className={`topbar-icon-btn ${activeLeftPanel === 'assistant' ? 'active' : ''}`}
-              onClick={toggleAssistant}
-              title={activeLeftPanel === 'assistant' ? 'Cerrar IA Asistente' : 'Abrir IA Asistente'}
-            >
-              <IconAssistant />
-            </button>
-
-            {/* User Profile & Logout */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 4,
-                padding: '3px 10px',
-                fontSize: 11,
-                color: 'var(--text-secondary)',
-              }}>
-                <span style={{ maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {session?.user?.user_metadata?.full_name || session?.user?.email || 'Usuario Invitado'}
-                </span>
-              </div>
-
+          <div className="topbar-right" style={{ marginLeft: 0 }}>
+            {(['SCZ', 'LPZ', 'CBB', 'ALL'] as Ciudad[]).map((c) => (
               <button
-                onClick={async () => {
-                  await supabase.auth.signOut().catch(() => {})
-                  setSession(null)
-                  setGuestMode(false)
-                }}
-                title="Cerrar sesión"
-                style={{
-                  background: 'transparent',
-                  border: '1px solid var(--border-default)',
-                  color: 'var(--text-muted)',
-                  borderRadius: 4,
-                  padding: '3px 7px',
-                  fontSize: 10,
-                  cursor: 'pointer',
-                }}
-              >
-                Salir
+                key={c}
+                className={`city-badge ${c.toLowerCase()} ${ciudad === c ? 'active' : ''}`}
+                onClick={() => handleCiudadChange(c)}>
+                {c === 'ALL' ? 'Bolivia' : c}
               </button>
-            </div>
+            ))}
           </div>
+
+          <div className="topbar-divider" />
+
+          <button
+            className="theme-toggle-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Cambiar a Modo Diurno' : 'Cambiar a Modo Nocturno'}
+          >
+            {theme === 'dark' ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            )}
+          </button>
+
+          <button
+            className={`topbar-icon-btn ${activeLeftPanel === 'assistant' ? 'active' : ''}`}
+            onClick={toggleAssistant}
+            title={activeLeftPanel === 'assistant' ? 'Cerrar IA Asistente' : 'Abrir IA Asistente'}
+          >
+            <IconAssistant />
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 4,
+              padding: '3px 10px',
+              fontSize: 11,
+              color: 'var(--text-secondary)',
+            }}>
+              <span style={{ maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, color: 'var(--text-primary)' }}>
+                {session?.user?.user_metadata?.full_name || session?.user?.email || 'Usuario Invitado'}
+              </span>
+            </div>
+
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut().catch(() => {})
+                setSession(null)
+                setGuestMode(false)
+              }}
+              title="Cerrar sesión"
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border-default)',
+                color: 'var(--text-muted)',
+                borderRadius: 4,
+                padding: '3px 7px',
+                fontSize: 10,
+                cursor: 'pointer',
+              }}
+            >
+              Salir
+            </button>
+          </div>
+
+          <div className="topbar-divider" />
+
+          <button className="ide-window-btn" title="Toggle Primary Side Bar">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+          </button>
+          <button className="ide-window-btn" title="Toggle Secondary Side Bar">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg>
+          </button>
+          <button className="ide-window-btn" title="Minimizar">―</button>
+          <button className="ide-window-btn" title="Maximizar">□</button>
+          <button className="ide-window-btn close" title="Cerrar">✕</button>
         </div>
       </header>
 
@@ -469,20 +448,44 @@ export default function App() {
         </main>
       )}
 
-      {/* Status Bar */}
+      {/* Status Bar (Antigravity IDE Style) */}
       <footer className="status-bar">
-        <div className="status-dot" />
-        <span>Supabase — Conectado</span>
-        <span style={{ color: 'var(--border-bright)' }}>|</span>
-        <span>Bolivia Intelligence Platform v1.0</span>
-        <span style={{ color: 'var(--border-bright)' }}>|</span>
-        <span>
-          {selectedIndicador
-            ? `Proyecto activo: ${selectedIndicador.proyecto}`
-            : `Vista: ${CIUDAD_LABELS[ciudad]}`}
-        </span>
-        <div style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>
-          Pipeline: ETL GitHub Actions · 6h sync
+        <div className="status-bar-item" title="Git Branch: master">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <line x1="6" y1="3" x2="6" y2="15"/>
+            <circle cx="18" cy="6" r="3"/>
+            <circle cx="6" cy="18" r="3"/>
+            <path d="M18 9a9 9 0 0 1-9 9"/>
+          </svg>
+          <span>master</span>
+        </div>
+
+        <div className="status-bar-divider" />
+
+        <div className="status-bar-item" title="Estado de Supabase">
+          <span>Supabase — Conectado</span>
+        </div>
+
+        <div className="status-bar-divider" />
+
+        <div className="status-bar-item" title="Plataforma Citrino">
+          <span>Bolivia Intelligence Platform v1.0</span>
+        </div>
+
+        <div className="status-bar-divider" />
+
+        <div className="status-bar-item">
+          <span>
+            {selectedIndicador
+              ? `Proyecto activo: ${selectedIndicador.proyecto}`
+              : `Vista: ${CIUDAD_LABELS[ciudad]}`}
+          </span>
+        </div>
+
+        <div style={{ marginLeft: 'auto' }}>
+          <div className="status-bar-item" title="Sincronización automatizada Medallion">
+            <span>Pipeline: ETL GitHub Actions · 6h sync</span>
+          </div>
         </div>
       </footer>
 

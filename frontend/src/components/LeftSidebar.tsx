@@ -93,17 +93,18 @@ export default function LeftSidebar({
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
 
-      {/* ─── Icon Rail — LEFT EDGE ──────────────────────────────── */}
+      {/* ─── Icon Rail — LEFT EDGE (Antigravity IDE Activity Bar: 48px) ──── */}
       <div style={{
-        width: 44,
-        minWidth: 44,
+        width: 48,
+        minWidth: 48,
+        maxWidth: 48,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        paddingTop: 8,
-        paddingBottom: 8,
-        gap: 4,
-        background: 'var(--bg-panel-header)',
+        paddingTop: 0,
+        paddingBottom: 0,
+        gap: 0,
+        background: 'var(--bg-base)',
         borderRight: '1px solid var(--border-subtle)',
         height: '100%',
         zIndex: 10,
@@ -116,59 +117,53 @@ export default function LeftSidebar({
             onSwitchTab('workspace_os')
           }}
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            border: activeTab === 'workspace_os' ? '1px solid var(--border-bright)' : '1px solid transparent',
-            background: activeTab === 'workspace_os' ? 'var(--bg-active)' : 'transparent',
+            width: 48,
+            height: 48,
+            borderRadius: 0,
+            border: 'none',
+            background: 'transparent',
             cursor: 'pointer',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             color: activeTab === 'workspace_os' ? 'var(--text-primary)' : 'var(--text-muted)',
-            transition: 'all 0.15s ease',
+            transition: 'all 0.12s ease',
             outline: 'none',
-            boxShadow: 'none',
             position: 'relative',
           }}
           onMouseEnter={(e) => {
             if (activeTab !== 'workspace_os') {
               const btn = e.currentTarget as HTMLButtonElement
-              btn.style.background = 'var(--bg-card, rgba(255,255,255,0.06))'
               btn.style.color = 'var(--text-primary)'
             }
           }}
           onMouseLeave={(e) => {
             if (activeTab !== 'workspace_os') {
               const btn = e.currentTarget as HTMLButtonElement
-              btn.style.background = 'transparent'
               btn.style.color = 'var(--text-muted)'
             }
           }}
         >
           <IconIWS />
-          {/* Active indicator bar on right edge */}
+          {/* Active indicator bar on left edge */}
           {activeTab === 'workspace_os' && (
             <span style={{
               position: 'absolute',
-              right: -1,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: 3,
-              height: 18,
-              borderRadius: '2px 0 0 2px',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 2,
               background: 'var(--text-primary)',
             }} />
           )}
         </button>
 
-        {/* Separator between IWS OS and tools */}
+        {/* Separator */}
         <div style={{
-          width: 22,
+          width: 32,
           height: 1,
           background: 'var(--border-subtle)',
-          margin: '2px 0 4px 0',
+          margin: '2px 0',
         }} />
 
         {ICONS.map(({ id, Icon, label }) => (
@@ -177,49 +172,42 @@ export default function LeftSidebar({
             title={label}
             onClick={() => handleIconClick(id)}
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
+              width: 48,
+              height: 48,
+              borderRadius: 0,
               border: 'none',
-              background: activePanel === id
-                ? 'var(--bg-active)'
-                : 'transparent',
+              background: 'transparent',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: activePanel === id ? '#fff' : 'var(--text-muted)',
-              transition: 'all 0.15s ease',
+              color: activePanel === id ? 'var(--text-primary)' : 'var(--text-muted)',
+              transition: 'all 0.12s ease',
               outline: 'none',
-              boxShadow: 'none',
               position: 'relative',
             }}
             onMouseEnter={(e) => {
               if (activePanel !== id) {
                 const btn = e.currentTarget as HTMLButtonElement
-                btn.style.background = 'var(--bg-card, rgba(255,255,255,0.06))'
-                btn.style.color = 'var(--text-secondary)'
+                btn.style.color = 'var(--text-primary)'
               }
             }}
             onMouseLeave={(e) => {
               if (activePanel !== id) {
                 const btn = e.currentTarget as HTMLButtonElement
-                btn.style.background = 'transparent'
                 btn.style.color = 'var(--text-muted)'
               }
             }}
           >
             <Icon />
-            {/* Active indicator — right-edge bar */}
+            {/* Active indicator — left-edge bar */}
             {activePanel === id && (
               <span style={{
                 position: 'absolute',
-                right: -1,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: 3,
-                height: 16,
-                borderRadius: '2px 0 0 2px',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 2,
                 background: 'var(--text-primary)',
               }} />
             )}
@@ -233,22 +221,19 @@ export default function LeftSidebar({
             title="Cerrar panel"
             onClick={() => setActivePanel(null)}
             style={{
-              width: 36, height: 36, borderRadius: 8, border: 'none',
+              width: 48, height: 40, borderRadius: 0, border: 'none',
               background: 'transparent', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--text-muted)', transition: 'all 0.15s ease',
+              color: 'var(--text-muted)', transition: 'all 0.12s ease',
             }}
             onMouseEnter={(e) => {
               const btn = e.currentTarget as HTMLButtonElement
-              btn.style.background = 'var(--bg-card, rgba(255,255,255,0.06))'
-              btn.style.color = 'var(--text-secondary)'
+              btn.style.color = 'var(--text-primary)'
             }}
             onMouseLeave={(e) => {
               const btn = e.currentTarget as HTMLButtonElement
-              btn.style.background = 'transparent'
               btn.style.color = 'var(--text-muted)'
             }}
-          >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/>
               <line x1="6" y1="6" x2="18" y2="18"/>
