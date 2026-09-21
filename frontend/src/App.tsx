@@ -76,8 +76,8 @@ export default function App() {
 
   // Theme State: 'dark' (Nocturno) | 'light' (Diurno)
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    const saved = localStorage.getItem('citrino_theme')
-    return (saved === 'light' || saved === 'dark') ? saved : 'dark'
+    const saved = localStorage.getItem('citrino_theme_v2')
+    return (saved === 'light' || saved === 'dark') ? saved : 'light'
   })
 
   // Left sidebar — panel to force open (triggered by topbar button)
@@ -117,7 +117,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('citrino_theme', theme)
+    localStorage.setItem('citrino_theme_v2', theme)
   }, [theme])
 
   const toggleTheme = () => {
