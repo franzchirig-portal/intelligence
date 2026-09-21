@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-21T00:00:00Z",
+  "title": "Design System: Citrino Intelligence",
+  "extensions": {
+    "colorMeta": {
+      "ink": { "role": "primary", "displayName": "Tinta Pizarra", "canonical": "#0f172a", "tonalRamp": ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#f1f5f9"] },
+      "canvas": { "role": "neutral", "displayName": "Lienzo Frío", "canonical": "#f8fafc", "tonalRamp": ["#334155", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0", "#f1f5f9", "#f8fafc", "#ffffff"] },
+      "positive": { "role": "tertiary", "displayName": "Verde Mercado", "canonical": "#059669", "tonalRamp": ["#022c22", "#064e3b", "#065f46", "#047857", "#059669", "#10b981", "#6ee7b7", "#d1fae5"] },
+      "negative": { "role": "tertiary", "displayName": "Rojo Alerta", "canonical": "#dc2626", "tonalRamp": ["#450a0a", "#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#ef4444", "#fca5a5", "#fee2e2"] },
+      "warning": { "role": "tertiary", "displayName": "Ámbar Cautela", "canonical": "#d97706", "tonalRamp": ["#451a03", "#78350f", "#92400e", "#b45309", "#d97706", "#f59e0b", "#fcd34d", "#fef3c7"] }
+    },
+    "typographyMeta": {
+      "body": { "displayName": "Body", "purpose": "Texto general de la aplicación." },
+      "kpi-value": { "displayName": "KPI Value", "purpose": "Cifra grande de tarjeta KPI." },
+      "label": { "displayName": "Label", "purpose": "Etiquetas en mayúsculas de KPI y cabeceras." },
+      "data": { "displayName": "Data", "purpose": "Valores numéricos en tablas." }
+    },
+    "shadows": [
+      { "name": "panel", "value": "0 0 0 1px #e2e8f0, 0 2px 16px rgba(15,23,42,0.08)", "purpose": "Menús flotantes y diálogos." },
+      { "name": "card", "value": "0 1px 3px rgba(15,23,42,0.08), 0 4px 12px rgba(15,23,42,0.04)", "purpose": "Tarjetas elevadas puntuales." }
+    ],
+    "motion": [
+      { "name": "fast", "value": "0.12s", "purpose": "Hover de pestañas y botones de icono." },
+      { "name": "base", "value": "0.15s ease", "purpose": "Botones y controles." }
+    ],
+    "breakpoints": [
+      { "name": "desktop-narrow", "value": "1100px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "IDE Tab",
+      "kind": "nav",
+      "refersTo": "ide-tab",
+      "description": "Pestaña del topbar; la activa gana superficie y filete superior.",
+      "html": "<div style=\"display:flex\"><div class=\"ds-tab\">Mission Control</div><div class=\"ds-tab ds-tab-active\">Análisis</div></div>",
+      "css": ".ds-tab{display:flex;align-items:center;height:35px;padding:0 14px;font:500 11.5px Inter,system-ui,sans-serif;color:#334155;background:#f8fafc;border-right:1px solid #e2e8f0;cursor:pointer;transition:background .12s,color .12s}.ds-tab:hover{background:#f1f5f9;color:#0f172a}.ds-tab-active{background:#fff;color:#0f172a;border-top:2px solid #94a3b8}"
+    },
+    {
+      "name": "KPI Card",
+      "kind": "card",
+      "refersTo": "kpi-card",
+      "description": "Métrica de mercado con etiqueta, valor y variación.",
+      "html": "<div class=\"ds-kpi\"><span class=\"ds-kpi-l\">Meses de stock</span><span class=\"ds-kpi-v\">14,2</span><span class=\"ds-kpi-s\">▲ 3,1%</span></div>",
+      "css": ".ds-kpi{display:flex;flex-direction:column;gap:3px;padding:12px 16px;background:#fff;border:1px solid #e2e8f0;font-family:Inter,system-ui,sans-serif}.ds-kpi-l{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#64748b}.ds-kpi-v{font-size:20px;font-weight:700;line-height:1;color:#0f172a;font-variant-numeric:tabular-nums}.ds-kpi-s{font-size:10px;color:#059669}"
+    },
+    {
+      "name": "Semantic Badge",
+      "kind": "chip",
+      "refersTo": "badge-positive",
+      "description": "Insignia de variación positiva.",
+      "html": "<span class=\"ds-badge\">▲ 4,2%</span>",
+      "css": ".ds-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;font:700 10px Inter,sans-serif;background:rgba(16,185,129,.15);color:#059669;border:1px solid rgba(16,185,129,.3)}"
+    },
+    {
+      "name": "Send Button",
+      "kind": "button",
+      "refersTo": "btn-send",
+      "description": "Botón de icono cuadrado para enviar en el chat.",
+      "html": "<button class=\"ds-send\" aria-label=\"Enviar\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M22 2L11 13M22 2l-7 20-4-9-9-4z\"/></svg></button>",
+      "css": ".ds-send{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:none;border-radius:6px;background:#0f172a;color:#fff;cursor:pointer;transition:all .15s}.ds-send:hover{background:#e2e8f0;color:#0f172a}.ds-send:focus-visible{outline:2px solid #94a3b8;outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "El Tablero del Analista",
+    "overview": "Una herramienta de trabajo, no una vitrina. La interfaz se retira para que las cifras de mercado sean lo único con peso visual. Navegación solo por cuatro páginas (Oferta Nueva, Tipologías, Proyectos, Mapa) desde una barra superior; sin panel izquierdo ni paleta de comandos; se mantienen el chat y el panel de diagnóstico/análisis. No debe leerse como un editor de código.",
+    "keyCharacteristics": [
+      "Monocromo con acento casi nulo: el acento es la propia tinta oscura.",
+      "Color solo con significado: verde, rojo y ámbar comunican variación o alerta de datos.",
+      "Estructura por líneas de 1px, no por sombras ni tarjetas flotantes.",
+      "Cifras tabulares; monoespaciada para valores en tablas."
+    ],
+    "rules": [
+      { "name": "The Semantic-Only Color Rule", "body": "Verde, rojo y ámbar aparecen solo cuando el dato es bueno, malo o dudoso. Nunca como decoración.", "section": "colors" },
+      { "name": "The Token Rule", "body": "Los componentes leen var(--…); un hex literal en un componente rompe el tema oscuro.", "section": "colors" },
+      { "name": "The Tabular Numbers Rule", "body": "Toda cifra comparable usa tabular-nums o monoespaciada para que las columnas alineen.", "section": "typography" },
+      { "name": "The Hairline Rule", "body": "Separar con una línea de 1px o un cambio tonal antes que con una sombra.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do mantener la navegación en exactamente cuatro páginas: Oferta Nueva, Tipologías, Proyectos y Mapa.",
+      "Do usar var(--…) para todo color, para que claro y oscuro funcionen.",
+      "Do separar zonas con líneas de 1px y cambios tonales.",
+      "Do reservar verde/rojo/ámbar para variación y alerta de datos.",
+      "Do usar cifras tabulares o JetBrains Mono para valores comparables."
+    ],
+    "donts": [
+      "Don't volver a añadir panel izquierdo, notificaciones, configuración visible ni paleta de comandos (Ctrl+K).",
+      "Don't imitar un editor de código (pestañas de archivo, jerga de IDE, texto tipo \"Antigravity IDE\" en la UI).",
+      "Don't sobrecargar: sin paneles, métricas o controles que no sirvan a la decisión de precio, mezcla o ubicación.",
+      "Don't introducir un color de marca saturado o azules/violetas; el sistema es deliberadamente monocromo.",
+      "Don't añadir glows, gradientes o sombras pesadas.",
+      "Don't hardcodear hex en componentes ni en configuraciones de ECharts sin ramas claro/oscuro.",
+      "Don't usar tipografía de más de 20px dentro de paneles de trabajo."
+    ]
+  }
+}
