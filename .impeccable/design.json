@@ -86,6 +86,7 @@
     ],
     "donts": [
       "Don't volver a añadir panel izquierdo, notificaciones, configuración visible ni paleta de comandos (Ctrl+K).",
+      "Don't exponer Workspace OS como pestaña de la navegación principal, ni eliminar su código mientras se define cómo integrarlo.",
       "Don't imitar un editor de código (pestañas de archivo, jerga de IDE, texto tipo \"Antigravity IDE\" en la UI).",
       "Don't sobrecargar: sin paneles, métricas o controles que no sirvan a la decisión de precio, mezcla o ubicación.",
       "Don't introducir un color de marca saturado o azules/violetas; el sistema es deliberadamente monocromo.",

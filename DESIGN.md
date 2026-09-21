@@ -162,7 +162,7 @@ Esquinas casi rectas: 4px en insignias y controles pequeños, 6px en botones, in
 ## Components
 
 ### Navigation (pestañas superiores)
-Navegación única del producto: cuatro pestañas, **Oferta Nueva, Tipologías, Proyectos, Mapa** (hoy "Geoespacial"; renombrar). Sin numeraciones tipo "01 · " ni "01-E ·" en las etiquetas. Pestañas de 35px de alto, separadas por líneas verticales de 1px. Inactiva: fondo lienzo, texto pizarra media. Hover: lavado gris. Activa: fondo superficie, texto tinta, filete superior de 2px. Transición 0.12s.
+Navegación única del producto: cuatro pestañas, **Oferta Nueva, Tipologías, Proyectos, Mapa** (hoy "Geoespacial"; renombrar). Sin numeraciones tipo "01 · " ni "01-E ·" en las etiquetas. **Workspace OS** (Mission Control, comparador, generador de reportes) queda fuera de la navegación principal: no es una quinta página. Su código se conserva intacto para evaluar más adelante su integración como capacidades transversales de Intelligence. Pestañas de 35px de alto, separadas por líneas verticales de 1px. Inactiva: fondo lienzo, texto pizarra media. Hover: lavado gris. Activa: fondo superficie, texto tinta, filete superior de 2px. Transición 0.12s.
 
 ### Buttons
 - **Shape:** 6px de radio.
@@ -190,6 +190,7 @@ Fondo superficie, borde de 1px, radio 6px. Foco: el borde pasa al color de acent
 
 ### Don't:
 - **Don't** volver a añadir panel izquierdo, notificaciones, configuración visible ni paleta de comandos (Ctrl+K).
+- **Don't** exponer Workspace OS como pestaña de la navegación principal, ni eliminar su código mientras se define cómo integrarlo.
 - **Don't** imitar un editor de código (pestañas de archivo, jerga de IDE, texto tipo "Antigravity IDE" en la UI).
 - **Don't** sobrecargar: sin paneles, métricas o controles que no sirvan a la decisión de precio, mezcla o ubicación.
 - **Don't** introducir un color de marca saturado o azules/violetas; el sistema es deliberadamente monocromo.
