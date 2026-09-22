@@ -1,17 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import './index.css'
-import LeftSidebar, { IconAssistant, type PanelId } from './components/LeftSidebar'
+import { IconAssistant } from './components/LeftSidebar'
+import ChatPanel from './components/ChatPanel'
 import AnalysisPanel from './components/AnalysisPanel'
 import WorkspacePanel from './components/WorkspacePanel'
 import TipologiasPanel from './components/TipologiasPanel'
 import GeoespacialPanel from './components/GeoespacialPanel'
 import WorkspaceOSPanel from './components/WorkspaceOSPanel'
-import CommandPalette from './components/CommandPalette'
 import AuthScreen from './components/AuthScreen'
-import { supabase, fetchIndicadores, getLatestPerProject } from './lib/supabase'
+import { supabase } from './lib/supabase'
 import type { IndicadorFull } from './lib/supabase'
 
-/* ─── Profile & Account Icons (Antigravity IDE style) ─────────────────────── */
+/* ─── Profile & Account Icons  ─────────────────────── */
 const IconUser = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
@@ -39,18 +39,11 @@ const IconLogout = () => (
 type Ciudad = 'SCZ' | 'LPZ' | 'CBB' | 'ALL'
 type Tab = 'workspace_os' | 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial'
 
-const CIUDAD_LABELS: Record<Ciudad, string> = {
-  SCZ: 'Santa Cruz',
-  LPZ: 'La Paz',
-  CBB: 'Cochabamba',
-  ALL: 'Bolivia',
-}
-
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'mercado',     label: '01 · Oferta Nueva' },
-  { id: 'tipologias', label: '01-E · Tipologías' },
+  { id: 'mercado',     label: 'Oferta Nueva' },
+  { id: 'tipologias', label: 'Tipologías' },
   { id: 'proyectos',  label: 'Proyectos' },
-  { id: 'geoespacial',label: 'Geoespacial' },
+  { id: 'geoespacial',label: 'Mapa' },
 ]
 
 export default function App() {
@@ -62,17 +55,10 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('mercado')
   const [selectedIndicador, setSelectedIndicador] = useState<IndicadorFull | null>(null)
 
-  // Citrino Global Filters
+  // Filtros globales (los fija el asistente)
   const [zonaFilter, setZonaFilter] = useState<string>('ALL')
   const [selectedEtapas, setSelectedEtapas] = useState<string[]>([])
-  const [availableZonas, setAvailableZonas] = useState<string[]>([])
-  const [availableEtapas, setAvailableEtapas] = useState<string[]>([])
-  const [etapaCounts, setEtapaCounts] = useState<Record<string, number>>({})
 
-  // Workspace OS & Command Palette States
-  const [isCmdOpen, setIsCmdOpen] = useState(false)
-  const [osInitialApp, setOsInitialApp] = useState<string>('mission')
-  const [allIndicadoresForCmd, setAllIndicadoresForCmd] = useState<IndicadorFull[]>([])
 
   // Theme State: 'dark' (Nocturno) | 'light' (Diurno)
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -80,9 +66,8 @@ export default function App() {
     return (saved === 'light' || saved === 'dark') ? saved : 'light'
   })
 
-  // Left sidebar — panel to force open (triggered by topbar button)
-  const [forcedLeftPanel, setForcedLeftPanel] = useState<PanelId>(null)
-  const [activeLeftPanel, setActiveLeftPanel] = useState<PanelId>(null)
+  // Chat assistant (right panel)
+  const [chatOpen, setChatOpen] = useState(false)
 
   // Profile Dropdown Menu State
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
@@ -106,14 +91,6 @@ export default function App() {
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isProfileMenuOpen])
-
-  const toggleAssistant = () => {
-    if (activeLeftPanel === 'assistant') {
-      setForcedLeftPanel('close')
-    } else {
-      setForcedLeftPanel('assistant')
-    }
-  }
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -141,51 +118,11 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  useEffect(() => {
-    fetchIndicadores(ciudad === 'ALL' ? undefined : ciudad).then((inds) => {
-      const latest = getLatestPerProject(inds)
-      setAllIndicadoresForCmd(latest)
-      const zonas = Array.from(new Set(latest.map((p) => p.ZONAS).filter((z): z is string => Boolean(z && z.trim()))))
-      zonas.sort()
-      setAvailableZonas(zonas)
-
-      const etapas = Array.from(new Set(latest.map((p) => p.etapa).filter((e): e is string => Boolean(e && e.trim()))))
-      etapas.sort()
-      setAvailableEtapas(etapas)
-
-      const counts: Record<string, number> = {}
-      for (const p of latest) {
-        if (p.etapa) {
-          counts[p.etapa] = (counts[p.etapa] || 0) + 1
-        }
-      }
-      setEtapaCounts(counts)
-    }).catch(console.error)
-  }, [ciudad])
-
-  // Global Command Palette Shortcut (Cmd+K / Ctrl+K)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault()
-        setIsCmdOpen((prev) => !prev)
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
-
   const handleCiudadChange = (c: Ciudad) => {
     setCiudad(c)
     setSelectedIndicador(null)
     setZonaFilter('ALL')
     setSelectedEtapas([])
-  }
-
-  const resetFilters = () => {
-    setZonaFilter('ALL')
-    setSelectedEtapas([])
-    setSelectedIndicador(null)
   }
 
   if (authLoading) {
@@ -197,11 +134,11 @@ export default function App() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--bg-base, #181818)',
+        background: 'var(--bg-base)',
         gap: 12,
       }}>
         <div className="loading-shimmer" style={{ width: 180, height: 18 }} />
-        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Iniciando Citrino Platform...</div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Iniciando Citrino…</div>
       </div>
     )
   }
@@ -215,50 +152,42 @@ export default function App() {
       <header className="ide-topbar">
         {/* Left: Logo + Navigation Tabs */}
         <div className="ide-topbar-left">
-          <div
+          <button
+            type="button"
             className="ide-topbar-logo"
             title="Citrino"
+            aria-label="Citrino, ir a Oferta Nueva"
             onClick={() => setActiveTab('mercado')}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M 18.5 7.5 A 8 8 0 1 0 18.5 16.5" />
               <polygon points="12 8.5 15.5 12 12 15.5 8.5 12" />
             </svg>
-          </div>
-
-          <div className="ide-topbar-tabs">
-            {TABS.map((t) => (
-              <div
-                key={t.id}
-                className={`ide-tab ${activeTab === t.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(t.id)}
-              >
-                <span>{t.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Center: Institutional Title */}
-        <div className="ide-topbar-center">
-          proyecto intelligence · Antigravity IDE · {TABS.find(t => t.id === activeTab)?.label || 'Bolivia Platform'}
-        </div>
-
-        {/* Right: Quick Command + Cities + Theme + AI + User + Window Controls */}
-        <div className="ide-topbar-right">
-          <button
-            className="topbar-cmd-btn"
-            onClick={() => setIsCmdOpen(true)}
-            title="Abrir Command Palette (Ctrl+K / Cmd+K)">
-            <span className="topbar-cmd-badge">⌘K</span>
-            <span className="topbar-cmd-text">Buscar o comando...</span>
           </button>
 
+          <nav className="ide-topbar-tabs" aria-label="Secciones">
+            {TABS.map((t) => (
+              <button
+                type="button"
+                key={t.id}
+                className={`ide-tab ${activeTab === t.id ? 'active' : ''}`}
+                aria-current={activeTab === t.id ? 'page' : undefined}
+                onClick={() => setActiveTab(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Right: Cities + Theme + AI + User + Window Controls */}
+        <div className="ide-topbar-right">
           <div className="topbar-right" style={{ marginLeft: 0 }}>
             {(['SCZ', 'LPZ', 'CBB', 'ALL'] as Ciudad[]).map((c) => (
               <button
                 key={c}
                 className={`city-badge ${c.toLowerCase()} ${ciudad === c ? 'active' : ''}`}
+                aria-pressed={ciudad === c}
                 onClick={() => handleCiudadChange(c)}>
                 {c === 'ALL' ? 'Bolivia' : c}
               </button>
@@ -270,7 +199,8 @@ export default function App() {
           <button
             className="theme-toggle-btn"
             onClick={toggleTheme}
-            title={theme === 'dark' ? 'Cambiar a Modo Diurno' : 'Cambiar a Modo Nocturno'}
+            aria-label={theme === 'dark' ? 'Cambiar a modo diurno' : 'Cambiar a modo nocturno'}
+            title={theme === 'dark' ? 'Cambiar a modo diurno' : 'Cambiar a modo nocturno'}
           >
             {theme === 'dark' ? (
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -292,14 +222,16 @@ export default function App() {
           </button>
 
           <button
-            className={`topbar-icon-btn ${activeLeftPanel === 'assistant' ? 'active' : ''}`}
-            onClick={toggleAssistant}
-            title={activeLeftPanel === 'assistant' ? 'Cerrar IA Asistente' : 'Abrir IA Asistente'}
+            className={`topbar-icon-btn ${chatOpen ? 'active' : ''}`}
+            onClick={() => setChatOpen((v) => !v)}
+            aria-label={chatOpen ? 'Cerrar asistente' : 'Abrir asistente'}
+            aria-pressed={chatOpen}
+            title={chatOpen ? 'Cerrar asistente' : 'Abrir asistente'}
           >
             <IconAssistant />
           </button>
 
-          {/* Antigravity IDE Profile Account Menu */}
+          {/* Profile menu */}
           <div className="topbar-profile-wrapper" ref={profileMenuRef}>
             <button
               className={`topbar-profile-btn ${isProfileMenuOpen ? 'active' : ''}`}
@@ -370,20 +302,21 @@ export default function App() {
         </div>
       </header>
 
-      {/* Workspace OS (Modular Command Center) */}
-      {activeTab === 'workspace_os' && (
-        <main className="workspace">
-          <LeftSidebar
-            ciudad={ciudad}
-            activeTab={activeTab}
-            onFilterZona={setZonaFilter}
-            onFilterEtapas={setSelectedEtapas}
-            onSelectIndicador={setSelectedIndicador}
-            onSwitchTab={setActiveTab}
-            forcedPanel={forcedLeftPanel}
-            onForcedPanelConsumed={() => setForcedLeftPanel(null)}
-            onPanelChange={setActiveLeftPanel}
-          />
+      <main className="workspace">
+        {chatOpen && (
+          <aside className="chat-aside" aria-label="Asistente">
+            <ChatPanel
+              ciudad={ciudad}
+              onFilterZona={setZonaFilter}
+              onFilterEtapas={setSelectedEtapas}
+              onSelectIndicador={setSelectedIndicador}
+              onSwitchTab={(t) => setActiveTab(t as Tab)}
+              isEmbedded
+            />
+          </aside>
+        )}
+
+        {activeTab === 'workspace_os' && (
           <div style={{ flex: 1, overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
             <WorkspaceOSPanel
               ciudad={ciudad}
@@ -392,28 +325,12 @@ export default function App() {
               selectedIndicador={selectedIndicador}
               onSelectIndicador={setSelectedIndicador}
               onSwitchTab={setActiveTab}
-              initialApp={osInitialApp}
-              onOpenCommandPalette={() => setIsCmdOpen(true)}
               theme={theme}
             />
           </div>
-        </main>
-      )}
+        )}
 
-      {/* 3-Panel Workspace — Mercado tab (main) */}
-      {activeTab === 'mercado' && (
-        <main className="workspace">
-          <LeftSidebar
-            ciudad={ciudad}
-            activeTab={activeTab}
-            onFilterZona={setZonaFilter}
-            onFilterEtapas={setSelectedEtapas}
-            onSelectIndicador={setSelectedIndicador}
-            onSwitchTab={setActiveTab}
-            forcedPanel={forcedLeftPanel}
-            onForcedPanelConsumed={() => setForcedLeftPanel(null)}
-            onPanelChange={setActiveLeftPanel}
-          />
+        {(activeTab === 'mercado' || activeTab === 'proyectos') && (
           <WorkspacePanel
             ciudad={ciudad}
             zonaFilter={zonaFilter}
@@ -421,85 +338,18 @@ export default function App() {
             selectedIndicador={selectedIndicador}
             onSelectIndicador={setSelectedIndicador}
           />
-          <AnalysisPanel
-            selectedIndicador={selectedIndicador}
-            ciudad={ciudad}
-            onClearSelection={() => setSelectedIndicador(null)}
-          />
-        </main>
-      )}
+        )}
 
-      {/* Proyectos tab */}
-      {activeTab === 'proyectos' && (
-        <main className="workspace">
-          <LeftSidebar
-            ciudad={ciudad}
-            activeTab={activeTab}
-            onFilterZona={setZonaFilter}
-            onFilterEtapas={setSelectedEtapas}
-            onSelectIndicador={setSelectedIndicador}
-            onSwitchTab={setActiveTab}
-            forcedPanel={forcedLeftPanel}
-            onForcedPanelConsumed={() => setForcedLeftPanel(null)}
-            onPanelChange={setActiveLeftPanel}
-          />
-          <WorkspacePanel
-            ciudad={ciudad}
-            zonaFilter={zonaFilter}
-            etapaFilter={selectedEtapas}
-            selectedIndicador={selectedIndicador}
-            onSelectIndicador={setSelectedIndicador}
-          />
-          <AnalysisPanel
-            selectedIndicador={selectedIndicador}
-            ciudad={ciudad}
-            onClearSelection={() => setSelectedIndicador(null)}
-          />
-        </main>
-      )}
-
-      {/* Tipologías tab */}
-      {activeTab === 'tipologias' && (
-        <main className="workspace">
-          <LeftSidebar
-            ciudad={ciudad}
-            activeTab={activeTab}
-            onFilterZona={setZonaFilter}
-            onFilterEtapas={setSelectedEtapas}
-            onSelectIndicador={setSelectedIndicador}
-            onSwitchTab={setActiveTab}
-            forcedPanel={forcedLeftPanel}
-            onForcedPanelConsumed={() => setForcedLeftPanel(null)}
-            onPanelChange={setActiveLeftPanel}
-          />
+        {activeTab === 'tipologias' && (
           <TipologiasPanel
             ciudad={ciudad}
             etapaFilter={selectedEtapas}
             selectedIndicador={selectedIndicador}
             onSelectIndicador={setSelectedIndicador}
           />
-          <AnalysisPanel
-            selectedIndicador={selectedIndicador}
-            ciudad={ciudad}
-            onClearSelection={() => setSelectedIndicador(null)}
-          />
-        </main>
-      )}
+        )}
 
-      {/* Geoespacial tab */}
-      {activeTab === 'geoespacial' && (
-        <main className="workspace">
-          <LeftSidebar
-            ciudad={ciudad}
-            activeTab={activeTab}
-            onFilterZona={setZonaFilter}
-            onFilterEtapas={setSelectedEtapas}
-            onSelectIndicador={setSelectedIndicador}
-            onSwitchTab={setActiveTab}
-            forcedPanel={forcedLeftPanel}
-            onForcedPanelConsumed={() => setForcedLeftPanel(null)}
-            onPanelChange={setActiveLeftPanel}
-          />
+        {activeTab === 'geoespacial' && (
           <GeoespacialPanel
             ciudad={ciudad}
             zonaFilter={zonaFilter}
@@ -508,75 +358,17 @@ export default function App() {
             onSelectIndicador={setSelectedIndicador}
             theme={theme}
           />
+        )}
+
+        {activeTab !== 'workspace_os' && (
           <AnalysisPanel
             selectedIndicador={selectedIndicador}
             ciudad={ciudad}
             onClearSelection={() => setSelectedIndicador(null)}
           />
-        </main>
-      )}
+        )}
 
-      {/* Status Bar (Antigravity IDE Style) */}
-      <footer className="status-bar">
-        <div className="status-bar-item" title="Git Branch: master">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-            <line x1="6" y1="3" x2="6" y2="15"/>
-            <circle cx="18" cy="6" r="3"/>
-            <circle cx="6" cy="18" r="3"/>
-            <path d="M18 9a9 9 0 0 1-9 9"/>
-          </svg>
-          <span>master</span>
-        </div>
-
-        <div className="status-bar-divider" />
-
-        <div className="status-bar-item" title="Estado de Supabase">
-          <span>Supabase — Conectado</span>
-        </div>
-
-        <div className="status-bar-divider" />
-
-        <div className="status-bar-item" title="Plataforma Citrino">
-          <span>Bolivia Intelligence Platform v1.0</span>
-        </div>
-
-        <div className="status-bar-divider" />
-
-        <div className="status-bar-item">
-          <span>
-            {selectedIndicador
-              ? `Proyecto activo: ${selectedIndicador.proyecto}`
-              : `Vista: ${CIUDAD_LABELS[ciudad]}`}
-          </span>
-        </div>
-
-        <div style={{ marginLeft: 'auto' }}>
-          <div className="status-bar-item" title="Sincronización automatizada Medallion">
-            <span>Pipeline: ETL GitHub Actions · 6h sync</span>
-          </div>
-        </div>
-      </footer>
-
-      {/* Global Command Palette (Cmd+K / Ctrl+K) */}
-      <CommandPalette
-        isOpen={isCmdOpen}
-        onClose={() => setIsCmdOpen(false)}
-        indicadores={allIndicadoresForCmd}
-        currentCiudad={ciudad}
-        onSelectProject={(proj) => {
-          setSelectedIndicador(proj)
-          if (proj.ciudad && proj.ciudad !== ciudad) {
-            handleCiudadChange(proj.ciudad as Ciudad)
-          }
-        }}
-        onSelectCiudad={(c) => handleCiudadChange(c)}
-        onSelectZona={(z) => setZonaFilter(z)}
-        onSwitchTab={(t) => setActiveTab(t)}
-        onOpenApp={(appId) => {
-          setOsInitialApp(appId)
-          setActiveTab('workspace_os')
-        }}
-      />
+      </main>
     </div>
   )
 }

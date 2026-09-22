@@ -154,7 +154,7 @@ html, body, #root {
   background: var(--bg-base);
 }
 
-/* ─── Antigravity IDE Top Bar (Single Extreme Top Header) ───────────────────── */
+/* ─── Barra superior ───────────────────── */
 .ide-topbar {
   height: 35px;
   min-height: 35px;
@@ -183,6 +183,8 @@ html, body, #root {
   border-right: 1px solid var(--border-subtle);
   color: var(--text-primary);
   background: var(--bg-base);
+  border-top: 0; border-left: 0; border-bottom: 0;
+  padding: 0;
   cursor: pointer;
   transition: background 0.12s;
 }
@@ -197,6 +199,12 @@ html, body, #root {
 }
 
 .ide-tab {
+  appearance: none;
+  border-top: 2px solid transparent;
+  border-bottom: 0;
+  border-left: 0;
+  font-family: inherit;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -216,23 +224,31 @@ html, body, #root {
 }
 .ide-tab.active {
   background: var(--bg-panel);
-  color: #ffffff;
-  border-top: 2px solid #525866;
+  color: var(--text-primary);
+  border-top-color: var(--text-primary);
   font-weight: 500;
 }
-
-.ide-topbar-center {
+.ide-tab:focus-visible,
+.ide-topbar-logo:focus-visible,
+.city-badge:focus-visible,
+.topbar-icon-btn:focus-visible,
+.theme-toggle-btn:focus-visible,
+.topbar-profile-btn:focus-visible,
+.profile-dropdown-item:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: -2px;
+}
+.chat-aside {
+  width: 330px;
+  min-width: 330px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11.5px;
-  color: var(--text-muted);
-  font-weight: 500;
-  letter-spacing: 0.2px;
-  padding: 0 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  border-right: 1px solid var(--border-subtle);
+}
+
+.chat-aside > .panel {
+  flex: 1;
+  border-left: none;
+  border-right: none;
 }
 
 .ide-topbar-right {
@@ -262,7 +278,7 @@ html, body, #root {
   color: var(--text-primary);
 }
 .ide-window-btn.close:hover {
-  background: #e81123;
+  background: var(--color-negative);
   color: #ffffff;
 }
 
@@ -272,7 +288,7 @@ html, body, #root {
   gap: 8px;
 }
 
-/* ─── Antigravity IDE Profile Button & Dropdown ────────────────────────────── */
+/* ─── Perfil de usuario ────────────────────────────── */
 .topbar-profile-wrapper {
   position: relative;
   display: flex;
@@ -309,7 +325,7 @@ html, body, #root {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: 6px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75);
+  box-shadow: 0 0 0 1px var(--border-subtle), 0 2px 16px rgba(15, 23, 42, 0.08);
   padding: 6px 0;
   z-index: 1000;
   animation: dropdownFadeIn 0.12s ease-out;
@@ -391,8 +407,8 @@ html, body, #root {
   color: var(--text-primary);
 }
 .profile-dropdown-item.danger:hover {
-  background: rgba(244, 63, 94, 0.12);
-  color: #fda4af;
+  background: color-mix(in srgb, var(--color-negative) 12%, transparent);
+  color: var(--color-negative);
 }
 
 .city-badge {
@@ -921,43 +937,6 @@ html, body, #root {
 .select-input:focus { border-color: var(--accent-blue); }
 .select-input option { background: var(--bg-panel); }
 
-/* ─── Status indicator (Antigravity IDE Status Bar) ───────────────────────── */
-.status-bar {
-  height: 22px;
-  min-height: 22px;
-  background: var(--bg-base);
-  border-top: 1px solid var(--border-subtle);
-  padding: 0 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
-  color: var(--text-secondary);
-  user-select: none;
-  z-index: 10;
-}
-.status-bar-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 6px;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s;
-  color: var(--text-secondary);
-  font-size: 11px;
-}
-.status-bar-item:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-.status-bar-divider {
-  width: 1px;
-  height: 12px;
-  background: var(--border-subtle);
-  margin: 0 2px;
-}
 .status-dot {
   display: none !important;
 }
@@ -1096,41 +1075,6 @@ html, body, #root {
 /* ══════════════════════════════════════════════════════════════════════════════
    WORKSPACE OS & COMMAND PALETTE STYLES
 ══════════════════════════════════════════════════════════════════════════════ */
-
-/* Topbar Command Button */
-.topbar-cmd-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  color: var(--text-secondary);
-  border-radius: 4px;
-  padding: 3px 10px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  margin-left: 6px;
-}
-.topbar-cmd-btn:hover {
-  border-color: var(--border-bright);
-  color: var(--text-primary);
-  background: var(--bg-hover);
-  box-shadow: none;
-}
-.topbar-cmd-badge {
-  background: var(--citrino-petrol);
-  border: 1px solid var(--border-bright);
-  color: var(--citrino-accent);
-  padding: 1px 5px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
-}
-.topbar-cmd-text {
-  font-size: 11px;
-  color: var(--text-muted);
-}
 
 /* Workspace OS Main Container */
 .workspace-os-wrapper {

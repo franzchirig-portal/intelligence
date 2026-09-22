@@ -1202,10 +1202,10 @@ export default function GeoespacialPanel({
                         textAlign: 'center',
                         textTransform: 'capitalize',
                       }}>
-                      {bm === 'dark' && '🌙 Antigravity Dark'}
-                      {bm === 'satellite' && '🛰️ Satélite ESRI'}
-                      {bm === 'streets' && '🗺️ Calles OSM'}
-                      {bm === 'light' && '☀️ Diurno Claro'}
+                      {bm === 'dark' && 'Oscuro'}
+                      {bm === 'satellite' && 'Satélite'}
+                      {bm === 'streets' && 'Calles'}
+                      {bm === 'light' && 'Claro'}
                     </button>
                   ))}
                 </div>
