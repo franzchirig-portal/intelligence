@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import citrinoLogo from '../assets/citrino-icon.png'
 
 interface AuthScreenProps {
   onSuccess: () => void
@@ -100,10 +101,16 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             border: '1px solid var(--border-subtle, #2b2d30)',
             marginBottom: 14,
           }}>
-            <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
-              <path d="M 50 10 A 40 40 0 1 0 85 75 L 70 65 A 25 25 0 1 1 50 25 Z" fill="#ffffff" />
-              <polygon points="50,38 60,50 50,62 40,50" fill="#9d9d9d" />
-            </svg>
+            <img
+              src={citrinoLogo}
+              alt="Citrino"
+              style={{
+                width: 28,
+                height: 28,
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
           </div>
 
           <h1 style={{

@@ -10,6 +10,7 @@ import WorkspaceOSPanel from './components/WorkspaceOSPanel'
 import AuthScreen from './components/AuthScreen'
 import { supabase } from './lib/supabase'
 import type { IndicadorFull } from './lib/supabase'
+import citrinoLogo from './assets/citrino-icon.png'
 
 /* ─── Profile & Account Icons  ─────────────────────── */
 const IconUser = () => (
@@ -159,10 +160,16 @@ export default function App() {
             aria-label="Citrino, ir a Oferta Nueva"
             onClick={() => setActiveTab('mercado')}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M 18.5 7.5 A 8 8 0 1 0 18.5 16.5" />
-              <polygon points="12 8.5 15.5 12 12 15.5 8.5 12" />
-            </svg>
+            <img
+              src={citrinoLogo}
+              alt="Citrino"
+              style={{
+                width: 18,
+                height: 18,
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
           </button>
 
           <nav className="ide-topbar-tabs" aria-label="Secciones">
