@@ -67,11 +67,10 @@ export default function FilterBar({
 
   return (
     <div className="filter-bar" role="toolbar" aria-label="Filtros globales">
-      <div className="filter-bar-label">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div className="filter-bar-label" title="Filtros" aria-label="Filtros">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
         </svg>
-        Filtros
       </div>
 
       <div className="filter-bar-selects">

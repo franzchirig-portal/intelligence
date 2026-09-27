@@ -508,24 +508,6 @@ export default function App() {
             )}
           </div>
 
-          {/* Filter Bar (FooterSidebar) */}
-          <FilterBar
-            ciudad={ciudad}
-            zonaFilter={zonaFilter}
-            subzonaFilter={subzonaFilter}
-            tipoInmuebleFilter={tipoInmuebleFilter}
-            etapaFilter={etapaFilter}
-            tipologiaFilter={tipologiaFilter}
-            onZonaChange={setZonaFilter}
-            onSubzonaChange={setSubzonaFilter}
-            onTipoInmuebleChange={setTipoInmuebleFilter}
-            onEtapaChange={(v) => {
-              setEtapaFilter(v)
-              setSelectedEtapas(v !== 'ALL' ? [v] : [])
-            }}
-            onTipologiaChange={setTipologiaFilter}
-            onClear={handleClearFilters}
-          />
         </div>
 
         {/* Analysis & Diagnóstico Panel (right, toggled, directamente bajo el topbar principal) */}
@@ -537,6 +519,25 @@ export default function App() {
           />
         )}
       </div>
+
+      {/* ── Footer Secundario: Filter Bar (extendido a lo ancho de toda la pantalla delimitando base de chat y análisis) ── */}
+      <FilterBar
+        ciudad={ciudad}
+        zonaFilter={zonaFilter}
+        subzonaFilter={subzonaFilter}
+        tipoInmuebleFilter={tipoInmuebleFilter}
+        etapaFilter={etapaFilter}
+        tipologiaFilter={tipologiaFilter}
+        onZonaChange={setZonaFilter}
+        onSubzonaChange={setSubzonaFilter}
+        onTipoInmuebleChange={setTipoInmuebleFilter}
+        onEtapaChange={(v) => {
+          setEtapaFilter(v)
+          setSelectedEtapas(v !== 'ALL' ? [v] : [])
+        }}
+        onTipologiaChange={setTipologiaFilter}
+        onClear={handleClearFilters}
+      />
 
       {/* ── Footer original: Status Bar ───────────────────────────────── */}
       <footer className="status-bar">
