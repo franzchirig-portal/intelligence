@@ -312,9 +312,9 @@ html, body, #root {
   justify-content: center;
   width: 26px;
   height: 26px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -323,9 +323,9 @@ html, body, #root {
 }
 .topbar-profile-btn:hover,
 .topbar-profile-btn.active {
-  border-color: var(--border-bright);
-  color: var(--text-primary);
-  background: var(--bg-hover);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .topbar-profile-dropdown {
@@ -333,10 +333,10 @@ html, body, #root {
   top: calc(100% + 7px);
   right: 0;
   width: 230px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  background: #0a0f1a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
-  box-shadow: 0 0 0 1px var(--border-subtle), 0 2px 16px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
   padding: 6px 0;
   z-index: 1000;
   animation: dropdownFadeIn 0.12s ease-out;
@@ -358,12 +358,12 @@ html, body, #root {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-primary);
+  color: #ffffff;
   font-size: 12px;
   font-weight: 600;
   flex-shrink: 0;
@@ -378,7 +378,7 @@ html, body, #root {
 .profile-dropdown-name {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -386,7 +386,7 @@ html, body, #root {
 
 .profile-dropdown-role {
   font-size: 10.5px;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.65);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -394,7 +394,7 @@ html, body, #root {
 
 .profile-dropdown-divider {
   height: 1px;
-  background: var(--border-subtle);
+  background: rgba(255, 255, 255, 0.12);
   margin: 5px 0;
 }
 
@@ -405,7 +405,7 @@ html, body, #root {
   gap: 8px;
   padding: 7px 12px;
   font-size: 11.5px;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.82);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -414,15 +414,15 @@ html, body, #root {
   outline: none;
 }
 .profile-dropdown-item:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 }
 .profile-dropdown-item.danger:hover {
-  background: color-mix(in srgb, var(--color-negative) 12%, transparent);
-  color: var(--color-negative);
+  background: color-mix(in srgb, var(--color-negative) 18%, transparent);
+  color: #f87171;
 }
 
-/* ─── Topbar: Ciudades (texto simple sin cuadros) ───────────────────────── */
+/* ─── Topbar: Ciudades (texto simple sin cuadros — Alto Contraste) ───────── */
 .topbar-cities-wrapper {
   display: flex;
   align-items: center;
@@ -436,7 +436,7 @@ html, body, #root {
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.72);
   cursor: pointer;
   transition: color 0.15s ease, font-weight 0.15s ease;
   outline: none;
@@ -445,16 +445,12 @@ html, body, #root {
 }
 
 .topbar-city-link:hover {
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .topbar-city-link.active {
   color: #ffffff;
   font-weight: 700;
-}
-
-[data-theme="light"] .topbar-city-link.active {
-  color: #0f172a;
 }
 
 .topbar-city-link.active::after {
@@ -464,12 +460,12 @@ html, body, #root {
   left: 0;
   right: 0;
   height: 2px;
-  background: #1565c0;
+  background: #3b82f6;
   border-radius: 2px;
 }
 
 .topbar-city-link:focus-visible {
-  outline: 2px solid #1565c0;
+  outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
@@ -494,11 +490,11 @@ html, body, #root {
   overflow: hidden;
 }
 
-/* ─── Topbar Divider ─────────────────────────────────────────────────────── */
+/* ─── Topbar Divider (Separadores nítidos) ─────────────────────────────────── */
 .topbar-divider {
   width: 1px;
   height: 18px;
-  background: var(--border-subtle);
+  background: rgba(255, 255, 255, 0.18);
   flex-shrink: 0;
 }
 
@@ -506,14 +502,14 @@ html, body, #root {
 .topbar-periodo-wrapper {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .topbar-filter-label {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 600;
-  color: var(--text-muted);
-  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -521,32 +517,40 @@ html, body, #root {
 .topbar-periodo-select {
   appearance: none;
   -webkit-appearance: none;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
-  color: var(--text-secondary);
+  color: #ffffff;
   font-family: inherit;
   font-size: 11px;
-  padding: 2px 20px 2px 7px;
-  height: 22px;
+  font-weight: 500;
+  padding: 2px 22px 2px 8px;
+  height: 24px;
   cursor: pointer;
   outline: none;
-  transition: border-color 0.14s, color 0.14s;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9' viewBox='0 0 24 24' fill='none' stroke='%236e6e6e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  transition: all 0.15s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 4px center;
-  min-width: 100px;
-  max-width: 150px;
+  background-position: right 6px center;
+  min-width: 110px;
+  max-width: 155px;
 }
 
 .topbar-periodo-select:hover {
-  border-color: var(--border-default);
-  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #ffffff;
 }
 
 .topbar-periodo-select:focus {
-  border-color: #1565c0;
-  color: var(--text-primary);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  color: #ffffff;
+}
+
+.topbar-periodo-select option {
+  background: #0a0f1a;
+  color: #ffffff;
 }
 
 /* ─── Topbar: Moneda toggle (sin líneas que lo encuadren) ─────────────────── */
@@ -567,9 +571,9 @@ html, body, #root {
   height: auto;
   border: none;
   background: transparent;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.68);
   font-family: inherit;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -577,7 +581,7 @@ html, body, #root {
 }
 
 .topbar-moneda-btn:hover {
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .topbar-moneda-btn.active {
@@ -586,17 +590,13 @@ html, body, #root {
   font-weight: 700;
 }
 
-[data-theme="light"] .topbar-moneda-btn.active {
-  color: #0f172a;
-}
-
 .topbar-moneda-btn.disabled-soon {
   cursor: not-allowed;
   opacity: 0.55;
 }
 
 .topbar-moneda-sep {
-  color: var(--border-subtle);
+  color: rgba(255, 255, 255, 0.3);
   font-size: 11px;
   user-select: none;
   padding: 0 1px;
@@ -613,7 +613,7 @@ html, body, #root {
 }
 
 .topbar-moneda-btn:focus-visible {
-  outline: 2px solid #1565c0;
+  outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
@@ -625,7 +625,7 @@ html, body, #root {
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.72);
   cursor: pointer;
   transition: color 0.15s ease, font-weight 0.15s ease;
   outline: none;
@@ -634,16 +634,12 @@ html, body, #root {
 }
 
 .topbar-text-btn:hover {
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .topbar-text-btn.active {
   color: #ffffff;
   font-weight: 700;
-}
-
-[data-theme="light"] .topbar-text-btn.active {
-  color: #0f172a;
 }
 
 .topbar-text-btn.active::after {
@@ -653,12 +649,12 @@ html, body, #root {
   left: 4px;
   right: 4px;
   height: 2px;
-  background: #1565c0;
+  background: #3b82f6;
   border-radius: 2px;
 }
 
 .topbar-text-btn:focus-visible {
-  outline: 2px solid #1565c0;
+  outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
