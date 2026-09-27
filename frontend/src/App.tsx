@@ -438,106 +438,110 @@ export default function App() {
           onSelectChapter={handleSelectChapter}
         />
 
-        {/* Chat aside (desplegable directamente bajo el topbar principal) */}
-        {chatOpen && (
-          <aside className="chat-aside" aria-label="Asistente AI">
-            <ChatPanel
-              ciudad={ciudad}
-              onFilterZona={setZonaFilter}
-              onFilterEtapas={setSelectedEtapas}
-              onSelectIndicador={setSelectedIndicador}
-              onSwitchTab={(t) => setActiveTab(t as Tab)}
-              isEmbedded
-            />
-          </aside>
-        )}
+        {/* Contenedor derecho: Fila de Paneles Analíticos + FilterBar delimitado con el Sidebar Izquierdo */}
+        <div className="app-workspace-wrapper">
+          <div className="app-panels-row">
+            {/* Chat aside (desplegable directamente bajo el topbar principal) */}
+            {chatOpen && (
+              <aside className="chat-aside" aria-label="Asistente AI">
+                <ChatPanel
+                  ciudad={ciudad}
+                  onFilterZona={setZonaFilter}
+                  onFilterEtapas={setSelectedEtapas}
+                  onSelectIndicador={setSelectedIndicador}
+                  onSwitchTab={(t) => setActiveTab(t as Tab)}
+                  isEmbedded
+                />
+              </aside>
+            )}
 
-        {/* Main workspace area */}
-        <div className="app-main">
-          {/* ── Header 2: Sub-header Azul (Módulos en el panel central) ─── */}
-          <SubHeader activeTab={activeTab} onTabChange={handleSubTabChange} />
+            {/* Main workspace area */}
+            <div className="app-main">
+              {/* ── Header 2: Sub-header Azul (Módulos en el panel central) ─── */}
+              <SubHeader activeTab={activeTab} onTabChange={handleSubTabChange} />
 
-          {/* Panel content */}
-          <div className="workspace">
-            {activeTab === 'proyectos' && (
-              <WorkspacePanel
-                ciudad={ciudad}
-                zonaFilter={zonaFilter}
-                etapaFilter={etapaFilterArr}
+              {/* Panel content */}
+              <div className="workspace">
+                {activeTab === 'proyectos' && (
+                  <WorkspacePanel
+                    ciudad={ciudad}
+                    zonaFilter={zonaFilter}
+                    etapaFilter={etapaFilterArr}
+                    selectedIndicador={selectedIndicador}
+                    onSelectIndicador={setSelectedIndicador}
+                  />
+                )}
+
+                {activeTab === 'tipologias' && (
+                  <TipologiasPanel
+                    ciudad={ciudad}
+                    etapaFilter={etapaFilterArr}
+                    selectedIndicador={selectedIndicador}
+                    onSelectIndicador={setSelectedIndicador}
+                  />
+                )}
+
+                {activeTab === 'geoespacial' && (
+                  <GeoespacialPanel
+                    ciudad={ciudad}
+                    zonaFilter={zonaFilter}
+                    etapaFilter={etapaFilterArr}
+                    selectedIndicador={selectedIndicador}
+                    onSelectIndicador={setSelectedIndicador}
+                    theme={theme}
+                  />
+                )}
+
+                {activeTab === 'mercado' && (
+                  <WorkspacePanel
+                    ciudad={ciudad}
+                    zonaFilter={zonaFilter}
+                    etapaFilter={etapaFilterArr}
+                    selectedIndicador={selectedIndicador}
+                    onSelectIndicador={setSelectedIndicador}
+                  />
+                )}
+
+                {activeTab === 'hipotecario' && (
+                  <HipotecarioPanel />
+                )}
+
+                {activeTab === 'chapter_dossier' && (
+                  <ChapterDossierPanel chapterId={activeChapter} />
+                )}
+              </div>
+            </div>
+
+            {/* Analysis & Diagnóstico Panel (right, toggled, directamente bajo el topbar principal) */}
+            {analysisOpen && activeTab !== 'hipotecario' && activeTab !== 'chapter_dossier' && (
+              <AnalysisPanel
                 selectedIndicador={selectedIndicador}
-                onSelectIndicador={setSelectedIndicador}
-              />
-            )}
-
-            {activeTab === 'tipologias' && (
-              <TipologiasPanel
                 ciudad={ciudad}
-                etapaFilter={etapaFilterArr}
-                selectedIndicador={selectedIndicador}
-                onSelectIndicador={setSelectedIndicador}
+                onClearSelection={() => setSelectedIndicador(null)}
               />
-            )}
-
-            {activeTab === 'geoespacial' && (
-              <GeoespacialPanel
-                ciudad={ciudad}
-                zonaFilter={zonaFilter}
-                etapaFilter={etapaFilterArr}
-                selectedIndicador={selectedIndicador}
-                onSelectIndicador={setSelectedIndicador}
-                theme={theme}
-              />
-            )}
-
-            {activeTab === 'mercado' && (
-              <WorkspacePanel
-                ciudad={ciudad}
-                zonaFilter={zonaFilter}
-                etapaFilter={etapaFilterArr}
-                selectedIndicador={selectedIndicador}
-                onSelectIndicador={setSelectedIndicador}
-              />
-            )}
-
-            {activeTab === 'hipotecario' && (
-              <HipotecarioPanel />
-            )}
-
-            {activeTab === 'chapter_dossier' && (
-              <ChapterDossierPanel chapterId={activeChapter} />
             )}
           </div>
 
-        </div>
-
-        {/* Analysis & Diagnóstico Panel (right, toggled, directamente bajo el topbar principal) */}
-        {analysisOpen && activeTab !== 'hipotecario' && activeTab !== 'chapter_dossier' && (
-          <AnalysisPanel
-            selectedIndicador={selectedIndicador}
+          {/* ── Footer Secundario: Filter Bar (delimita con el sidebar izquierdo y cubre la base de chat, main y análisis) ── */}
+          <FilterBar
             ciudad={ciudad}
-            onClearSelection={() => setSelectedIndicador(null)}
+            zonaFilter={zonaFilter}
+            subzonaFilter={subzonaFilter}
+            tipoInmuebleFilter={tipoInmuebleFilter}
+            etapaFilter={etapaFilter}
+            tipologiaFilter={tipologiaFilter}
+            onZonaChange={setZonaFilter}
+            onSubzonaChange={setSubzonaFilter}
+            onTipoInmuebleChange={setTipoInmuebleFilter}
+            onEtapaChange={(v) => {
+              setEtapaFilter(v)
+              setSelectedEtapas(v !== 'ALL' ? [v] : [])
+            }}
+            onTipologiaChange={setTipologiaFilter}
+            onClear={handleClearFilters}
           />
-        )}
+        </div>
       </div>
-
-      {/* ── Footer Secundario: Filter Bar (extendido a lo ancho de toda la pantalla delimitando base de chat y análisis) ── */}
-      <FilterBar
-        ciudad={ciudad}
-        zonaFilter={zonaFilter}
-        subzonaFilter={subzonaFilter}
-        tipoInmuebleFilter={tipoInmuebleFilter}
-        etapaFilter={etapaFilter}
-        tipologiaFilter={tipologiaFilter}
-        onZonaChange={setZonaFilter}
-        onSubzonaChange={setSubzonaFilter}
-        onTipoInmuebleChange={setTipoInmuebleFilter}
-        onEtapaChange={(v) => {
-          setEtapaFilter(v)
-          setSelectedEtapas(v !== 'ALL' ? [v] : [])
-        }}
-        onTipologiaChange={setTipologiaFilter}
-        onClear={handleClearFilters}
-      />
 
       {/* ── Footer original: Status Bar ───────────────────────────────── */}
       <footer className="status-bar">
