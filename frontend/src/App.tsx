@@ -221,16 +221,22 @@ export default function App() {
 
         {/* Right: Cities + Periodo + Moneda + Analysis + Chat + Theme + User */}
         <div className="ide-topbar-right">
-          {/* City selector */}
-          <div className="topbar-right" style={{ marginLeft: 0 }}>
-            {(['SCZ', 'LPZ', 'CBB', 'ALL'] as Ciudad[]).map((c) => (
+          {/* City selector: nombres completos y sin cuadros */}
+          <div className="topbar-cities-wrapper">
+            {[
+              { id: 'SCZ', label: 'Santa Cruz' },
+              { id: 'LPZ', label: 'La Paz' },
+              { id: 'CBB', label: 'Cochabamba' },
+              { id: 'ALL', label: 'Bolivia' },
+            ].map(({ id, label }) => (
               <button
-                key={c}
-                className={`city-badge ${c.toLowerCase()} ${ciudad === c ? 'active' : ''}`}
-                aria-pressed={ciudad === c}
-                onClick={() => handleCiudadChange(c)}
+                key={id}
+                type="button"
+                className={`topbar-city-link ${ciudad === id ? 'active' : ''}`}
+                aria-pressed={ciudad === id}
+                onClick={() => handleCiudadChange(id as Ciudad)}
               >
-                {c === 'ALL' ? 'Bolivia' : c}
+                {label}
               </button>
             ))}
           </div>
@@ -253,7 +259,7 @@ export default function App() {
             </select>
           </div>
 
-          {/* Moneda toggle (BS non-functional) */}
+          {/* Moneda toggle (sin recuadros) */}
           <div className="topbar-moneda-wrapper">
             <button
               type="button"
@@ -264,6 +270,7 @@ export default function App() {
             >
               USD
             </button>
+            <span className="topbar-moneda-sep">/</span>
             <button
               type="button"
               className={`topbar-moneda-btn ${moneda === 'BS' ? 'active' : ''} disabled-soon`}
@@ -278,53 +285,31 @@ export default function App() {
 
           <div className="topbar-divider" />
 
-          {/* Analysis & Diagnóstico toggle */}
+          {/* Analysis & Diagnóstico toggle (texto simple que resalta) */}
           <button
-            className={`topbar-icon-btn ${analysisOpen ? 'active' : ''}`}
+            type="button"
+            className={`topbar-text-btn ${analysisOpen ? 'active' : ''}`}
             onClick={() => setAnalysisOpen((v) => !v)}
-            aria-label={analysisOpen ? 'Cerrar análisis' : 'Abrir análisis y diagnóstico'}
+            aria-label={analysisOpen ? 'Cerrar análisis y diagnóstico' : 'Abrir análisis y diagnóstico'}
             aria-pressed={analysisOpen}
             title={analysisOpen ? 'Cerrar análisis y diagnóstico' : 'Análisis y diagnóstico'}
           >
-            <IconAnalysis />
+            Análisis y Diagnóstico
           </button>
 
-          {/* Chat assistant */}
+          {/* Chat assistant (texto simple que resalta) */}
           <button
-            className={`topbar-icon-btn ${chatOpen ? 'active' : ''}`}
+            type="button"
+            className={`topbar-text-btn ${chatOpen ? 'active' : ''}`}
             onClick={() => setChatOpen((v) => !v)}
-            aria-label={chatOpen ? 'Cerrar asistente' : 'Abrir asistente'}
+            aria-label={chatOpen ? 'Cerrar Asistente AI' : 'Abrir Asistente AI'}
             aria-pressed={chatOpen}
-            title={chatOpen ? 'Cerrar asistente' : 'Abrir asistente'}
+            title={chatOpen ? 'Cerrar Asistente AI' : 'Asistente AI'}
           >
-            <IconAssistant />
+            Asistente AI
           </button>
 
-          {/* Theme toggle */}
-          <button
-            className="theme-toggle-btn"
-            onClick={toggleTheme}
-            aria-label={theme === 'dark' ? 'Cambiar a modo diurno' : 'Cambiar a modo nocturno'}
-            title={theme === 'dark' ? 'Cambiar a modo diurno' : 'Cambiar a modo nocturno'}
-          >
-            {theme === 'dark' ? (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            ) : (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-            )}
-          </button>
+          <div className="topbar-divider" />
 
           {/* Profile menu */}
           <div className="topbar-profile-wrapper" ref={profileMenuRef}>
@@ -372,6 +357,33 @@ export default function App() {
                 >
                   <IconSwitchUser />
                   <span>Cambiar de usuario</span>
+                </button>
+
+                {/* Modo diurno/nocturno integrado en el menú de usuario */}
+                <button
+                  type="button"
+                  className="profile-dropdown-item"
+                  onClick={toggleTheme}
+                  title={theme === 'dark' ? 'Cambiar a modo diurno' : 'Cambiar a modo nocturno'}
+                >
+                  {theme === 'dark' ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="5"/>
+                      <line x1="12" y1="1" x2="12" y2="3"/>
+                      <line x1="12" y1="21" x2="12" y2="23"/>
+                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                      <line x1="1" y1="12" x2="3" y2="12"/>
+                      <line x1="21" y1="12" x2="23" y2="12"/>
+                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                  )}
+                  <span>{theme === 'dark' ? 'Modo diurno' : 'Modo nocturno'}</span>
                 </button>
 
                 <button
