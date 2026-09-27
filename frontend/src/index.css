@@ -154,12 +154,12 @@ html, body, #root {
   background: var(--bg-base);
 }
 
-/* ─── Barra superior ───────────────────── */
+/* ─── Barra superior (Header Principal — #0a0f1a) ────────────────────────── */
 .ide-topbar {
   height: 35px;
   min-height: 35px;
-  background: var(--bg-base);
-  border-bottom: 1px solid var(--border-subtle);
+  background: #0a0f1a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: stretch;
   justify-content: space-between;
@@ -182,12 +182,12 @@ html, body, #root {
   justify-content: center;
   border: none;
   color: var(--text-primary);
-  background: var(--bg-base);
+  background: transparent;
   cursor: pointer;
   transition: background 0.12s;
 }
 .ide-topbar-logo:hover {
-  background: var(--bg-hover);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .citrino-header-logo-img {
@@ -713,18 +713,18 @@ html, body, #root {
   color: var(--text-primary);
   border-color: var(--border-subtle);
 }
-/* ─── Status Bar (Footer Original) ────────────────────────────────────────── */
+/* ─── Status Bar (Footer — #002857) ───────────────────────────────────────── */
 .status-bar {
   height: 22px;
   min-height: 22px;
-  background: var(--bg-panel-header);
-  border-top: 1px solid var(--border-subtle);
+  background: #002857;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   padding: 0 12px;
   display: flex;
   align-items: center;
   gap: 12px;
   font-size: 10px;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.7);
   flex-shrink: 0;
   z-index: 100;
   user-select: none;
@@ -739,18 +739,18 @@ html, body, #root {
 }
 
 .status-sep {
-  color: var(--border-subtle);
+  color: rgba(255, 255, 255, 0.25);
 }
 
 .status-right {
   margin-left: auto;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 [data-theme="light"] .status-bar {
-  background: #f1f5f9;
-  border-top: 1px solid #e2e8f0;
-  color: #64748b;
+  background: #002857;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 /* ─── Panels ─────────────────────────────────────────────────────────────── */

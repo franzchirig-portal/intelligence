@@ -1,4 +1,4 @@
-/* ─── Filter Bar (Panel Inferior Central — Azul #1565c0) ─────────────────── */
+/* ─── Filter Bar (Panel Inferior Central — Azul #002857) ─────────────────── */
 .filter-bar {
   display: flex;
   align-items: center;
@@ -6,8 +6,8 @@
   height: 40px;
   min-height: 40px;
   padding: 0 14px 0 12px;
-  background: #1565c0;
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  background: #002857;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.25);
   flex-shrink: 0;
   overflow-x: auto;
@@ -95,10 +95,10 @@
 
 .filter-select.active {
   background-color: #ffffff;
-  color: #1565c0;
+  color: #002857;
   font-weight: 600;
   border-color: #ffffff;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%231565c0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23002857' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 
 .filter-select option {
