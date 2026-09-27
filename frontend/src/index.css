@@ -250,6 +250,9 @@ html, body, #root {
   min-width: 330px;
   display: flex;
   border-right: 1px solid var(--border-subtle);
+  height: 100%;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .chat-aside > .panel {

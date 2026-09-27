@@ -404,22 +404,21 @@ export default function App() {
 
         {/* Main workspace area */}
         <div className="app-main">
-          {/* Chat aside */}
-          {chatOpen && (
-            <aside className="chat-aside" aria-label="Asistente">
-              <ChatPanel
-                ciudad={ciudad}
-                onFilterZona={setZonaFilter}
-                onFilterEtapas={setSelectedEtapas}
-                onSelectIndicador={setSelectedIndicador}
-                onSwitchTab={(t) => setActiveTab(t as Tab)}
-                isEmbedded
-              />
-            </aside>
-          )}
-
           {/* Panel content */}
           <div className="workspace">
+            {/* Chat aside (desplegable a la izquierda de los datos) */}
+            {chatOpen && (
+              <aside className="chat-aside" aria-label="Asistente">
+                <ChatPanel
+                  ciudad={ciudad}
+                  onFilterZona={setZonaFilter}
+                  onFilterEtapas={setSelectedEtapas}
+                  onSelectIndicador={setSelectedIndicador}
+                  onSwitchTab={(t) => setActiveTab(t as Tab)}
+                  isEmbedded
+                />
+              </aside>
+            )}
             {activeTab === 'proyectos' && (
               <WorkspacePanel
                 ciudad={ciudad}
