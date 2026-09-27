@@ -14,7 +14,7 @@ export interface ChapterDetails {
 export const CHAPTER_REGISTRY: Record<string, ChapterDetails> = {
   '1.3': {
     id: '1.3',
-    title: '1.3. Cuantificación de la Oferta de Particulares',
+    title: 'Cuantificación de la Oferta de Particulares',
     subtitle: 'Mercado Secundario y Reventa Inmobiliaria',
     sectionTitle: 'Análisis de Mercado',
     description: 'Monitoreo de propiedades ofrecidas por particulares, brokers y portales clasificados en Santa Cruz, La Paz y Cochabamba. Permite cuantificar el stock de reventa compitiendo directamente con la oferta nueva.',
@@ -32,7 +32,7 @@ export const CHAPTER_REGISTRY: Record<string, ChapterDetails> = {
   },
   '1.4': {
     id: '1.4',
-    title: '1.4. Bienes Adjudicados',
+    title: 'Bienes Adjudicados',
     subtitle: 'Activos Recuperados y Remates del Sistema Financiero',
     sectionTitle: 'Análisis de Mercado',
     description: 'Seguimiento institucional de inmuebles adjudicados y en proceso de remate judicial por entidades bancarias y fondos de inversión en Bolivia.',
@@ -50,7 +50,7 @@ export const CHAPTER_REGISTRY: Record<string, ChapterDetails> = {
   },
   '2.1': {
     id: '2.1',
-    title: '2.1. Composición Económica y Voluntad de Compra',
+    title: 'Composición Económica y Voluntad de Compra',
     subtitle: 'Capacidad de Ahorro y Estratificación de la Demanda',
     sectionTitle: 'Análisis de la Demanda',
     description: 'Estratificación socioeconómica del comprador potencial boliviano, cruzando ingresos de hogares, capacidad efectiva de ahorro y propensión al endeudamiento.',
@@ -68,7 +68,7 @@ export const CHAPTER_REGISTRY: Record<string, ChapterDetails> = {
   },
   '2.2': {
     id: '2.2',
-    title: '2.2. Compra como Inversión',
+    title: 'Compra como Inversión',
     subtitle: 'Rentabilidad por Alquiler, Cap Rate y Plusvalía',
     sectionTitle: 'Análisis de la Demanda',
     description: 'Análisis del perfil inversor residencial: retornos por alquiler tradicional y temporal (Airbnb), tasas de vacancia y plusvalía proyectada por microzona.',
@@ -86,7 +86,7 @@ export const CHAPTER_REGISTRY: Record<string, ChapterDetails> = {
   },
   '2.3': {
     id: '2.3',
-    title: '2.3. Compra de Vivienda / Uso Propio',
+    title: 'Compra de Vivienda / Uso Propio',
     subtitle: 'Demanda Final, Familias y Primera Vivienda',
     sectionTitle: 'Análisis de la Demanda',
     description: 'Requerimientos, preferencias espaciales y motivos de compra de los usuarios finales que buscan vivienda propia en las principales urbes del país.',
@@ -104,7 +104,7 @@ export const CHAPTER_REGISTRY: Record<string, ChapterDetails> = {
   },
   '3.1': {
     id: '3.1',
-    title: '3.1. Evolución del Financiamiento al Sector Inmobiliario',
+    title: 'Evolución del Financiamiento al Sector Inmobiliario',
     subtitle: 'Créditos a la Construcción y Apalancamiento Promotor',
     sectionTitle: 'Análisis Financiero',
     description: 'Evolución de desembolsos, saldos de cartera y condiciones financieras del sistema bancario otorgadas a constructoras y promotores inmobiliarios.',
@@ -122,7 +122,7 @@ export const CHAPTER_REGISTRY: Record<string, ChapterDetails> = {
   },
   '3.2': {
     id: '3.2',
-    title: '3.2. Evolución de la Mora del Inmobiliario',
+    title: 'Evolución de la Mora del Inmobiliario',
     subtitle: 'Calidad de Cartera, Reprogramaciones y Riesgo Crediticio',
     sectionTitle: 'Análisis Financiero',
     description: 'Comportamiento de la morosidad y reprogramaciones en créditos otorgados a la construcción inmobiliaria, con alertas tempranas de estrés financiero.',
@@ -140,7 +140,7 @@ export const CHAPTER_REGISTRY: Record<string, ChapterDetails> = {
   },
   '4.1': {
     id: '4.1',
-    title: '4.1. Perfil del Consumidor de Créditos Hipotecarios',
+    title: 'Perfil del Consumidor de Créditos Hipotecarios',
     subtitle: 'Demografía y Capacidad de Endeudamiento',
     sectionTitle: 'Análisis del Endeudamiento Hipotecario',
     description: 'Análisis demográfico y económico de los prestatarios que acceden a financiamiento de vivienda en Bolivia.',
@@ -158,7 +158,7 @@ export const CHAPTER_REGISTRY: Record<string, ChapterDetails> = {
   },
   '4.2': {
     id: '4.2',
-    title: '4.2. Estado de la Cartera Hipotecaria',
+    title: 'Estado de la Cartera Hipotecaria',
     subtitle: 'Saldos de Vivienda, VIS y Cobertura Nacional',
     sectionTitle: 'Análisis del Endeudamiento Hipotecario',
     description: 'Composición de la cartera de créditos de vivienda en el sistema financiero boliviano, desagregando créditos de interés social (VIS) y de mercado abierto.',
@@ -176,7 +176,7 @@ export const CHAPTER_REGISTRY: Record<string, ChapterDetails> = {
   },
   '4.3': {
     id: '4.3',
-    title: '4.3. Perspectivas del Comprador',
+    title: 'Perspectivas del Comprador',
     subtitle: 'Expectativas de Tasas, Moneda y Horizonte de Endeudamiento',
     sectionTitle: 'Análisis del Endeudamiento Hipotecario',
     description: 'Expectativas del público demandante sobre condiciones crediticias futuras, tipo de cambio y disposición a asumir pasivos hipotecarios a largo plazo.',

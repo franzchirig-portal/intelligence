@@ -78,7 +78,7 @@
 .lab-sections-container {
   display: flex;
   flex-direction: column;
-  padding: 6px 0;
+  padding: 8px 0;
   gap: 2px;
 }
 
@@ -87,12 +87,12 @@
   flex-direction: column;
 }
 
-/* Section Header Button */
+/* Section Header Button — Estilo limpio de cabecera desplegable */
 .lab-section-header {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   padding: 8px 12px;
   background: transparent;
   border: none;
@@ -102,9 +102,10 @@
   font-weight: 600;
   text-align: left;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition: color 0.15s ease, background 0.15s ease;
   position: relative;
   outline: none;
+  user-select: none;
 }
 
 .left-analytics-bar.collapsed .lab-section-header {
@@ -118,15 +119,19 @@
 }
 
 .lab-section-header.active {
-  color: var(--text-primary);
+  color: #ffffff;
+}
+
+[data-theme="light"] .lab-section-header.active {
+  color: #0f172a;
 }
 
 .lab-section-group.has-active .lab-section-header {
-  color: #1565c0;
+  color: #ffffff;
 }
 
-[data-theme="dark"] .lab-section-group.has-active .lab-section-header {
-  color: #42a5f5;
+[data-theme="light"] .lab-section-group.has-active .lab-section-header {
+  color: #0f172a;
 }
 
 .lab-section-icon {
@@ -134,9 +139,19 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  color: inherit;
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.lab-section-header:hover .lab-section-icon,
+.lab-section-group.has-active .lab-section-icon {
+  color: #1565c0;
+}
+
+[data-theme="dark"] .lab-section-group.has-active .lab-section-icon {
+  color: #42a5f5;
 }
 
 .lab-section-title {
@@ -154,28 +169,34 @@
   width: 14px;
   height: 14px;
   color: var(--text-muted);
-  transition: transform 0.16s ease;
+  transition: transform 0.16s ease, color 0.15s ease;
   flex-shrink: 0;
 }
 
 .lab-chevron.rotated {
   transform: rotate(90deg);
+  color: #1565c0;
+}
+
+[data-theme="dark"] .lab-chevron.rotated {
+  color: #42a5f5;
 }
 
 /* ─── Chapters List (Sub-menu desplegable) ────────────────────────────────── */
 .lab-chapters-list {
   display: flex;
   flex-direction: column;
-  padding: 2px 0 6px 14px;
-  border-left: 2px solid var(--border-subtle);
-  margin: 0 0 4px 18px;
-  animation: labFadeSlide 0.15s ease-out;
+  padding: 2px 0 6px 0;
+  margin: 0;
+  animation: labFadeSlide 0.14s ease-out;
+  border-left: 1px solid var(--border-subtle);
+  margin-left: 20px;
 }
 
 @keyframes labFadeSlide {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(-3px);
   }
   to {
     opacity: 1;
@@ -183,24 +204,28 @@
   }
 }
 
+/* ─── Pestaña de Capítulo: Mismo estilo y selección del panel principal Header ─── */
+/* Sin recuadros, texto limpio, resalte al seleccionar y acento azul #1565c0 */
 .lab-chapter-item {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 6px 8px;
+  gap: 8px;
+  padding: 6px 12px;
   background: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: 0;
   color: var(--text-muted);
   font-family: inherit;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: all 0.12s;
+  transition: color 0.15s ease, background 0.15s ease, font-weight 0.15s ease;
   outline: none;
   position: relative;
+  white-space: normal;
+  line-height: 1.35;
 }
 
 .lab-chapter-item:hover {
@@ -208,35 +233,33 @@
   color: var(--text-primary);
 }
 
+/* Active / Selected: resalta el texto y coloca la línea indicadora azul #1565c0 */
 .lab-chapter-item.selected {
-  background: color-mix(in srgb, #1565c0 14%, transparent);
-  color: #1565c0;
+  color: #ffffff;
   font-weight: 600;
+  background: color-mix(in srgb, #1565c0 12%, transparent);
 }
 
-[data-theme="dark"] .lab-chapter-item.selected {
-  background: color-mix(in srgb, #1565c0 22%, transparent);
-  color: #64b5f6;
+[data-theme="light"] .lab-chapter-item.selected {
+  color: #0f172a;
+  background: color-mix(in srgb, #1565c0 8%, transparent);
 }
 
-.lab-chapter-num {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  padding: 1px 4px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 3px;
-  flex-shrink: 0;
-  color: inherit;
+/* Indicador activo: línea lateral vertical azul #1565c0 (idéntica a la selección del Header) */
+.lab-chapter-item.selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #1565c0;
+  border-radius: 0 2px 2px 0;
 }
 
 .lab-chapter-name {
   flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.3;
+  letter-spacing: 0.01em;
 }
 
 .lab-chapter-soon-dot {
@@ -245,9 +268,10 @@
   border-radius: 50%;
   background: #f59e0b;
   flex-shrink: 0;
+  opacity: 0.8;
 }
 
-/* Focus styles */
+/* Focus visible accesible */
 .lab-section-header:focus-visible,
 .lab-chapter-item:focus-visible,
 .lab-collapse-btn:focus-visible {

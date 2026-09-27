@@ -152,7 +152,7 @@ export default function LeftAnalyticsBar({
   return (
     <aside
       className={`left-analytics-bar ${isCollapsed ? 'collapsed' : 'expanded'}`}
-      aria-label="Capítulos de análisis"
+      aria-label="Contenido"
     >
       {/* Sidebar Header */}
       <div className="lab-header">
@@ -164,15 +164,15 @@ export default function LeftAnalyticsBar({
               <rect x="14" y="14" width="7" height="7" />
               <rect x="3" y="14" width="7" height="7" />
             </svg>
-            <span>Capítulos</span>
+            <span>Contenido</span>
           </div>
         )}
         <button
           type="button"
           className="lab-collapse-btn"
           onClick={() => setIsCollapsed((prev) => !prev)}
-          title={isCollapsed ? 'Expandir menú de capítulos' : 'Contraer menú'}
-          aria-label={isCollapsed ? 'Expandir menú de capítulos' : 'Contraer menú'}
+          title={isCollapsed ? 'Expandir menú de contenido' : 'Contraer menú'}
+          aria-label={isCollapsed ? 'Expandir menú de contenido' : 'Contraer menú'}
         >
           {isCollapsed ? (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -209,7 +209,7 @@ export default function LeftAnalyticsBar({
                 {!isCollapsed && (
                   <>
                     <span className="lab-section-title">
-                      {section.num}. {section.title}
+                      {section.title}
                     </span>
                     <span className={`lab-chevron ${isOpen ? 'rotated' : ''}`}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -234,7 +234,6 @@ export default function LeftAnalyticsBar({
                         role="menuitem"
                         aria-current={isSelected ? 'true' : undefined}
                       >
-                        <span className="lab-chapter-num">{ch.id}</span>
                         <span className="lab-chapter-name" title={ch.title}>
                           {ch.title}
                         </span>
