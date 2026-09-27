@@ -617,6 +617,45 @@ html, body, #root {
   color: var(--text-primary);
   border-color: var(--border-subtle);
 }
+/* ─── Status Bar (Footer Original) ────────────────────────────────────────── */
+.status-bar {
+  height: 22px;
+  min-height: 22px;
+  background: var(--bg-panel-header);
+  border-top: 1px solid var(--border-subtle);
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  z-index: 100;
+  user-select: none;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-positive, #10b981);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
+}
+
+.status-sep {
+  color: var(--border-subtle);
+}
+
+.status-right {
+  margin-left: auto;
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .status-bar {
+  background: #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+  color: #64748b;
+}
 
 /* ─── Panels ─────────────────────────────────────────────────────────────── */
 .panel {

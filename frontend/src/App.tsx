@@ -54,6 +54,13 @@ const IconAnalysis = () => (
 type Ciudad = 'SCZ' | 'LPZ' | 'CBB' | 'ALL'
 type Tab = 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial' | 'hipotecario'
 
+const CIUDAD_LABELS: Record<Ciudad, string> = {
+  SCZ: 'Santa Cruz',
+  LPZ: 'La Paz',
+  CBB: 'Cochabamba',
+  ALL: 'Bolivia (Nacional)',
+}
+
 export default function App() {
   const [session, setSession] = useState<any>(null)
   const [guestMode, setGuestMode] = useState<boolean>(false)
@@ -486,6 +493,23 @@ export default function App() {
           />
         </div>
       </div>
+
+      {/* ── Footer original: Status Bar ───────────────────────────────── */}
+      <footer className="status-bar">
+        <div className="status-dot" />
+        <span>Supabase — Conectado</span>
+        <span className="status-sep">|</span>
+        <span>Bolivia Intelligence Platform v1.0</span>
+        <span className="status-sep">|</span>
+        <span>
+          {selectedIndicador
+            ? `Proyecto activo: ${selectedIndicador.proyecto}`
+            : `Vista: ${CIUDAD_LABELS[ciudad]}`}
+        </span>
+        <div className="status-right">
+          Pipeline: ETL GitHub Actions · 6h sync
+        </div>
+      </footer>
     </div>
   )
 }
