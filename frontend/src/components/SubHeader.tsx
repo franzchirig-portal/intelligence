@@ -1,6 +1,6 @@
 import './SubHeader.css'
 
-type Tab = 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial' | 'hipotecario'
+type Tab = 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial' | 'hipotecario' | 'chapter_dossier'
 
 interface SubTab {
   id: Tab

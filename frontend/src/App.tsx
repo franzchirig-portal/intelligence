@@ -12,6 +12,7 @@ import LeftAnalyticsBar from './components/LeftAnalyticsBar'
 import SubHeader from './components/SubHeader'
 import FilterBar from './components/FilterBar'
 import HipotecarioPanel from './components/HipotecarioPanel'
+import ChapterDossierPanel from './components/ChapterDossierPanel'
 import { supabase } from './lib/supabase'
 import { fetchPeriodos } from './lib/supabase'
 import type { IndicadorFull } from './lib/supabase'
@@ -53,7 +54,7 @@ const IconAnalysis = () => (
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 type Ciudad = 'SCZ' | 'LPZ' | 'CBB' | 'ALL'
-type Tab = 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial' | 'hipotecario'
+type Tab = 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial' | 'hipotecario' | 'chapter_dossier'
 
 const CIUDAD_LABELS: Record<Ciudad, string> = {
   SCZ: 'Santa Cruz',
@@ -70,6 +71,7 @@ export default function App() {
   // Navigation state
   const [ciudad, setCiudad] = useState<Ciudad>('SCZ')
   const [activeTab, setActiveTab] = useState<Tab>('proyectos')
+  const [activeChapter, setActiveChapter] = useState<string>('1.1')
   const [selectedIndicador, setSelectedIndicador] = useState<IndicadorFull | null>(null)
 
   // Analysis panel toggle
@@ -170,6 +172,28 @@ export default function App() {
   }
 
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+
+  const handleSelectChapter = (chapterId: string, _sectionId: string) => {
+    setActiveChapter(chapterId)
+    if (chapterId === '1.1' || chapterId === '1.2') {
+      setActiveTab('proyectos')
+    } else if (chapterId === '5.1') {
+      setActiveTab('geoespacial')
+    } else {
+      setActiveTab('chapter_dossier')
+    }
+  }
+
+  const handleSubTabChange = (t: Tab) => {
+    setActiveTab(t)
+    if (t === 'proyectos') {
+      setActiveChapter('1.1')
+    } else if (t === 'tipologias') {
+      setActiveChapter('3.1')
+    } else if (t === 'geoespacial') {
+      setActiveChapter('5.1')
+    }
+  }
 
   // Format a raw fecha_snapshot (YYYY-MM-DD) for display (DD/MM/YYYY)
   const formatPeriodo = (d: string) => {
@@ -408,13 +432,16 @@ export default function App() {
 
       {/* ── Body: Analytics Bar + Main Workspace ────────────────────────── */}
       <div className="app-body">
-        {/* Left Analytics Bar (se extiende hasta el topbar principal) */}
-        <LeftAnalyticsBar activeTab={activeTab} onTabChange={setActiveTab} />
+        {/* Left Analytics Bar (se extiende hasta el topbar principal con capítulos desplegables) */}
+        <LeftAnalyticsBar
+          activeChapter={activeChapter}
+          onSelectChapter={handleSelectChapter}
+        />
 
         {/* Main workspace area */}
         <div className="app-main">
           {/* ── Header 2: Sub-header Azul (Módulos en el panel central) ─── */}
-          <SubHeader activeTab={activeTab} onTabChange={setActiveTab} />
+          <SubHeader activeTab={activeTab} onTabChange={handleSubTabChange} />
 
           {/* Panel content */}
           <div className="workspace">
@@ -475,8 +502,12 @@ export default function App() {
               <HipotecarioPanel />
             )}
 
+            {activeTab === 'chapter_dossier' && (
+              <ChapterDossierPanel chapterId={activeChapter} />
+            )}
+
             {/* Analysis & Diagnóstico Panel (right, toggled) */}
-            {analysisOpen && activeTab !== 'hipotecario' && (
+            {analysisOpen && activeTab !== 'hipotecario' && activeTab !== 'chapter_dossier' && (
               <AnalysisPanel
                 selectedIndicador={selectedIndicador}
                 ciudad={ciudad}
