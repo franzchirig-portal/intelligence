@@ -139,7 +139,7 @@
 
 .lab-section-header:hover .lab-section-icon,
 .lab-section-group.has-active .lab-section-icon {
-  color: #60a5fa;
+  color: #ff7a00;
 }
 
 .lab-section-title {
@@ -163,7 +163,7 @@
 
 .lab-chevron.rotated {
   transform: rotate(90deg);
-  color: #60a5fa;
+  color: #ff7a00;
 }
 
 /* ─── Chapters List (Sub-menu desplegable) ────────────────────────────────── */
@@ -216,14 +216,14 @@
   color: #ffffff;
 }
 
-/* Active / Selected: resalta el texto y coloca la línea indicadora azul */
+/* Active / Selected: resalta el texto y coloca la línea indicadora anaranjada */
 .lab-chapter-item.selected {
   color: #ffffff;
   font-weight: 600;
-  background: rgba(0, 40, 87, 0.5);
+  background: rgba(255, 122, 0, 0.08);
 }
 
-/* Indicador activo: línea lateral vertical azul */
+/* Indicador activo: acento vertical e indicador/subrayado inferior anaranjado Citrino */
 .lab-chapter-item.selected::before {
   content: '';
   position: absolute;
@@ -231,8 +231,19 @@
   top: 0;
   bottom: 0;
   width: 3px;
-  background: #3b82f6;
+  background: #ff7a00;
   border-radius: 0 2px 2px 0;
+}
+
+.lab-chapter-item.selected::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: #ff7a00;
+  border-radius: 2px;
 }
 
 .lab-chapter-name {
@@ -253,6 +264,6 @@
 .lab-section-header:focus-visible,
 .lab-chapter-item:focus-visible,
 .lab-collapse-btn:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #ff7a00;
   outline-offset: -1px;
 }

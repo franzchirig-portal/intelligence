@@ -460,12 +460,12 @@ html, body, #root {
   left: 0;
   right: 0;
   height: 2px;
-  background: #3b82f6;
+  background: #ff7a00;
   border-radius: 2px;
 }
 
 .topbar-city-link:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #ff7a00;
   outline-offset: 2px;
 }
 
@@ -565,8 +565,8 @@ html, body, #root {
 }
 
 .topbar-periodo-select:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  border-color: #ff7a00;
+  box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.3);
   color: #ffffff;
 }
 
@@ -635,7 +635,7 @@ html, body, #root {
 }
 
 .topbar-moneda-btn:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #ff7a00;
   outline-offset: 2px;
 }
 
@@ -671,12 +671,12 @@ html, body, #root {
   left: 4px;
   right: 4px;
   height: 2px;
-  background: #3b82f6;
+  background: #ff7a00;
   border-radius: 2px;
 }
 
 .topbar-text-btn:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #ff7a00;
   outline-offset: 2px;
 }
 
