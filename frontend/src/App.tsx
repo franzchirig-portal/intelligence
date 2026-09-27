@@ -15,7 +15,8 @@ import HipotecarioPanel from './components/HipotecarioPanel'
 import { supabase } from './lib/supabase'
 import { fetchPeriodos } from './lib/supabase'
 import type { IndicadorFull } from './lib/supabase'
-import citrinoLogo from './assets/citrino-icon.png'
+import citrinoLogoLight from './assets/citrino-full-logo-cropped.png'
+import citrinoLogoDark from './assets/citrino-full-logo-dark.png'
 
 /* ─── Icons ──────────────────────────────────────────────────────────────── */
 const IconUser = () => (
@@ -207,13 +208,13 @@ export default function App() {
             type="button"
             className="ide-topbar-logo"
             title="Citrino — Inicio"
-            aria-label="Citrino, ir al análisis de mercado"
+            aria-label="Citrino Capitales Inmobiliarios"
             onClick={() => setActiveTab('proyectos')}
           >
             <img
-              src={citrinoLogo}
-              alt="Citrino"
-              style={{ width: 18, height: 18, objectFit: 'contain', display: 'block' }}
+              src={theme === 'dark' ? citrinoLogoDark : citrinoLogoLight}
+              alt="Citrino Capitales Inmobiliarios"
+              className="citrino-header-logo-img"
             />
           </button>
         </div>
