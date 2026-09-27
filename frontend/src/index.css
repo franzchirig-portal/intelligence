@@ -248,7 +248,8 @@ html, body, #root {
   width: 330px;
   min-width: 330px;
   display: flex;
-  border-right: 1px solid var(--border-subtle);
+  background: #002857;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
   height: 100%;
   overflow: hidden;
   flex-shrink: 0;
@@ -256,6 +257,7 @@ html, body, #root {
 
 .chat-aside > .panel {
   flex: 1;
+  background: #002857;
   border-left: none;
   border-right: none;
 }
@@ -713,18 +715,18 @@ html, body, #root {
   color: var(--text-primary);
   border-color: var(--border-subtle);
 }
-/* ─── Status Bar (Footer — #002857) ───────────────────────────────────────── */
+/* ─── Status Bar (Footer — #0a0f1a) ───────────────────────────────────────── */
 .status-bar {
   height: 22px;
   min-height: 22px;
-  background: #002857;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0a0f1a;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 0 12px;
   display: flex;
   align-items: center;
   gap: 12px;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.65);
   flex-shrink: 0;
   z-index: 100;
   user-select: none;
@@ -739,18 +741,18 @@ html, body, #root {
 }
 
 .status-sep {
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.2);
 }
 
 .status-right {
   margin-left: auto;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 [data-theme="light"] .status-bar {
-  background: #002857;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.75);
+  background: #0a0f1a;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* ─── Panels ─────────────────────────────────────────────────────────────── */
@@ -789,12 +791,26 @@ html, body, #root {
   overflow-x: hidden;
 }
 
-/* ─── LEFT PANEL: Chat ───────────────────────────────────────────────────── */
+/* ─── LEFT PANEL: Chat (#002857) ─────────────────────────────────────────── */
 .panel-left {
   width: var(--panel-left-w);
   min-width: 240px;
   max-width: 420px;
   flex-shrink: 0;
+  background: #002857 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.chat-aside .panel,
+.panel-left.panel {
+  background: #002857 !important;
+}
+
+.chat-aside .panel-header,
+.panel-left .panel-header {
+  background: #002857 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
 }
 
 .chat-messages {
@@ -804,6 +820,7 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  background: #002857 !important;
 }
 
 .chat-msg {
@@ -825,8 +842,8 @@ html, body, #root {
   flex-shrink: 0;
   color: white;
 }
-.chat-avatar.ai { background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); }
-.chat-avatar.user { background: linear-gradient(135deg, var(--accent-violet), var(--accent-blue)); }
+.chat-avatar.ai { background: linear-gradient(135deg, #1565c0, #38bdf8); }
+.chat-avatar.user { background: linear-gradient(135deg, #1e40af, #2563eb); }
 
 .chat-bubble {
   max-width: calc(100% - 40px);
@@ -836,22 +853,23 @@ html, body, #root {
   line-height: 1.55;
 }
 .chat-bubble.ai {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #f1f5f9 !important;
   border-top-left-radius: 2px;
 }
 .chat-bubble.user {
-  background: var(--accent-blue);
-  color: white;
+  background: #1565c0 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
   border-top-right-radius: 2px;
 }
 
 .chat-bubble .chip {
   display: inline-block;
-  background: var(--accent-blue-glow);
-  border: 1px solid var(--border-accent);
-  color: var(--accent-blue);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
   border-radius: 3px;
   padding: 1px 6px;
   font-size: 10px;
@@ -1115,61 +1133,95 @@ html, body, #root {
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
-/* ─── RIGHT PANEL ────────────────────────────────────────────────────────── */
+/* ─── RIGHT PANEL: Análisis y Diagnóstico (#002857) ───────────────────────── */
 .panel-right {
   width: var(--panel-right-w);
   min-width: 260px;
   max-width: 420px;
   flex-shrink: 0;
+  background: #002857 !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 
-.analysis-section {
+.panel-right .panel-header {
+  background: #002857 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+.panel-right .panel-body {
+  background: #002857 !important;
+}
+
+.panel-right .analysis-section {
   padding: 12px 14px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-.analysis-section-title {
+.panel-right .analysis-section-title {
   font-size: 10px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.75) !important;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 10px;
 }
 
-.insight-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
+.panel-right .insight-card {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   border-radius: var(--radius-md);
   padding: 10px 12px;
   margin-bottom: 8px;
 }
 
-.insight-card-title {
+.panel-right .insight-card-title {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #ffffff !important;
   margin-bottom: 5px;
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.insight-card-title .icon-dot {
+.panel-right .insight-card-title .icon-dot {
   display: none !important;
 }
 
-.insight-card-body {
+.panel-right .insight-card-body {
   font-size: 11.5px;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.85) !important;
   line-height: 1.55;
 }
 
-.metric-row {
+.panel-right .metric-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 5px 0;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Ensure all cards, boxes, and narratives inside panel-right are legible on #002857 */
+.panel-right [style*="var(--bg-card)"] {
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+.panel-right [style*="var(--text-secondary)"] {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.panel-right [style*="var(--text-muted)"] {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.panel-right [style*="var(--text-primary)"] {
+  color: #ffffff !important;
+}
+
+.panel-right [style*="var(--border-subtle)"],
+.panel-right [style*="var(--border-default)"] {
+  border-color: rgba(255, 255, 255, 0.14) !important;
 }
 .metric-row:last-child { border-bottom: none; }
 .metric-label { font-size: 11px; color: var(--text-muted); }

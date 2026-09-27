@@ -1,9 +1,9 @@
-/* ─── Left Analytics Bar (Expandable Accordion Menu) ─────────────────────── */
+/* ─── Left Analytics Bar (Expandable Accordion Menu — #0a0f1a) ───────────── */
 .left-analytics-bar {
   display: flex;
   flex-direction: column;
-  background: var(--bg-panel);
-  border-right: 1px solid var(--border-subtle);
+  background: #0a0f1a;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
   transition: width 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-x: hidden;
@@ -27,7 +27,7 @@
   width: 4px;
 }
 .left-analytics-bar::-webkit-scrollbar-thumb {
-  background: var(--border-subtle);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 4px;
 }
 
@@ -39,8 +39,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-panel-header);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0a0f1a;
 }
 
 .lab-header-title {
@@ -51,7 +51,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .lab-collapse-btn {
@@ -63,15 +63,15 @@
   background: transparent;
   border: none;
   border-radius: 4px;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   transition: all 0.12s;
   margin-left: auto;
 }
 
 .lab-collapse-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 }
 
 /* ─── Sections Container ─────────────────────────────────────────────────── */
@@ -96,7 +96,7 @@
   padding: 8px 12px;
   background: transparent;
   border: none;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.75);
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 600;
@@ -114,24 +114,16 @@
 }
 
 .lab-section-header:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
 }
 
 .lab-section-header.active {
   color: #ffffff;
 }
 
-[data-theme="light"] .lab-section-header.active {
-  color: #0f172a;
-}
-
 .lab-section-group.has-active .lab-section-header {
   color: #ffffff;
-}
-
-[data-theme="light"] .lab-section-group.has-active .lab-section-header {
-  color: #0f172a;
 }
 
 .lab-section-icon {
@@ -141,17 +133,13 @@
   flex-shrink: 0;
   width: 18px;
   height: 18px;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.5);
   transition: color 0.15s ease;
 }
 
 .lab-section-header:hover .lab-section-icon,
 .lab-section-group.has-active .lab-section-icon {
-  color: #1565c0;
-}
-
-[data-theme="dark"] .lab-section-group.has-active .lab-section-icon {
-  color: #42a5f5;
+  color: #60a5fa;
 }
 
 .lab-section-title {
@@ -168,18 +156,14 @@
   justify-content: center;
   width: 14px;
   height: 14px;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.4);
   transition: transform 0.16s ease, color 0.15s ease;
   flex-shrink: 0;
 }
 
 .lab-chevron.rotated {
   transform: rotate(90deg);
-  color: #1565c0;
-}
-
-[data-theme="dark"] .lab-chevron.rotated {
-  color: #42a5f5;
+  color: #60a5fa;
 }
 
 /* ─── Chapters List (Sub-menu desplegable) ────────────────────────────────── */
@@ -189,7 +173,7 @@
   padding: 2px 0 6px 0;
   margin: 0;
   animation: labFadeSlide 0.14s ease-out;
-  border-left: 1px solid var(--border-subtle);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
   margin-left: 20px;
 }
 
@@ -205,7 +189,6 @@
 }
 
 /* ─── Pestaña de Capítulo: Mismo estilo y selección del panel principal Header ─── */
-/* Sin recuadros, texto limpio, resalte al seleccionar y acento azul #1565c0 */
 .lab-chapter-item {
   width: 100%;
   display: flex;
@@ -215,7 +198,7 @@
   background: transparent;
   border: none;
   border-radius: 0;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.65);
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 500;
@@ -229,23 +212,18 @@
 }
 
 .lab-chapter-item:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
 }
 
-/* Active / Selected: resalta el texto y coloca la línea indicadora azul #1565c0 */
+/* Active / Selected: resalta el texto y coloca la línea indicadora azul */
 .lab-chapter-item.selected {
   color: #ffffff;
   font-weight: 600;
-  background: color-mix(in srgb, #1565c0 12%, transparent);
+  background: rgba(0, 40, 87, 0.5);
 }
 
-[data-theme="light"] .lab-chapter-item.selected {
-  color: #0f172a;
-  background: color-mix(in srgb, #1565c0 8%, transparent);
-}
-
-/* Indicador activo: línea lateral vertical azul #1565c0 (idéntica a la selección del Header) */
+/* Indicador activo: línea lateral vertical azul */
 .lab-chapter-item.selected::before {
   content: '';
   position: absolute;
@@ -253,7 +231,7 @@
   top: 0;
   bottom: 0;
   width: 3px;
-  background: #1565c0;
+  background: #3b82f6;
   border-radius: 0 2px 2px 0;
 }
 
@@ -268,13 +246,13 @@
   border-radius: 50%;
   background: #f59e0b;
   flex-shrink: 0;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 /* Focus visible accesible */
 .lab-section-header:focus-visible,
 .lab-chapter-item:focus-visible,
 .lab-collapse-btn:focus-visible {
-  outline: 2px solid #1565c0;
+  outline: 2px solid #3b82f6;
   outline-offset: -1px;
 }
