@@ -490,6 +490,12 @@ html, body, #root {
   overflow: hidden;
 }
 
+.workspace > .panel,
+.workspace > .panel-center {
+  border-left: none !important;
+  border-right: none !important;
+}
+
 /* ─── Topbar Divider (Separadores nítidos) ─────────────────────────────────── */
 .topbar-divider {
   width: 1px;
@@ -1135,6 +1141,7 @@ html, body, #root {
   min-width: 260px;
   max-width: 420px;
   flex-shrink: 0;
+  height: 100%;
   background: #002857 !important;
   border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
 }

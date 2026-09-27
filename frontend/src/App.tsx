@@ -438,6 +438,20 @@ export default function App() {
           onSelectChapter={handleSelectChapter}
         />
 
+        {/* Chat aside (desplegable directamente bajo el topbar principal) */}
+        {chatOpen && (
+          <aside className="chat-aside" aria-label="Asistente AI">
+            <ChatPanel
+              ciudad={ciudad}
+              onFilterZona={setZonaFilter}
+              onFilterEtapas={setSelectedEtapas}
+              onSelectIndicador={setSelectedIndicador}
+              onSwitchTab={(t) => setActiveTab(t as Tab)}
+              isEmbedded
+            />
+          </aside>
+        )}
+
         {/* Main workspace area */}
         <div className="app-main">
           {/* ── Header 2: Sub-header Azul (Módulos en el panel central) ─── */}
@@ -445,19 +459,6 @@ export default function App() {
 
           {/* Panel content */}
           <div className="workspace">
-            {/* Chat aside (desplegable a la izquierda de los datos) */}
-            {chatOpen && (
-              <aside className="chat-aside" aria-label="Asistente">
-                <ChatPanel
-                  ciudad={ciudad}
-                  onFilterZona={setZonaFilter}
-                  onFilterEtapas={setSelectedEtapas}
-                  onSelectIndicador={setSelectedIndicador}
-                  onSwitchTab={(t) => setActiveTab(t as Tab)}
-                  isEmbedded
-                />
-              </aside>
-            )}
             {activeTab === 'proyectos' && (
               <WorkspacePanel
                 ciudad={ciudad}
@@ -505,15 +506,6 @@ export default function App() {
             {activeTab === 'chapter_dossier' && (
               <ChapterDossierPanel chapterId={activeChapter} />
             )}
-
-            {/* Analysis & Diagnóstico Panel (right, toggled) */}
-            {analysisOpen && activeTab !== 'hipotecario' && activeTab !== 'chapter_dossier' && (
-              <AnalysisPanel
-                selectedIndicador={selectedIndicador}
-                ciudad={ciudad}
-                onClearSelection={() => setSelectedIndicador(null)}
-              />
-            )}
           </div>
 
           {/* Filter Bar (FooterSidebar) */}
@@ -535,6 +527,15 @@ export default function App() {
             onClear={handleClearFilters}
           />
         </div>
+
+        {/* Analysis & Diagnóstico Panel (right, toggled, directamente bajo el topbar principal) */}
+        {analysisOpen && activeTab !== 'hipotecario' && activeTab !== 'chapter_dossier' && (
+          <AnalysisPanel
+            selectedIndicador={selectedIndicador}
+            ciudad={ciudad}
+            onClearSelection={() => setSelectedIndicador(null)}
+          />
+        )}
       </div>
 
       {/* ── Footer original: Status Bar ───────────────────────────────── */}
