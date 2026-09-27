@@ -406,16 +406,16 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── Header 2: Sub-header Azul (Módulos) ─────────────────────────── */}
-      <SubHeader activeTab={activeTab} onTabChange={setActiveTab} />
-
       {/* ── Body: Analytics Bar + Main Workspace ────────────────────────── */}
       <div className="app-body">
-        {/* Left Analytics Bar */}
+        {/* Left Analytics Bar (se extiende hasta el topbar principal) */}
         <LeftAnalyticsBar activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* Main workspace area */}
         <div className="app-main">
+          {/* ── Header 2: Sub-header Azul (Módulos en el panel central) ─── */}
+          <SubHeader activeTab={activeTab} onTabChange={setActiveTab} />
+
           {/* Panel content */}
           <div className="workspace">
             {/* Chat aside (desplegable a la izquierda de los datos) */}
