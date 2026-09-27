@@ -292,3 +292,70 @@ export async function fetchKPIs(ciudad?: string) {
   }
 }
 
+// ─── Filter Data Fetchers ─────────────────────────────────────────────────────
+
+/** Returns distinct fecha_snapshot values sorted descending */
+export async function fetchPeriodos(ciudad?: string): Promise<string[]> {
+  const all = await getAllIndicadores()
+  let items = all
+  if (ciudad && ciudad !== 'ALL') {
+    const proyectos = await getAllProyectos()
+    const ids = new Set(proyectos.filter((p) => p.ciudad === ciudad).map((p) => p.proyecto_id))
+    items = all.filter((i) => ids.has(i.proyecto_id))
+  }
+  const unique = [...new Set(items.map((i) => i.fecha_snapshot).filter(Boolean))]
+  return unique.sort((a, b) => b.localeCompare(a))
+}
+
+/** Returns distinct ZONAS values for a given city */
+export async function fetchZonas(ciudad?: string): Promise<string[]> {
+  const all = await getAllProyectos()
+  const filtered = ciudad && ciudad !== 'ALL' ? all.filter((p) => p.ciudad === ciudad) : all
+  const unique = [...new Set(filtered.map((p) => p.ZONAS).filter((z): z is string => !!z && z.trim() !== ''))]
+  return unique.sort()
+}
+
+/** Returns distinct SUBZONAS values, optionally filtered by zona */
+export async function fetchSubzonas(ciudad?: string, zona?: string): Promise<string[]> {
+  const all = await getAllProyectos()
+  let filtered = ciudad && ciudad !== 'ALL' ? all.filter((p) => p.ciudad === ciudad) : all
+  if (zona && zona !== 'ALL') filtered = filtered.filter((p) => p.ZONAS === zona)
+  const unique = [...new Set(filtered.map((p) => p.SUBZONAS).filter((s): s is string => !!s && s.trim() !== ''))]
+  return unique.sort()
+}
+
+/** Returns distinct tipo_inmueble values */
+export async function fetchTiposInmueble(ciudad?: string): Promise<string[]> {
+  const all = await getAllProyectos()
+  const filtered = ciudad && ciudad !== 'ALL' ? all.filter((p) => p.ciudad === ciudad) : all
+  const unique = [...new Set(filtered.map((p) => p.tipo_inmueble).filter((t): t is string => !!t && t.trim() !== ''))]
+  return unique.sort()
+}
+
+/** Returns distinct etapa values from oferta_indicadores_censo */
+export async function fetchEtapas(ciudad?: string): Promise<string[]> {
+  const all = await getAllIndicadores()
+  let items = all
+  if (ciudad && ciudad !== 'ALL') {
+    const proyectos = await getAllProyectos()
+    const ids = new Set(proyectos.filter((p) => p.ciudad === ciudad).map((p) => p.proyecto_id))
+    items = all.filter((i) => ids.has(i.proyecto_id))
+  }
+  const unique = [...new Set(items.map((i) => i.etapa).filter((e): e is string => !!e && e.trim() !== ''))]
+  return unique.sort()
+}
+
+/** Returns distinct tipologia values from oferta_tipologias */
+export async function fetchTipologias(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('oferta_tipologias')
+    .select('tipologia')
+    .not('tipologia', 'is', null)
+  if (error) {
+    console.warn('fetchTipologias error:', error.message)
+    return []
+  }
+  const unique = [...new Set((data ?? []).map((r: { tipologia: string }) => r.tipologia).filter((t) => t?.trim() !== ''))]
+  return unique.sort()
+}
+

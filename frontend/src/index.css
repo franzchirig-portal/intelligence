@@ -436,11 +436,186 @@ html, body, #root {
   font-weight: 600;
 }
 
+/* ─── App Body & Main (new layout with LeftAnalyticsBar + FilterBar) ─────── */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
 /* ─── Main Workspace ─────────────────────────────────────────────────────── */
 .workspace {
   display: flex;
   flex: 1;
   overflow: hidden;
+}
+
+/* ─── Topbar Divider ─────────────────────────────────────────────────────── */
+.topbar-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/* ─── Topbar: Periodo selector ───────────────────────────────────────────── */
+.topbar-periodo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.topbar-filter-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.topbar-periodo-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 2px 20px 2px 7px;
+  height: 22px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.14s, color 0.14s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9' viewBox='0 0 24 24' fill='none' stroke='%236e6e6e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  min-width: 100px;
+  max-width: 150px;
+}
+
+.topbar-periodo-select:hover {
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.topbar-periodo-select:focus {
+  border-color: #1565c0;
+  color: var(--text-primary);
+}
+
+/* ─── Topbar: Moneda toggle ──────────────────────────────────────────────── */
+.topbar-moneda-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.topbar-moneda-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  position: relative;
+  padding: 2px 8px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.14s;
+  outline: none;
+}
+
+.topbar-moneda-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.topbar-moneda-btn.active {
+  background: #1565c0;
+  color: #ffffff;
+}
+
+.topbar-moneda-btn.disabled-soon {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.moneda-soon-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #f59e0b;
+  position: absolute;
+  top: 3px;
+  right: 3px;
+}
+
+/* ─── Topbar icon buttons ────────────────────────────────────────────────── */
+.topbar-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.14s;
+  padding: 0;
+  outline: none;
+}
+
+.topbar-icon-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.topbar-icon-btn.active {
+  background: color-mix(in srgb, #1565c0 18%, transparent);
+  color: #42a5f5;
+  border-color: color-mix(in srgb, #1565c0 35%, transparent);
+}
+
+
+
+/* ─── Theme toggle button ────────────────────────────────────────────────── */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.14s;
+  padding: 0;
+  outline: none;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
 }
 
 /* ─── Panels ─────────────────────────────────────────────────────────────── */

@@ -8,11 +8,16 @@ import TipologiasPanel from './components/TipologiasPanel'
 import GeoespacialPanel from './components/GeoespacialPanel'
 import WorkspaceOSPanel from './components/WorkspaceOSPanel'
 import AuthScreen from './components/AuthScreen'
+import LeftAnalyticsBar from './components/LeftAnalyticsBar'
+import SubHeader from './components/SubHeader'
+import FilterBar from './components/FilterBar'
+import HipotecarioPanel from './components/HipotecarioPanel'
 import { supabase } from './lib/supabase'
+import { fetchPeriodos } from './lib/supabase'
 import type { IndicadorFull } from './lib/supabase'
 import citrinoLogo from './assets/citrino-icon.png'
 
-/* ─── Profile & Account Icons  ─────────────────────── */
+/* ─── Icons ──────────────────────────────────────────────────────────────── */
 const IconUser = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
@@ -37,43 +42,57 @@ const IconLogout = () => (
   </svg>
 )
 
-type Ciudad = 'SCZ' | 'LPZ' | 'CBB' | 'ALL'
-type Tab = 'workspace_os' | 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial'
+const IconAnalysis = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M3 9h18" />
+    <path d="M9 21V9" />
+  </svg>
+)
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'mercado',     label: 'Oferta Nueva' },
-  { id: 'tipologias', label: 'Tipologías' },
-  { id: 'proyectos',  label: 'Proyectos' },
-  { id: 'geoespacial',label: 'Mapa' },
-]
+/* ─── Types ──────────────────────────────────────────────────────────────── */
+type Ciudad = 'SCZ' | 'LPZ' | 'CBB' | 'ALL'
+type Tab = 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial' | 'hipotecario'
 
 export default function App() {
   const [session, setSession] = useState<any>(null)
   const [guestMode, setGuestMode] = useState<boolean>(false)
   const [authLoading, setAuthLoading] = useState(true)
 
+  // Navigation state
   const [ciudad, setCiudad] = useState<Ciudad>('SCZ')
-  const [activeTab, setActiveTab] = useState<Tab>('mercado')
+  const [activeTab, setActiveTab] = useState<Tab>('proyectos')
   const [selectedIndicador, setSelectedIndicador] = useState<IndicadorFull | null>(null)
 
-  // Filtros globales (los fija el asistente)
+  // Analysis panel toggle
+  const [analysisOpen, setAnalysisOpen] = useState(false)
+
+  // ── Global Filters ──────────────────────────────────────────────────────
+  const [periodoFilter, setPeriodoFilter] = useState<string>('ALL')
+  const [periodos, setPeriodos] = useState<string[]>([])
+  const [moneda, setMoneda] = useState<'USD' | 'BS'>('USD')
   const [zonaFilter, setZonaFilter] = useState<string>('ALL')
+  const [subzonaFilter, setSubzonaFilter] = useState<string>('ALL')
+  const [tipoInmuebleFilter, setTipoInmuebleFilter] = useState<string>('ALL')
+  const [etapaFilter, setEtapaFilter] = useState<string>('ALL')
+  const [tipologiaFilter, setTipologiaFilter] = useState<string>('ALL')
+  // Legacy: kept for chat compatibility
   const [selectedEtapas, setSelectedEtapas] = useState<string[]>([])
 
-
-  // Theme State: 'dark' (Nocturno) | 'light' (Diurno)
+  // Theme
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('citrino_theme_v2')
     return (saved === 'light' || saved === 'dark') ? saved : 'light'
   })
 
-  // Chat assistant (right panel)
+  // Chat
   const [chatOpen, setChatOpen] = useState(false)
 
-  // Profile Dropdown Menu State
+  // Profile dropdown
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
 
+  // ── Effects ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
@@ -98,11 +117,13 @@ export default function App() {
     localStorage.setItem('citrino_theme_v2', theme)
   }, [theme])
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
-  }
+  // Load periodo options whenever city changes
+  useEffect(() => {
+    fetchPeriodos(ciudad).then(setPeriodos).catch(() => setPeriodos([]))
+    setPeriodoFilter('ALL')
+  }, [ciudad])
 
-  // Auth Session Listener
+  // Auth session listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -119,24 +140,42 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // ── Handlers ─────────────────────────────────────────────────────────────
   const handleCiudadChange = (c: Ciudad) => {
     setCiudad(c)
     setSelectedIndicador(null)
     setZonaFilter('ALL')
+    setSubzonaFilter('ALL')
+    setTipoInmuebleFilter('ALL')
+    setEtapaFilter('ALL')
+    setTipologiaFilter('ALL')
     setSelectedEtapas([])
   }
 
+  const handleClearFilters = () => {
+    setZonaFilter('ALL')
+    setSubzonaFilter('ALL')
+    setTipoInmuebleFilter('ALL')
+    setEtapaFilter('ALL')
+    setTipologiaFilter('ALL')
+    setSelectedEtapas([])
+  }
+
+  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+
+  // Format a raw fecha_snapshot (YYYY-MM-DD) for display (DD/MM/YYYY)
+  const formatPeriodo = (d: string) => {
+    if (!d || d === 'ALL') return 'Todos los períodos'
+    const [y, m, dd] = d.split('-')
+    return `${dd}/${m}/${y}`
+  }
+
+  // ── Loading & Auth guards ─────────────────────────────────────────────────
   if (authLoading) {
     return (
       <div style={{
-        height: '100vh',
-        width: '100vw',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-base)',
-        gap: 12,
+        height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', background: 'var(--bg-base)', gap: 12,
       }}>
         <div className="loading-shimmer" style={{ width: 180, height: 18 }} />
         <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Iniciando Citrino…</div>
@@ -148,54 +187,41 @@ export default function App() {
     return <AuthScreen onSuccess={() => setGuestMode(true)} />
   }
 
+  const etapaFilterArr = etapaFilter !== 'ALL' ? [etapaFilter] : selectedEtapas
+
   return (
     <div className="app-shell">
+
+      {/* ── Header 1: Principal (HeaderSidebar) ─────────────────────────── */}
       <header className="ide-topbar">
-        {/* Left: Logo + Navigation Tabs */}
+        {/* Left: Logo */}
         <div className="ide-topbar-left">
           <button
             type="button"
             className="ide-topbar-logo"
-            title="Citrino"
-            aria-label="Citrino, ir a Oferta Nueva"
-            onClick={() => setActiveTab('mercado')}
+            title="Citrino — Inicio"
+            aria-label="Citrino, ir al análisis de mercado"
+            onClick={() => setActiveTab('proyectos')}
           >
             <img
               src={citrinoLogo}
               alt="Citrino"
-              style={{
-                width: 18,
-                height: 18,
-                objectFit: 'contain',
-                display: 'block',
-              }}
+              style={{ width: 18, height: 18, objectFit: 'contain', display: 'block' }}
             />
           </button>
-
-          <nav className="ide-topbar-tabs" aria-label="Secciones">
-            {TABS.map((t) => (
-              <button
-                type="button"
-                key={t.id}
-                className={`ide-tab ${activeTab === t.id ? 'active' : ''}`}
-                aria-current={activeTab === t.id ? 'page' : undefined}
-                onClick={() => setActiveTab(t.id)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </nav>
         </div>
 
-        {/* Right: Cities + Theme + AI + User + Window Controls */}
+        {/* Right: Cities + Periodo + Moneda + Analysis + Chat + Theme + User */}
         <div className="ide-topbar-right">
+          {/* City selector */}
           <div className="topbar-right" style={{ marginLeft: 0 }}>
             {(['SCZ', 'LPZ', 'CBB', 'ALL'] as Ciudad[]).map((c) => (
               <button
                 key={c}
                 className={`city-badge ${c.toLowerCase()} ${ciudad === c ? 'active' : ''}`}
                 aria-pressed={ciudad === c}
-                onClick={() => handleCiudadChange(c)}>
+                onClick={() => handleCiudadChange(c)}
+              >
                 {c === 'ALL' ? 'Bolivia' : c}
               </button>
             ))}
@@ -203,6 +229,70 @@ export default function App() {
 
           <div className="topbar-divider" />
 
+          {/* Periodo selector */}
+          <div className="topbar-periodo-wrapper">
+            <label className="topbar-filter-label">Periodo</label>
+            <select
+              className="topbar-periodo-select"
+              value={periodoFilter}
+              onChange={(e) => setPeriodoFilter(e.target.value)}
+              aria-label="Filtrar por período"
+            >
+              <option value="ALL">Todos</option>
+              {periodos.map((p) => (
+                <option key={p} value={p}>{formatPeriodo(p)}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Moneda toggle (BS non-functional) */}
+          <div className="topbar-moneda-wrapper">
+            <button
+              type="button"
+              className={`topbar-moneda-btn ${moneda === 'USD' ? 'active' : ''}`}
+              onClick={() => setMoneda('USD')}
+              aria-pressed={moneda === 'USD'}
+              title="Mostrar en dólares (USD)"
+            >
+              USD
+            </button>
+            <button
+              type="button"
+              className={`topbar-moneda-btn ${moneda === 'BS' ? 'active' : ''} disabled-soon`}
+              onClick={() => setMoneda('BS')}
+              aria-pressed={moneda === 'BS'}
+              title="Bolivianos — Próximamente"
+            >
+              Bs
+              <span className="moneda-soon-dot" />
+            </button>
+          </div>
+
+          <div className="topbar-divider" />
+
+          {/* Analysis & Diagnóstico toggle */}
+          <button
+            className={`topbar-icon-btn ${analysisOpen ? 'active' : ''}`}
+            onClick={() => setAnalysisOpen((v) => !v)}
+            aria-label={analysisOpen ? 'Cerrar análisis' : 'Abrir análisis y diagnóstico'}
+            aria-pressed={analysisOpen}
+            title={analysisOpen ? 'Cerrar análisis y diagnóstico' : 'Análisis y diagnóstico'}
+          >
+            <IconAnalysis />
+          </button>
+
+          {/* Chat assistant */}
+          <button
+            className={`topbar-icon-btn ${chatOpen ? 'active' : ''}`}
+            onClick={() => setChatOpen((v) => !v)}
+            aria-label={chatOpen ? 'Cerrar asistente' : 'Abrir asistente'}
+            aria-pressed={chatOpen}
+            title={chatOpen ? 'Cerrar asistente' : 'Abrir asistente'}
+          >
+            <IconAssistant />
+          </button>
+
+          {/* Theme toggle */}
           <button
             className="theme-toggle-btn"
             onClick={toggleTheme}
@@ -228,16 +318,6 @@ export default function App() {
             )}
           </button>
 
-          <button
-            className={`topbar-icon-btn ${chatOpen ? 'active' : ''}`}
-            onClick={() => setChatOpen((v) => !v)}
-            aria-label={chatOpen ? 'Cerrar asistente' : 'Abrir asistente'}
-            aria-pressed={chatOpen}
-            title={chatOpen ? 'Cerrar asistente' : 'Abrir asistente'}
-          >
-            <IconAssistant />
-          </button>
-
           {/* Profile menu */}
           <div className="topbar-profile-wrapper" ref={profileMenuRef}>
             <button
@@ -251,18 +331,17 @@ export default function App() {
 
             {isProfileMenuOpen && (
               <div className="topbar-profile-dropdown">
-                {/* Header with profile name */}
                 <div className="profile-dropdown-header">
                   <div className="profile-dropdown-avatar">
-                    {session?.user ? (
-                      (session.user.user_metadata?.full_name?.[0] || session.user.email?.[0] || 'U').toUpperCase()
-                    ) : (
-                      'I'
-                    )}
+                    {session?.user
+                      ? (session.user.user_metadata?.full_name?.[0] || session.user.email?.[0] || 'U').toUpperCase()
+                      : 'I'}
                   </div>
                   <div className="profile-dropdown-info">
                     <span className="profile-dropdown-name">
-                      {session?.user ? (session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Usuario Registrado') : 'Invitado'}
+                      {session?.user
+                        ? (session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Usuario Registrado')
+                        : 'Invitado'}
                     </span>
                     <span className="profile-dropdown-role">
                       {session?.user?.email || 'Modo Demostración'}
@@ -272,7 +351,6 @@ export default function App() {
 
                 <div className="profile-dropdown-divider" />
 
-                {/* Cambiar de usuario */}
                 <button
                   type="button"
                   className="profile-dropdown-item"
@@ -288,7 +366,6 @@ export default function App() {
                   <span>Cambiar de usuario</span>
                 </button>
 
-                {/* Salir / Cerrar sesión */}
                 <button
                   type="button"
                   className="profile-dropdown-item danger"
@@ -309,73 +386,106 @@ export default function App() {
         </div>
       </header>
 
-      <main className="workspace">
-        {chatOpen && (
-          <aside className="chat-aside" aria-label="Asistente">
-            <ChatPanel
-              ciudad={ciudad}
-              onFilterZona={setZonaFilter}
-              onFilterEtapas={setSelectedEtapas}
-              onSelectIndicador={setSelectedIndicador}
-              onSwitchTab={(t) => setActiveTab(t as Tab)}
-              isEmbedded
-            />
-          </aside>
-        )}
+      {/* ── Header 2: Sub-header Azul (Módulos) ─────────────────────────── */}
+      <SubHeader activeTab={activeTab} onTabChange={setActiveTab} />
 
-        {activeTab === 'workspace_os' && (
-          <div style={{ flex: 1, overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <WorkspaceOSPanel
-              ciudad={ciudad}
-              zonaFilter={zonaFilter}
-              etapaFilter={selectedEtapas}
-              selectedIndicador={selectedIndicador}
-              onSelectIndicador={setSelectedIndicador}
-              onSwitchTab={setActiveTab}
-              theme={theme}
-            />
+      {/* ── Body: Analytics Bar + Main Workspace ────────────────────────── */}
+      <div className="app-body">
+        {/* Left Analytics Bar */}
+        <LeftAnalyticsBar activeTab={activeTab} onTabChange={setActiveTab} />
+
+        {/* Main workspace area */}
+        <div className="app-main">
+          {/* Chat aside */}
+          {chatOpen && (
+            <aside className="chat-aside" aria-label="Asistente">
+              <ChatPanel
+                ciudad={ciudad}
+                onFilterZona={setZonaFilter}
+                onFilterEtapas={setSelectedEtapas}
+                onSelectIndicador={setSelectedIndicador}
+                onSwitchTab={(t) => setActiveTab(t as Tab)}
+                isEmbedded
+              />
+            </aside>
+          )}
+
+          {/* Panel content */}
+          <div className="workspace">
+            {activeTab === 'proyectos' && (
+              <WorkspacePanel
+                ciudad={ciudad}
+                zonaFilter={zonaFilter}
+                etapaFilter={etapaFilterArr}
+                selectedIndicador={selectedIndicador}
+                onSelectIndicador={setSelectedIndicador}
+              />
+            )}
+
+            {activeTab === 'tipologias' && (
+              <TipologiasPanel
+                ciudad={ciudad}
+                etapaFilter={etapaFilterArr}
+                selectedIndicador={selectedIndicador}
+                onSelectIndicador={setSelectedIndicador}
+              />
+            )}
+
+            {activeTab === 'geoespacial' && (
+              <GeoespacialPanel
+                ciudad={ciudad}
+                zonaFilter={zonaFilter}
+                etapaFilter={etapaFilterArr}
+                selectedIndicador={selectedIndicador}
+                onSelectIndicador={setSelectedIndicador}
+                theme={theme}
+              />
+            )}
+
+            {activeTab === 'mercado' && (
+              <WorkspacePanel
+                ciudad={ciudad}
+                zonaFilter={zonaFilter}
+                etapaFilter={etapaFilterArr}
+                selectedIndicador={selectedIndicador}
+                onSelectIndicador={setSelectedIndicador}
+              />
+            )}
+
+            {activeTab === 'hipotecario' && (
+              <HipotecarioPanel />
+            )}
+
+            {/* Analysis & Diagnóstico Panel (right, toggled) */}
+            {analysisOpen && activeTab !== 'hipotecario' && (
+              <AnalysisPanel
+                selectedIndicador={selectedIndicador}
+                ciudad={ciudad}
+                onClearSelection={() => setSelectedIndicador(null)}
+              />
+            )}
           </div>
-        )}
 
-        {(activeTab === 'mercado' || activeTab === 'proyectos') && (
-          <WorkspacePanel
+          {/* Filter Bar (FooterSidebar) */}
+          <FilterBar
             ciudad={ciudad}
             zonaFilter={zonaFilter}
-            etapaFilter={selectedEtapas}
-            selectedIndicador={selectedIndicador}
-            onSelectIndicador={setSelectedIndicador}
+            subzonaFilter={subzonaFilter}
+            tipoInmuebleFilter={tipoInmuebleFilter}
+            etapaFilter={etapaFilter}
+            tipologiaFilter={tipologiaFilter}
+            onZonaChange={setZonaFilter}
+            onSubzonaChange={setSubzonaFilter}
+            onTipoInmuebleChange={setTipoInmuebleFilter}
+            onEtapaChange={(v) => {
+              setEtapaFilter(v)
+              setSelectedEtapas(v !== 'ALL' ? [v] : [])
+            }}
+            onTipologiaChange={setTipologiaFilter}
+            onClear={handleClearFilters}
           />
-        )}
-
-        {activeTab === 'tipologias' && (
-          <TipologiasPanel
-            ciudad={ciudad}
-            etapaFilter={selectedEtapas}
-            selectedIndicador={selectedIndicador}
-            onSelectIndicador={setSelectedIndicador}
-          />
-        )}
-
-        {activeTab === 'geoespacial' && (
-          <GeoespacialPanel
-            ciudad={ciudad}
-            zonaFilter={zonaFilter}
-            etapaFilter={selectedEtapas}
-            selectedIndicador={selectedIndicador}
-            onSelectIndicador={setSelectedIndicador}
-            theme={theme}
-          />
-        )}
-
-        {activeTab !== 'workspace_os' && (
-          <AnalysisPanel
-            selectedIndicador={selectedIndicador}
-            ciudad={ciudad}
-            onClearSelection={() => setSelectedIndicador(null)}
-          />
-        )}
-
-      </main>
+        </div>
+      </div>
     </div>
   )
 }
