@@ -65,7 +65,7 @@ const CIUDAD_LABELS: Record<Ciudad, string> = {
 
 export default function App() {
   const [session, setSession] = useState<any>(null)
-  const [guestMode, setGuestMode] = useState<boolean>(false)
+  const [guestMode, setGuestMode] = useState<boolean>(true)
   const [authLoading, setAuthLoading] = useState(true)
 
   // Navigation state
