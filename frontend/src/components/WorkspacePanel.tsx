@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import ReactECharts from 'echarts-for-react'
 import {
   fetchIndicadores,
@@ -6,6 +6,7 @@ import {
   computeZonaMetrics,
 } from '../lib/supabase'
 import type { IndicadorFull, ZonaMetrics } from '../lib/supabase'
+import GeoespacialPanel from './GeoespacialPanel'
 
 interface Props {
   ciudad: string
@@ -13,9 +14,12 @@ interface Props {
   etapaFilter?: string | string[]
   selectedIndicador?: IndicadorFull | null
   onSelectIndicador?: (ind: IndicadorFull | null) => void
+  initialMetric?: MetricType
+  kpiMode?: 'default' | 'stock_unidades' | 'resumen_general'
+  theme?: 'dark' | 'light'
 }
 
-type MetricType = 'stock_zona' | 'evolucion_temporal' | 'ritmo_zona' | 'usd_zona' | 'meses_zona'
+export type MetricType = 'stock_zona' | 'stock_subzona' | 'evolucion_temporal' | 'ritmo_zona' | 'usd_zona' | 'meses_zona'
 
 const CHART_BASE = {
   backgroundColor: 'transparent',
@@ -36,22 +40,53 @@ function fmtUSD(n: number | null | undefined): string {
   return '$' + Math.round(n).toLocaleString('es-BO')
 }
 
+function isActivoStage(stage?: string | null): boolean {
+  if (!stage) return true
+  const s = stage.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+  if (s.includes('paraliz') || s.includes('clandestin') || s.includes('inactiv') || s.includes('suspend')) return false
+  if (s.includes('vendid') || s.includes('agotad')) return false
+  return true
+}
+
+function isVendidoStage(stage?: string | null): boolean {
+  if (!stage) return false
+  const s = stage.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+  return s.includes('vendid') || s.includes('agotad')
+}
+
+function isInactivoStage(stage?: string | null): boolean {
+  if (!stage) return false
+  const s = stage.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+  return s.includes('paraliz') || s.includes('clandestin') || s.includes('inactiv') || s.includes('suspend')
+}
+
 export default function WorkspacePanel({
   ciudad,
   zonaFilter,
   etapaFilter,
   selectedIndicador,
   onSelectIndicador,
+  initialMetric,
+  kpiMode = 'default',
+  theme = 'light',
 }: Props) {
   const [allIndicadores, setAllIndicadores] = useState<IndicadorFull[]>([])
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart')
-  const [metricType, setMetricType] = useState<MetricType>('stock_zona')
+  const [viewMode, setViewMode] = useState<'chart' | 'table' | 'map'>('chart')
+  const [metricType, setMetricType] = useState<MetricType>(initialMetric || 'stock_zona')
   const [searchTable, setSearchTable] = useState('')
+
+  useEffect(() => {
+    if (initialMetric) {
+      setMetricType(initialMetric)
+    }
+  }, [initialMetric])
 
   // Series visibility toggles (like the screenshot checkboxes)
   const [showVendidas, setShowVendidas] = useState(true)
   const [showPorVender, setShowPorVender] = useState(true)
+  const isResumenGeneral = kpiMode === 'resumen_general'
+  const isStockUnidades = kpiMode === 'stock_unidades'
 
   useEffect(() => {
     setLoading(true)
@@ -95,12 +130,552 @@ export default function WorkspacePanel({
   const totalStockUSD = filteredProjects.reduce((s, p) => s + (p.stock_total ?? 0), 0)
   const totalInicial = filteredProjects.reduce((s, p) => s + (p.und_totales ?? 0), 0)
   const totalVendidas = filteredProjects.reduce((s, p) => s + (p.und_vendidas ?? 0), 0)
-  const pctVendido = totalInicial > 0 ? Math.round((totalVendidas / totalInicial) * 100) : 0
-  const pctPorVender = 100 - pctVendido
+  const pctVendido = totalInicial > 0 ? (totalVendidas / totalInicial) * 100 : 0
+  const pctPorVender = totalInicial > 0 ? (totalStockUnd / totalInicial) * 100 : 0
+
+  const avgVendidasPorProy = filteredProjects.length > 0 ? totalVendidas / filteredProjects.length : 0
+  const avgVendidasPorProyInt = Math.round(avgVendidasPorProy)
+
+  const avgPorVenderPorProy = filteredProjects.length > 0 ? totalStockUnd / filteredProjects.length : 0
+  const avgPorVenderPorProyInt = Math.round(avgPorVenderPorProy)
 
   const totalRitmoMensual = filteredProjects.reduce((s, p) => s + (p.ritmo_venta ?? 0), 0)
   const avgRitmoPorProyecto = filteredProjects.length > 0 ? totalRitmoMensual / filteredProjects.length : 0
   const avgMesesStock = totalRitmoMensual > 0 ? totalStockUnd / totalRitmoMensual : 0
+
+  // Tarea 5: Promedio Stock Inicial & Agrupación ZONAS vs SUBZONAS (desde oferta_proyectos)
+  const avgStockInicial = filteredProjects.length > 0 ? Math.round(totalInicial / filteredProjects.length) : 0
+  const isBySubzona = isStockUnidades && metricType === 'stock_subzona'
+
+  // Agrupación por ZONAS de oferta_proyectos
+  const zonaStockMetrics = useMemo(() => {
+    const groups = new Map<string, { name: string; totalStockUnd: number; totalVendidas: number; totalInicial: number; totalProyectos: number }>()
+    filteredProjects.forEach((p) => {
+      const key = (p.ZONAS || 'Sin Zona').trim()
+      if (!groups.has(key)) {
+        groups.set(key, { name: key, totalStockUnd: 0, totalVendidas: 0, totalInicial: 0, totalProyectos: 0 })
+      }
+      const g = groups.get(key)!
+      g.totalStockUnd += (p.und_por_vender ?? 0)
+      g.totalVendidas += (p.und_vendidas ?? 0)
+      g.totalInicial += (p.und_totales ?? 0)
+      g.totalProyectos += 1
+    })
+    return Array.from(groups.values())
+  }, [filteredProjects])
+
+  // Agrupación por SUBZONAS de oferta_proyectos
+  const subzonaStockMetrics = useMemo(() => {
+    const groups = new Map<string, { name: string; totalStockUnd: number; totalVendidas: number; totalInicial: number; totalProyectos: number }>()
+    filteredProjects.forEach((p) => {
+      const key = (p.SUBZONAS || 'Sin Subzona').trim()
+      if (!groups.has(key)) {
+        groups.set(key, { name: key, totalStockUnd: 0, totalVendidas: 0, totalInicial: 0, totalProyectos: 0 })
+      }
+      const g = groups.get(key)!
+      g.totalStockUnd += (p.und_por_vender ?? 0)
+      g.totalVendidas += (p.und_vendidas ?? 0)
+      g.totalInicial += (p.und_totales ?? 0)
+      g.totalProyectos += 1
+    })
+    return Array.from(groups.values())
+  }, [filteredProjects])
+
+  const activeZonesCount = isBySubzona
+    ? subzonaStockMetrics.filter((s) => s.totalProyectos > 0).length
+    : zonaStockMetrics.filter((s) => s.totalProyectos > 0).length
+
+  // ─── Proyectos Status Counts (Tarea 2: Stock en Ventas Unidades) ─────────
+  const countActivosCurrent = filteredProjects.filter((p) => isActivoStage(p.etapa)).length
+  const countVendidosCurrent = filteredProjects.filter((p) => isVendidoStage(p.etapa)).length
+  const countInactivosCurrent = filteredProjects.filter((p) => isInactivoStage(p.etapa)).length
+  const totalProyectosCurrent = filteredProjects.length
+
+  // Previous snapshot for historical metric comparison
+  const snapshotDates = [...new Set(allIndicadores.map((i) => i.fecha_snapshot).filter(Boolean))].sort()
+  const prevSnapshotDate = snapshotDates.length > 1 ? snapshotDates[snapshotDates.length - 2] : null
+
+  const prevProjects = prevSnapshotDate
+    ? allIndicadores.filter((p) => {
+        if (p.fecha_snapshot !== prevSnapshotDate) return false
+        if (zonaFilter && zonaFilter !== 'ALL' && p.ZONAS !== zonaFilter) return false
+        if (etapaFilter) {
+          if (Array.isArray(etapaFilter)) {
+            if (etapaFilter.length > 0 && !etapaFilter.includes('ALL') && !etapaFilter.includes(p.etapa || '')) {
+              return false
+            }
+          } else if (etapaFilter !== 'ALL' && p.etapa !== etapaFilter) {
+            return false
+          }
+        }
+        return true
+      })
+    : []
+
+  const countActivosPrev = prevProjects.filter((p) => isActivoStage(p.etapa)).length
+  const countVendidosPrev = prevProjects.filter((p) => isVendidoStage(p.etapa)).length
+  const countInactivosPrev = prevProjects.filter((p) => isInactivoStage(p.etapa)).length
+
+  const deltaActivos = countActivosCurrent - countActivosPrev
+  const deltaActivosPct = countActivosPrev > 0 ? ((deltaActivos) / countActivosPrev) * 100 : null
+
+  const deltaVendidos = countVendidosCurrent - countVendidosPrev
+  const deltaVendidosPct = countVendidosPrev > 0 ? ((deltaVendidos) / countVendidosPrev) * 100 : null
+
+  const deltaInactivos = countInactivosCurrent - countInactivosPrev
+  const deltaInactivosPct = countInactivosPrev > 0 ? ((deltaInactivos) / countInactivosPrev) * 100 : null
+
+  // Previous snapshot metrics for Stock en Ventas (Unidades) 5 KPIs
+  const prevStockUnd = prevProjects.reduce((s, p) => s + (p.und_por_vender ?? 0), 0)
+  const prevInicial = prevProjects.reduce((s, p) => s + (p.und_totales ?? 0), 0)
+  const prevVendidas = prevProjects.reduce((s, p) => s + (p.und_vendidas ?? 0), 0)
+  const prevAvgVendidas = prevProjects.length > 0 ? prevVendidas / prevProjects.length : 0
+  const prevAvgPorVender = prevProjects.length > 0 ? prevStockUnd / prevProjects.length : 0
+  const prevPctVendido = prevInicial > 0 ? (prevVendidas / prevInicial) * 100 : 0
+  const prevPctPorVender = prevInicial > 0 ? (prevStockUnd / prevInicial) * 100 : 0
+
+  const deltaStock = totalStockUnd - prevStockUnd
+  const deltaStockPct = prevStockUnd > 0 ? ((totalStockUnd - prevStockUnd) / prevStockUnd) * 100 : null
+  const deltaAvgVendidas = avgVendidasPorProy - prevAvgVendidas
+  const deltaAvgVendidasPct = prevAvgVendidas > 0 ? ((avgVendidasPorProy - prevAvgVendidas) / prevAvgVendidas) * 100 : null
+  const deltaPctVendido = pctVendido - prevPctVendido
+  const deltaAvgPorVender = avgPorVenderPorProy - prevAvgPorVender
+  const deltaAvgPorVenderPct = prevAvgPorVender > 0 ? ((avgPorVenderPorProy - prevAvgPorVender) / prevAvgPorVender) * 100 : null
+  const deltaPctPorVender = pctPorVender - prevPctPorVender
+
+  // ─── Stage breakdowns for the 3 Pie Charts (Tarea 3) ──────────────────────
+  let countPreventa = 0
+  let countObraBruta = 0
+  let countObraFina = 0
+  let countTerminada = 0
+  let countVendida = 0
+  let countParalizada = 0
+  let countClandestina = 0
+
+  filteredProjects.forEach((p) => {
+    const s = (p.etapa || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+
+    // 1. Inactivos
+    if (s.includes('clandestin')) {
+      countClandestina++
+      return
+    }
+    if (s.includes('paraliz') || s.includes('inactiv') || s.includes('suspend') || s.includes('detenid')) {
+      countParalizada++
+      return
+    }
+
+    // 2. Vendidos
+    if (s.includes('vendid') || s.includes('agotad')) {
+      countVendida++
+      return
+    }
+
+    // 3. Activos
+    if (s.includes('preventa') || s.includes('pozo') || s.includes('lanzamiento')) {
+      countPreventa++
+    } else if (s.includes('bruta') || s.includes('gruesa') || s.includes('estructura')) {
+      countObraBruta++
+    } else if (s.includes('fina') || s.includes('acabad')) {
+      countObraFina++
+    } else if (s.includes('terminad') || s.includes('entrega')) {
+      countTerminada++
+    } else {
+      countPreventa++
+    }
+  })
+
+  // ─── ECharts Pie Option Builders (Tarea 3: Torta Dinámica) ─────────────────
+  // 1. Activos: Preventa="#59aef4", Obra bruta="#ffcd04", Obra fina="#175192", Terminada="#0e9d58"
+  function getActivosPieOption() {
+    const data = [
+      { value: countPreventa, name: 'Preventa', itemStyle: { color: '#59aef4' } },
+      { value: countObraBruta, name: 'Obra bruta', itemStyle: { color: '#ffcd04' } },
+      { value: countObraFina, name: 'Obra fina', itemStyle: { color: '#175192' } },
+      { value: countTerminada, name: 'Terminada', itemStyle: { color: '#0e9d58' } },
+    ].filter((d) => d.value > 0)
+
+    if (data.length === 0) {
+      return {
+        ...CHART_BASE,
+        title: {
+          show: true,
+          text: '0',
+          subtext: 'Sin proyectos activos',
+          left: 'center',
+          top: '38%',
+          textStyle: { fontSize: 20, fontWeight: 700, color: '#94a3b8' },
+          subtextStyle: { fontSize: 10.5, color: '#64748b' },
+        },
+        legend: { show: false },
+        tooltip: { show: false },
+        series: [{
+          type: 'pie',
+          radius: ['45%', '68%'],
+          center: ['50%', '48%'],
+          silent: true,
+          data: [{ value: 1, itemStyle: { color: 'rgba(255,255,255,0.06)' } }],
+          label: { show: false },
+        }],
+      }
+    }
+
+    return {
+      ...CHART_BASE,
+      title: { show: false },
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: '#0f172a',
+        borderColor: '#334155',
+        textStyle: { color: '#f8fafc', fontSize: 11 },
+        formatter: (params: any) => `<b>${params.name}</b><br/>Proyectos: <b>${params.value}</b> (${params.percent}%)`,
+      },
+      legend: {
+        bottom: 2,
+        left: 'center',
+        itemWidth: 10,
+        itemHeight: 10,
+        textStyle: { color: '#94a3b8', fontSize: 10.5 },
+        orient: 'horizontal',
+      },
+      series: [
+        {
+          name: 'Proyectos Activos',
+          type: 'pie',
+          radius: ['42%', '68%'],
+          center: ['50%', '42%'],
+          avoidLabelOverlap: true,
+          itemStyle: {
+            borderRadius: 4,
+            borderColor: 'var(--bg-card)',
+            borderWidth: 2,
+          },
+          label: {
+            show: true,
+            position: 'outside',
+            formatter: '{b}\n{d}%',
+            fontSize: 10,
+            color: '#cbd5e1',
+            lineHeight: 12,
+          },
+          labelLine: {
+            show: true,
+            length: 8,
+            length2: 8,
+            lineStyle: { color: 'rgba(148, 163, 184, 0.4)' },
+          },
+          data,
+        },
+      ],
+    }
+  }
+
+  // 2. Vendidos: Vendida="rojo" (#ef4444)
+  function getVendidosPieOption() {
+    if (countVendida === 0) {
+      return {
+        ...CHART_BASE,
+        title: {
+          show: true,
+          text: '0',
+          subtext: '0 proyectos en etapa vendida',
+          left: 'center',
+          top: '38%',
+          textStyle: { fontSize: 20, fontWeight: 700, color: '#94a3b8' },
+          subtextStyle: { fontSize: 10.5, color: '#64748b' },
+        },
+        legend: { show: false },
+        tooltip: { show: false },
+        series: [{
+          type: 'pie',
+          radius: ['45%', '68%'],
+          center: ['50%', '48%'],
+          silent: true,
+          data: [{ value: 1, itemStyle: { color: 'rgba(255,255,255,0.06)' } }],
+          label: { show: false },
+        }],
+      }
+    }
+
+    return {
+      ...CHART_BASE,
+      title: { show: false },
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: '#0f172a',
+        borderColor: '#334155',
+        textStyle: { color: '#f8fafc', fontSize: 11 },
+        formatter: (params: any) => `<b>${params.name}</b><br/>Proyectos: <b>${params.value}</b> (${params.percent}%)`,
+      },
+      legend: {
+        bottom: 2,
+        left: 'center',
+        itemWidth: 10,
+        itemHeight: 10,
+        textStyle: { color: '#94a3b8', fontSize: 10.5 },
+      },
+      series: [
+        {
+          name: 'Proyectos Vendidos',
+          type: 'pie',
+          radius: ['42%', '68%'],
+          center: ['50%', '42%'],
+          itemStyle: {
+            borderRadius: 4,
+            borderColor: 'var(--bg-card)',
+            borderWidth: 2,
+          },
+          label: {
+            show: true,
+            position: 'outside',
+            formatter: '{b}\n{c} proy. (100%)',
+            fontSize: 10,
+            color: '#cbd5e1',
+          },
+          data: [{ value: countVendida, name: 'Vendida', itemStyle: { color: '#ef4444' } }],
+        },
+      ],
+    }
+  }
+
+  // 3. Inactivos: Paralizada="rojo sangrienta" (#991b1b), Clandestina="rojo claro" (#f87171)
+  function getInactivosPieOption() {
+    const totalInactivos = countParalizada + countClandestina
+    if (totalInactivos === 0) {
+      return {
+        ...CHART_BASE,
+        title: {
+          show: true,
+          text: '0',
+          subtext: '0 inactivos · Mercado 100% operativo',
+          left: 'center',
+          top: '38%',
+          textStyle: { fontSize: 20, fontWeight: 700, color: '#10b981' },
+          subtextStyle: { fontSize: 10.5, color: '#10b981' },
+        },
+        legend: { show: false },
+        tooltip: { show: false },
+        series: [{
+          type: 'pie',
+          radius: ['45%', '68%'],
+          center: ['50%', '48%'],
+          silent: true,
+          data: [{ value: 1, itemStyle: { color: 'rgba(16, 185, 129, 0.2)' } }],
+          label: { show: false },
+        }],
+      }
+    }
+
+    const data = []
+    if (countParalizada > 0) {
+      data.push({ value: countParalizada, name: 'Paralizada', itemStyle: { color: '#991b1b' } })
+    }
+    if (countClandestina > 0) {
+      data.push({ value: countClandestina, name: 'Clandestina', itemStyle: { color: '#f87171' } })
+    }
+
+    return {
+      ...CHART_BASE,
+      title: { show: false },
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: '#0f172a',
+        borderColor: '#334155',
+        textStyle: { color: '#f8fafc', fontSize: 11 },
+        formatter: (params: any) => `<b>${params.name}</b><br/>Proyectos: <b>${params.value}</b> (${params.percent}%)`,
+      },
+      legend: {
+        bottom: 2,
+        left: 'center',
+        itemWidth: 10,
+        itemHeight: 10,
+        textStyle: { color: '#94a3b8', fontSize: 10.5 },
+      },
+      series: [
+        {
+          name: 'Proyectos Inactivos',
+          type: 'pie',
+          radius: ['42%', '68%'],
+          center: ['50%', '42%'],
+          avoidLabelOverlap: true,
+          itemStyle: {
+            borderRadius: 4,
+            borderColor: 'var(--bg-card)',
+            borderWidth: 2,
+          },
+          label: {
+            show: true,
+            position: 'outside',
+            formatter: '{b}\n{c} proy.',
+            fontSize: 10,
+            color: '#cbd5e1',
+          },
+          labelLine: {
+            show: true,
+            length: 8,
+            length2: 8,
+            lineStyle: { color: 'rgba(148, 163, 184, 0.4)' },
+          },
+          data,
+        },
+      ],
+    }
+  }
+
+  // ─── Tarea 5: ECharts Dual Lateral Bar Builders (Stock por Vender & Vendido) ──
+  // 1. Stock por Vender (Unidades): color="#1565c0"
+  function getStockPorVenderBarOption() {
+    const isDark = theme === 'dark'
+    const items = (isBySubzona ? subzonaStockMetrics : zonaStockMetrics)
+      .filter((g) => g.totalStockUnd > 0)
+      .sort((a, b) => b.totalStockUnd - a.totalStockUnd)
+      .slice(0, 14)
+      .reverse()
+
+    if (items.length === 0) {
+      return {
+        ...CHART_BASE,
+        title: {
+          show: true,
+          text: '0 unds',
+          subtext: 'Sin unidades en oferta disponibles',
+          left: 'center',
+          top: '40%',
+          textStyle: { fontSize: 16, fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b' },
+          subtextStyle: { fontSize: 11, color: isDark ? '#64748b' : '#94a3b8' },
+        },
+        xAxis: { show: false },
+        yAxis: { show: false },
+        series: [],
+      }
+    }
+
+    return {
+      ...CHART_BASE,
+      grid: { left: 8, right: 65, top: 10, bottom: 10, containLabel: true },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: isDark ? '#0f172a' : '#ffffff',
+        borderColor: isDark ? '#334155' : '#cbd5e1',
+        textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
+        formatter: (params: any) => {
+          const p = params[0]
+          return `<b>${p.name}</b><br/>Stock por Vender: <b style="color:#60a5fa">${Number(p.value).toLocaleString('es-BO')} unds</b>`
+        },
+      },
+      xAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: isDark ? '#2a2e39' : '#e2e8f0' } },
+        axisLabel: { fontSize: 10, color: isDark ? '#94a3b8' : '#64748b' },
+      },
+      yAxis: {
+        type: 'category',
+        data: items.map((z) => (z.name.length > 22 ? z.name.slice(0, 22) + '…' : z.name)),
+        axisLabel: { fontSize: 10.5, color: isDark ? '#cbd5e1' : '#334155', fontWeight: 500 },
+        axisLine: { lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
+      },
+      series: [
+        {
+          name: 'Stock por Vender',
+          type: 'bar',
+          barMaxWidth: 16,
+          data: items.map((z) => z.totalStockUnd),
+          itemStyle: {
+            color: '#1565c0',
+            borderRadius: [0, 4, 4, 0],
+          },
+          emphasis: {
+            itemStyle: { color: '#1e88e5' },
+          },
+          label: {
+            show: true,
+            position: 'right',
+            fontSize: 10.5,
+            fontWeight: 600,
+            color: isDark ? '#f1f5f9' : '#0f172a',
+            formatter: (p: any) => (p.value > 0 ? Number(p.value).toLocaleString('es-BO') : ''),
+          },
+        },
+      ],
+    }
+  }
+
+  // 2. Stock Vendido (Unidades): color="#ef4444"
+  function getStockVendidoBarOption() {
+    const isDark = theme === 'dark'
+    const items = (isBySubzona ? subzonaStockMetrics : zonaStockMetrics)
+      .filter((g) => g.totalVendidas > 0)
+      .sort((a, b) => b.totalVendidas - a.totalVendidas)
+      .slice(0, 14)
+      .reverse()
+
+    if (items.length === 0) {
+      return {
+        ...CHART_BASE,
+        title: {
+          show: true,
+          text: '0 unds',
+          subtext: 'Sin unidades vendidas registradas',
+          left: 'center',
+          top: '40%',
+          textStyle: { fontSize: 16, fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b' },
+          subtextStyle: { fontSize: 11, color: isDark ? '#64748b' : '#94a3b8' },
+        },
+        xAxis: { show: false },
+        yAxis: { show: false },
+        series: [],
+      }
+    }
+
+    return {
+      ...CHART_BASE,
+      grid: { left: 8, right: 65, top: 10, bottom: 10, containLabel: true },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: isDark ? '#0f172a' : '#ffffff',
+        borderColor: isDark ? '#334155' : '#cbd5e1',
+        textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
+        formatter: (params: any) => {
+          const p = params[0]
+          return `<b>${p.name}</b><br/>Stock Vendido: <b style="color:#f87171">${Number(p.value).toLocaleString('es-BO')} unds</b>`
+        },
+      },
+      xAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: isDark ? '#2a2e39' : '#e2e8f0' } },
+        axisLabel: { fontSize: 10, color: isDark ? '#94a3b8' : '#64748b' },
+      },
+      yAxis: {
+        type: 'category',
+        data: items.map((z) => (z.name.length > 22 ? z.name.slice(0, 22) + '…' : z.name)),
+        axisLabel: { fontSize: 10.5, color: isDark ? '#cbd5e1' : '#334155', fontWeight: 500 },
+        axisLine: { lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
+      },
+      series: [
+        {
+          name: 'Stock Vendido',
+          type: 'bar',
+          barMaxWidth: 16,
+          data: items.map((z) => z.totalVendidas),
+          itemStyle: {
+            color: '#ef4444',
+            borderRadius: [0, 4, 4, 0],
+          },
+          emphasis: {
+            itemStyle: { color: '#f87171' },
+          },
+          label: {
+            show: true,
+            position: 'right',
+            fontSize: 10.5,
+            fontWeight: 600,
+            color: isDark ? '#f1f5f9' : '#0f172a',
+            formatter: (p: any) => (p.value > 0 ? Number(p.value).toLocaleString('es-BO') : ''),
+          },
+        },
+      ],
+    }
+  }
 
   // ─── Historical snapshots timeline aggregation ────────────────────────────
   const snapshotGroups = new Map<string, { date: string; vendidas: number; porVender: number; ritmo: number }>()
@@ -445,109 +1020,379 @@ export default function WorkspacePanel({
           Datos de: Censos Inmobiliarios 2025 - 2026 · {ciudad === 'ALL' ? 'Bolivia' : ciudad}
         </div>
 
-        {/* 4 Interactive KPI Cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 12,
-        }}>
-          {/* KPI 1: Stock en Oferta */}
+        {/* Interactive KPI Cards (3 cards for resumen_general, 4 cards for default) */}
+        {isResumenGeneral ? (
           <div style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 12px',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 12,
           }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: -0.5 }}>
-              {totalStockUnd.toLocaleString('es-BO')}
+            {/* KPI 1: Cantidad de proyectos activos */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: -0.5 }}>
+                {countActivosCurrent.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>proyectos</span>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Cantidad de proyectos activos
+              </div>
+              <div style={{ fontSize: 9.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                Preventas, Obra Bruta, Obra Fina y Terminada
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {prevSnapshotDate && countActivosPrev > 0 ? (
+                  <>
+                    <span className={deltaActivos >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                      {deltaActivos >= 0 ? `▲ +${deltaActivosPct != null ? deltaActivosPct.toFixed(1) : deltaActivos}%` : `▼ ${deltaActivosPct != null ? deltaActivosPct.toFixed(1) : deltaActivos}%`}
+                      {` (${deltaActivos >= 0 ? '+' : ''}${deltaActivos} proy.)`}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>vs censo anterior</span>
+                  </>
+                ) : (
+                  <span className="badge-pos">
+                    ● {totalProyectosCurrent > 0 ? Math.round((countActivosCurrent / totalProyectosCurrent) * 100) : 0}% de la oferta censada
+                  </span>
+                )}
+              </div>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
-              Stock en Oferta (Unds)
+
+            {/* KPI 2: Cantidad de proyectos vendidos */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
+                {countVendidosCurrent.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>proyectos</span>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Cantidad de proyectos vendidos
+              </div>
+              <div style={{ fontSize: 9.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                Etapa Vendida (100% de colocación)
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {prevSnapshotDate && countVendidosPrev > 0 ? (
+                  <>
+                    <span className={deltaVendidos >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                      {deltaVendidos >= 0 ? `▲ +${deltaVendidosPct != null ? deltaVendidosPct.toFixed(1) : deltaVendidos}%` : `▼ ${deltaVendidosPct != null ? deltaVendidosPct.toFixed(1) : deltaVendidos}%`}
+                      {` (${deltaVendidos >= 0 ? '+' : ''}${deltaVendidos} proy.)`}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>vs censo anterior</span>
+                  </>
+                ) : (
+                  <span className="badge-pos">
+                    ● {totalProyectosCurrent > 0 ? Math.round((countVendidosCurrent / totalProyectosCurrent) * 100) : 0}% proyectos colocados
+                  </span>
+                )}
+              </div>
             </div>
-            <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span className={pctVendido >= 50 ? 'badge-pos' : 'badge-neg'}>
-                {pctVendido >= 50 ? '▲' : '▼'} {pctVendido}% colocado
-              </span>
-              <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalVendidas.toLocaleString('es-BO')} vendidas</span>
+
+            {/* KPI 3: Cantidad de proyectos inactivos */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{
+                fontSize: 22,
+                fontWeight: 800,
+                color: countInactivosCurrent > 0 ? 'var(--color-warning)' : 'var(--text-muted)',
+                letterSpacing: -0.5
+              }}>
+                {countInactivosCurrent.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>proyectos</span>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Cantidad de proyectos inactivos
+              </div>
+              <div style={{ fontSize: 9.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                Etapas Paralizadas y Clandestinas
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {prevSnapshotDate && (countInactivosPrev > 0 || countInactivosCurrent > 0) ? (
+                  <>
+                    <span className={deltaInactivos <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                      {deltaInactivos > 0 ? `▲ +${deltaInactivos} paralizados` : deltaInactivos < 0 ? `▼ ${deltaInactivos} reactivados` : `● Sin variación`}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>vs censo anterior</span>
+                  </>
+                ) : (
+                  <span style={{ color: countInactivosCurrent === 0 ? 'var(--color-positive)' : 'var(--color-warning)', fontWeight: 600 }}>
+                    {countInactivosCurrent === 0 ? '● 0 proyectos paralizados (Saludable)' : `● ${countInactivosCurrent} proyectos paralizados`}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-
-          {/* KPI 2: Capital en Stock (USD) */}
+        ) : isStockUnidades ? (
           <div style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 12px',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gap: 10,
           }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: -0.5 }}>
-              {fmtUSD(totalStockUSD)}
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
-              Monto Total por Vender
-            </div>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
-              {filteredProjects.length > 0 ? `${fmtUSD(totalStockUSD / filteredProjects.length)} prom / proyecto` : '—'}
-            </div>
-          </div>
-
-          {/* KPI 3: Ritmo Mensual */}
-          <div style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 12px',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-          }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
-              {Math.round(totalRitmoMensual)} <span style={{ fontSize: 12, fontWeight: 500 }}>und/mes</span>
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
-              Ritmo de Ventas Mensual
-            </div>
-            {deltaRitmo != null ? (
+            {/* KPI 1: Stock total en Oferta */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: -0.5 }}>
+                {totalStockUnd.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>unds</span>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Stock total en Oferta
+              </div>
               <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span className={deltaRitmo >= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                  {deltaRitmo >= 0 ? `▲ +${deltaRitmo.toFixed(1)}%` : `▼ ${deltaRitmo.toFixed(1)}%`} vs censo anterior
-                </span>
+                {prevSnapshotDate && prevStockUnd > 0 ? (
+                  <>
+                    <span className={deltaStock <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                      {deltaStock >= 0 ? `▲ +${deltaStockPct != null ? deltaStockPct.toFixed(1) : deltaStock}%` : `▼ ${deltaStockPct != null ? deltaStockPct.toFixed(1) : deltaStock}%`}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalInicial.toLocaleString('es-BO')} stock inicial</span>
+                  </>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    Stock inicial: <strong style={{ color: 'var(--text-primary)' }}>{totalInicial.toLocaleString('es-BO')} unds</strong>
+                  </span>
+                )}
               </div>
-            ) : (
-              <div style={{ fontSize: 10, color: 'var(--color-positive)', fontWeight: 600, marginTop: 4 }}>
-                ● {avgRitmoPorProyecto.toFixed(1)} und/mes promedio proyecto
-              </div>
-            )}
-          </div>
+            </div>
 
-          {/* KPI 4: Meses de Stock */}
-          <div style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 12px',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-          }}>
+            {/* KPI 2: Promedio Vendido por Proyecto */}
             <div style={{
-              fontSize: 22,
-              fontWeight: 800,
-              color: avgMesesStock > 18 ? 'var(--color-negative)' : avgMesesStock > 12 ? 'var(--color-warning)' : 'var(--color-positive)',
-              letterSpacing: -0.5
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
             }}>
-              {avgMesesStock.toFixed(1)} <span style={{ fontSize: 12, fontWeight: 500 }}>meses</span>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
+                {avgVendidasPorProyInt.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>und/proy</span>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Promedio Vendido por Proyecto
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {prevSnapshotDate && prevAvgVendidas > 0 ? (
+                  <>
+                    <span className={deltaAvgVendidas >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                      {deltaAvgVendidas >= 0 ? `▲ +${deltaAvgVendidasPct != null ? deltaAvgVendidasPct.toFixed(1) : deltaAvgVendidas}%` : `▼ ${deltaAvgVendidasPct != null ? deltaAvgVendidasPct.toFixed(1) : deltaAvgVendidas}%`}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalVendidas.toLocaleString('es-BO')} vendidas tot.</span>
+                  </>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    Total vendidas: <strong style={{ color: 'var(--accent-emerald)' }}>{totalVendidas.toLocaleString('es-BO')} unds</strong>
+                  </span>
+                )}
+              </div>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
-              Horizonte de Liquidación
-            </div>
+
+            {/* KPI 3: Porcentaje Vendido */}
             <div style={{
-              fontSize: 10,
-              color: avgMesesStock <= 12 ? 'var(--color-positive)' : avgMesesStock <= 18 ? 'var(--color-warning)' : 'var(--color-negative)',
-              fontWeight: 600,
-              marginTop: 4
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
             }}>
-              {avgMesesStock <= 12 ? '● Absorción saludable (<12m)' : avgMesesStock <= 18 ? '▲ Presión moderada (12-18m)' : '! Sobre-inventario (>18m)'}
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
+                {pctVendido.toFixed(1)}%
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Porcentaje Vendido
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {prevSnapshotDate && prevPctVendido > 0 ? (
+                  <>
+                    <span className={deltaPctVendido >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                      {deltaPctVendido >= 0 ? `▲ +${deltaPctVendido.toFixed(1)}%` : `▼ ${deltaPctVendido.toFixed(1)}%`}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} por vender</span>
+                  </>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    Por vender: <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* KPI 4: Promedio por Vender por Proyecto */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: -0.5 }}>
+                {avgPorVenderPorProyInt.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>und/proy</span>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Promedio por Vender por Proyecto
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {prevSnapshotDate && prevAvgPorVender > 0 ? (
+                  <>
+                    <span className={deltaAvgPorVender <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                      {deltaAvgPorVender >= 0 ? `▲ +${deltaAvgPorVenderPct != null ? deltaAvgPorVenderPct.toFixed(1) : deltaAvgPorVender}%` : `▼ ${deltaAvgPorVenderPct != null ? deltaAvgPorVenderPct.toFixed(1) : deltaAvgPorVender}%`}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} por vender tot.</span>
+                  </>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    Total disponible: <strong style={{ color: 'var(--accent-cyan)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* KPI 5: Porcentaje por Vender */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--citrino-teal-light)', letterSpacing: -0.5 }}>
+                {pctPorVender.toFixed(1)}%
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Porcentaje por Vender
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {prevSnapshotDate && prevPctPorVender > 0 ? (
+                  <>
+                    <span className={deltaPctPorVender <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                      {deltaPctPorVender >= 0 ? `▲ +${deltaPctPorVender.toFixed(1)}%` : `▼ ${deltaPctPorVender.toFixed(1)}%`}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} en stock</span>
+                  </>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    En oferta: <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: 12,
+          }}>
+            {/* KPI 1: Stock en Oferta */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: -0.5 }}>
+                {totalStockUnd.toLocaleString('es-BO')}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Stock en Oferta (Unds)
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span className={pctVendido >= 50 ? 'badge-pos' : 'badge-neg'}>
+                  {pctVendido >= 50 ? '▲' : '▼'} {pctVendido}% colocado
+                </span>
+                <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalVendidas.toLocaleString('es-BO')} vendidas</span>
+              </div>
+            </div>
+
+            {/* KPI 2: Capital en Stock (USD) */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: -0.5 }}>
+                {fmtUSD(totalStockUSD)}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Monto Total por Vender
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                {filteredProjects.length > 0 ? `${fmtUSD(totalStockUSD / filteredProjects.length)} prom / proyecto` : '—'}
+              </div>
+            </div>
+
+            {/* KPI 3: Ritmo Mensual */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
+                {Math.round(totalRitmoMensual)} <span style={{ fontSize: 12, fontWeight: 500 }}>und/mes</span>
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Ritmo de Ventas Mensual
+              </div>
+              {deltaRitmo != null ? (
+                <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span className={deltaRitmo >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                    {deltaRitmo >= 0 ? `▲ +${deltaRitmo.toFixed(1)}%` : `▼ ${deltaRitmo.toFixed(1)}%`} vs censo anterior
+                  </span>
+                </div>
+              ) : (
+                <div style={{ fontSize: 10, color: 'var(--color-positive)', fontWeight: 600, marginTop: 4 }}>
+                  ● {avgRitmoPorProyecto.toFixed(1)} und/mes promedio proyecto
+                </div>
+              )}
+            </div>
+
+            {/* KPI 4: Meses de Stock */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{
+                fontSize: 22,
+                fontWeight: 800,
+                color: avgMesesStock > 18 ? 'var(--color-negative)' : avgMesesStock > 12 ? 'var(--color-warning)' : 'var(--color-positive)',
+                letterSpacing: -0.5
+              }}>
+                {avgMesesStock.toFixed(1)} <span style={{ fontSize: 12, fontWeight: 500 }}>meses</span>
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Horizonte de Liquidación
+              </div>
+              <div style={{
+                fontSize: 10,
+                color: avgMesesStock <= 12 ? 'var(--color-positive)' : avgMesesStock <= 18 ? 'var(--color-warning)' : 'var(--color-negative)',
+                fontWeight: 600,
+                marginTop: 4
+              }}>
+                {avgMesesStock <= 12 ? '● Absorción saludable (<12m)' : avgMesesStock <= 18 ? '▲ Presión moderada (12-18m)' : '! Sobre-inventario (>18m)'}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ─── SECTION 2: INDICADORES DINÁMICOS & CHART CONTAINER ──────────── */}
@@ -555,53 +1400,125 @@ export default function WorkspacePanel({
         {/* Subheader with Metric Selector Pill & View Switcher */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
-              Indicadores
-            </span>
+            {isStockUnidades ? (
+              <>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: -0.2 }}>
+                  {viewMode === 'chart'
+                    ? 'Stock por Unidades'
+                    : viewMode === 'table'
+                    ? 'Lista de Proyectos'
+                    : 'Localización de Proyectos'}
+                </span>
 
-            {/* Pill Selector (Styled in Citrino petrol teal brand palette) */}
-            <div style={{ position: 'relative' }}>
-              <select
-                value={metricType}
-                onChange={(e) => setMetricType(e.target.value as MetricType)}
-                style={{
-                  background: 'var(--bg-card)',
-                  color: 'var(--text-primary)',
-                  border: '1px solid var(--border-default)',
-                  borderRadius: 4,
-                  padding: '5px 10px',
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  outline: 'none',
-                  cursor: 'pointer',
-                  boxShadow: 'none',
-                }}>
-                <option value="stock_zona">Stock por Zona (Unidades)</option>
-                <option value="evolucion_temporal">Evolución Histórica (Snapshots)</option>
-                <option value="ritmo_zona">Ritmo de Ventas por Zona</option>
-                <option value="usd_zona">Monto USD por Zona</option>
-                <option value="meses_zona">Meses de Stock por Zona</option>
-              </select>
-            </div>
+                {viewMode === 'chart' && (
+                  <div style={{ position: 'relative' }}>
+                    <select
+                      value={metricType === 'stock_subzona' ? 'stock_subzona' : 'stock_zona'}
+                      onChange={(e) => setMetricType(e.target.value as MetricType)}
+                      style={{
+                        background: 'var(--bg-card)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-default)',
+                        borderRadius: 4,
+                        padding: '5px 10px',
+                        fontSize: 11.5,
+                        fontWeight: 600,
+                        outline: 'none',
+                        cursor: 'pointer',
+                        boxShadow: 'none',
+                      }}>
+                      <option value="stock_zona">Stock por Zona</option>
+                      <option value="stock_subzona">Stock por Subzona</option>
+                    </select>
+                  </div>
+                )}
+              </>
+            ) : !isResumenGeneral ? (
+              <>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Indicadores
+                </span>
+
+                {/* Pill Selector (Styled in Citrino petrol teal brand palette) */}
+                <div style={{ position: 'relative' }}>
+                  <select
+                    value={metricType}
+                    onChange={(e) => setMetricType(e.target.value as MetricType)}
+                    style={{
+                      background: 'var(--bg-card)',
+                      color: 'var(--text-primary)',
+                      border: '1px solid var(--border-default)',
+                      borderRadius: 4,
+                      padding: '5px 10px',
+                      fontSize: 11.5,
+                      fontWeight: 600,
+                      outline: 'none',
+                      cursor: 'pointer',
+                      boxShadow: 'none',
+                    }}>
+                    <option value="stock_zona">Stock por Zona (Unidades)</option>
+                    <option value="evolucion_temporal">Evolución Histórica (Snapshots)</option>
+                    <option value="ritmo_zona">Ritmo de Ventas por Zona</option>
+                    <option value="usd_zona">Monto USD por Zona</option>
+                    <option value="meses_zona">Meses de Stock por Zona</option>
+                  </select>
+                </div>
+              </>
+            ) : (
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: -0.2 }}>
+                {viewMode === 'chart'
+                  ? 'Segmentación por Etapas'
+                  : viewMode === 'table'
+                  ? 'Lista de Proyectos'
+                  : 'Localización de Proyectos'}
+              </span>
+            )}
           </div>
 
-          {/* Toggle between Chart & Table */}
+          {/* Toggle between Gráficos, Tabla de Proyectos & Mapa */}
           <div style={{ display: 'flex', gap: 4 }} className="citrino-subtabs">
             <button
               onClick={() => setViewMode('chart')}
               className={`citrino-subtab-btn ${viewMode === 'chart' ? 'active' : ''}`}>
-              Gráfico
+              Gráficos
             </button>
             <button
               onClick={() => setViewMode('table')}
               className={`citrino-subtab-btn ${viewMode === 'table' ? 'active' : ''}`}>
-              Tabla Proyectos ({filteredProjects.length})
+              Tabla de Proyectos ({filteredProjects.length})
+            </button>
+            <button
+              onClick={() => setViewMode('map')}
+              className={`citrino-subtab-btn ${viewMode === 'map' ? 'active' : ''}`}>
+              Mapa
             </button>
           </div>
         </div>
 
-        {/* Chart or Table Area */}
-        {viewMode === 'chart' ? (
+        {/* Chart, Map, or Table Area */}
+        {viewMode === 'map' ? (
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-lg)',
+            overflow: 'hidden',
+            position: 'relative',
+            minHeight: 0,
+            height: '100%',
+          }}>
+            <GeoespacialPanel
+              ciudad={ciudad}
+              zonaFilter={zonaFilter}
+              etapaFilter={etapaFilter}
+              selectedIndicador={selectedIndicador}
+              onSelectIndicador={onSelectIndicador}
+              theme={theme}
+            />
+          </div>
+        ) : viewMode === 'chart' ? (
           <div style={{
             flex: 1,
             display: 'flex',
@@ -612,12 +1529,228 @@ export default function WorkspacePanel({
             padding: '14px 16px 10px',
             overflow: 'hidden',
           }}>
-            {/* ECharts Instance */}
-            <div style={{ flex: 1, minHeight: 260, width: '100%' }}>
-              <ReactECharts option={getChartOption()} style={{ height: '100%', width: '100%' }} />
-            </div>
+            {/* 3 Pie Charts Grid for Resumen General or standard chart */}
+            {isResumenGeneral ? (
+              <div style={{
+                flex: 1,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 12,
+                minHeight: 0,
+              }}>
+                {/* Gráfico 1: Proyectos Activos */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 14px 6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Etapas de Proyectos Activos
+                    </span>
+                    <span style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      background: 'rgba(59, 130, 246, 0.15)',
+                      color: '#60a5fa',
+                      padding: '2px 7px',
+                      borderRadius: 12,
+                    }}>
+                      {countActivosCurrent} proy.
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    Preventa · Obra bruta · Obra fina · Terminada
+                  </div>
+                  <div style={{ flex: 1, minHeight: 220, width: '100%' }}>
+                    <ReactECharts
+                      option={getActivosPieOption()}
+                      notMerge={true}
+                      lazyUpdate={true}
+                      style={{ height: '100%', width: '100%' }}
+                    />
+                  </div>
+                </div>
 
-            {/* Interactive Series Checkbox Bar (Exactly like user's screenshot) */}
+                {/* Gráfico 2: Proyectos Vendidos */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 14px 6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Proyectos Vendidos
+                    </span>
+                    <span style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      color: '#f87171',
+                      padding: '2px 7px',
+                      borderRadius: 12,
+                    }}>
+                      {countVendida} proy.
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    Proyectos en etapa Vendida
+                  </div>
+                  <div style={{ flex: 1, minHeight: 220, width: '100%' }}>
+                    <ReactECharts
+                      option={getVendidosPieOption()}
+                      notMerge={true}
+                      lazyUpdate={true}
+                      style={{ height: '100%', width: '100%' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Gráfico 3: Proyectos Inactivos */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 14px 6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Etapas de Proyectos Inactivos
+                    </span>
+                    <span style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      background: 'rgba(220, 38, 38, 0.15)',
+                      color: '#fca5a5',
+                      padding: '2px 7px',
+                      borderRadius: 12,
+                    }}>
+                      {countInactivosCurrent} proy.
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    Paralizada · Clandestina
+                  </div>
+                  <div style={{ flex: 1, minHeight: 220, width: '100%' }}>
+                    <ReactECharts
+                      option={getInactivosPieOption()}
+                      notMerge={true}
+                      lazyUpdate={true}
+                      style={{ height: '100%', width: '100%' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : isStockUnidades ? (
+              /* Tarea 5: 2 Gráficas de Barras Laterales (Stock por Vender & Stock Vendido) */
+              <div style={{
+                flex: 1,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 12,
+                minHeight: 0,
+              }}>
+                {/* Gráfica 1: Stock por Vender por Zona / Subzona (color=#1565c0) */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 14px 6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  minHeight: 0,
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Stock por Vender ({isBySubzona ? 'Subzonas' : 'Zonas'})
+                    </span>
+                    <span style={{
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      background: 'rgba(21, 101, 192, 0.15)',
+                      color: '#60a5fa',
+                      padding: '2px 8px',
+                      borderRadius: 12,
+                    }}>
+                      {totalStockUnd.toLocaleString('es-BO')} unds en oferta
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    Unidades disponibles censadas agrupadas por {isBySubzona ? 'subzona' : 'zona'}
+                  </div>
+                  <div style={{ flex: 1, minHeight: 240, width: '100%' }}>
+                    <ReactECharts
+                      option={getStockPorVenderBarOption()}
+                      notMerge={true}
+                      lazyUpdate={true}
+                      style={{ height: '100%', width: '100%' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Gráfica 2: Stock Vendido por Zona / Subzona (color=#ef4444) */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 14px 6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  minHeight: 0,
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Stock Vendido ({isBySubzona ? 'Subzonas' : 'Zonas'})
+                    </span>
+                    <span style={{
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      color: '#f87171',
+                      padding: '2px 8px',
+                      borderRadius: 12,
+                    }}>
+                      {totalVendidas.toLocaleString('es-BO')} unds vendidas
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    Unidades históricamente colocadas agrupadas por {isBySubzona ? 'subzona' : 'zona'}
+                  </div>
+                  <div style={{ flex: 1, minHeight: 240, width: '100%' }}>
+                    <ReactECharts
+                      option={getStockVendidoBarOption()}
+                      notMerge={true}
+                      lazyUpdate={true}
+                      style={{ height: '100%', width: '100%' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ flex: 1, minHeight: 260, width: '100%' }}>
+                <ReactECharts
+                  option={getChartOption()}
+                  notMerge={true}
+                  lazyUpdate={true}
+                  style={{ height: '100%', width: '100%' }}
+                />
+              </div>
+            )}
+
+            {/* Interactive Series Checkbox Bar & Summary Footer */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -629,38 +1762,31 @@ export default function WorkspacePanel({
               flexWrap: 'wrap',
               gap: 12,
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                {/* Checkbox 1: Vendidas */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
-                  <input
-                    type="checkbox"
-                    checked={showVendidas}
-                    onChange={(e) => setShowVendidas(e.target.checked)}
-                    style={{ accentColor: 'var(--accent-emerald)', cursor: 'pointer' }}
-                  />
-                  <span style={{ width: 14, height: 2, background: 'var(--accent-emerald)', display: 'inline-block' }} />
-                  <span style={{ color: 'var(--text-secondary)' }}>Vendidas:</span>
-                  <strong style={{ color: 'var(--text-primary)' }}>{totalVendidas.toLocaleString('es-BO')} ({pctVendido}%)</strong>
-                </label>
-
-                {/* Checkbox 2: Por Vender */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
-                  <input
-                    type="checkbox"
-                    checked={showPorVender}
-                    onChange={(e) => setShowPorVender(e.target.checked)}
-                    style={{ accentColor: 'var(--accent-cyan)', cursor: 'pointer' }}
-                  />
-                  <span style={{ width: 14, height: 2, background: 'var(--accent-cyan)', display: 'inline-block' }} />
-                  <span style={{ color: 'var(--text-secondary)' }}>Por Vender (Stock):</span>
-                  <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} ({pctPorVender}%)</strong>
-                </label>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, color: 'var(--text-muted)', fontSize: 10.5 }}>
+              {/* Left: Always show Proyectos analizados, Zonas activas & Promedio Stock Inicial */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, color: 'var(--text-muted)', fontSize: 11 }}>
                 <span>Proyectos analizados: <strong style={{ color: 'var(--text-primary)' }}>{filteredProjects.length}</strong></span>
-                <span>Zonas activas: <strong style={{ color: 'var(--text-primary)' }}>{zonaData.length}</strong></span>
+                <span>{isStockUnidades && metricType === 'stock_subzona' ? 'Subzonas activas:' : 'Zonas activas:'} <strong style={{ color: 'var(--text-primary)' }}>{activeZonesCount}</strong></span>
+                <span>Promedio Stock Inicial: <strong style={{ color: 'var(--text-primary)' }}>{avgStockInicial.toLocaleString('es-BO')}</strong> unds</span>
               </div>
+
+              {/* Right: Only show Vendidos/Por Vender when not in resumen_general */}
+              {!isResumenGeneral && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  {/* Vendidas */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
+                    <span style={{ width: 14, height: 3, background: '#ef4444', display: 'inline-block', borderRadius: 2 }} />
+                    <span style={{ color: 'var(--text-secondary)' }}>Vendidas:</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{totalVendidas.toLocaleString('es-BO')} ({pctVendido.toFixed(1)}%)</strong>
+                  </div>
+
+                  {/* Por Vender */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
+                    <span style={{ width: 14, height: 3, background: '#1565c0', display: 'inline-block', borderRadius: 2 }} />
+                    <span style={{ color: 'var(--text-secondary)' }}>Por Vender (Stock):</span>
+                    <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} ({pctPorVender.toFixed(1)}%)</strong>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (

@@ -29,6 +29,49 @@ interface CustomQgisLayer {
   color?: string
 }
 
+export const ETAPAS_CITRINO = [
+  { key: 'preventa', label: 'Preventa', color: '#59aef4' },
+  { key: 'obra_bruta', label: 'Obra bruta', color: '#ffcd04' },
+  { key: 'obra_fina', label: 'Obra fina', color: '#175192' },
+  { key: 'terminada', label: 'Terminada', color: '#0e9d58' },
+  { key: 'vendida', label: 'Vendida', color: '#ef4444' },
+  { key: 'paralizada', label: 'Paralizada', color: '#991b1b' },
+  { key: 'clandestina', label: 'Clandestina', color: '#f87171' },
+]
+
+export function getEtapaInfo(etapa?: string | null): { key: string; label: string; color: string } {
+  const s = (etapa || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+
+  // 1. Inactivos
+  if (s.includes('clandestin')) {
+    return { key: 'clandestina', label: 'Clandestina', color: '#f87171' }
+  }
+  if (s.includes('paraliz') || s.includes('inactiv') || s.includes('suspend') || s.includes('detenid')) {
+    return { key: 'paralizada', label: 'Paralizada', color: '#991b1b' }
+  }
+
+  // 2. Vendidos
+  if (s.includes('vendid') || s.includes('agotad')) {
+    return { key: 'vendida', label: 'Vendida', color: '#ef4444' }
+  }
+
+  // 3. Activos
+  if (s.includes('preventa') || s.includes('pozo') || s.includes('lanzamiento')) {
+    return { key: 'preventa', label: 'Preventa', color: '#59aef4' }
+  }
+  if (s.includes('bruta') || s.includes('gruesa') || s.includes('estructura')) {
+    return { key: 'obra_bruta', label: 'Obra bruta', color: '#ffcd04' }
+  }
+  if (s.includes('fina') || s.includes('acabad')) {
+    return { key: 'obra_fina', label: 'Obra fina', color: '#175192' }
+  }
+  if (s.includes('terminad') || s.includes('entrega')) {
+    return { key: 'terminada', label: 'Terminada', color: '#0e9d58' }
+  }
+
+  return { key: 'preventa', label: 'Preventa', color: '#59aef4' }
+}
+
 const CITY_COORDS: Record<string, { center: [number, number]; zoom: number }> = {
   SCZ: { center: [-17.7833, -63.1821], zoom: 12 },
   LPZ: { center: [-16.5000, -68.1250], zoom: 13 },
@@ -207,12 +250,32 @@ export default function GeoespacialPanel({
 
       // Etapa filter
       if (etapaFilter) {
+        const info = getEtapaInfo(p.etapa)
+        const checkMatch = (f: string) => {
+          if (!f || f === 'ALL') return true
+          const normF = f.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+          return (
+            p.etapa === f ||
+            normF === info.key ||
+            normF === info.label.toLowerCase() ||
+            normF === (p.etapa || '').toLowerCase() ||
+            (normF === 'preventa' && info.key === 'preventa') ||
+            (normF.includes('bruta') && info.key === 'obra_bruta') ||
+            (normF.includes('fina') && info.key === 'obra_fina') ||
+            (normF.includes('terminad') && info.key === 'terminada') ||
+            (normF.includes('vendid') && info.key === 'vendida') ||
+            (normF.includes('paraliz') && info.key === 'paralizada') ||
+            (normF.includes('clandestin') && info.key === 'clandestina')
+          )
+        }
+
         if (Array.isArray(etapaFilter)) {
-          if (etapaFilter.length > 0 && !etapaFilter.includes('ALL') && !etapaFilter.includes(p.etapa || '')) {
-            return false
+          if (etapaFilter.length > 0 && !etapaFilter.includes('ALL')) {
+            const matches = etapaFilter.some(checkMatch)
+            if (!matches) return false
           }
-        } else if (etapaFilter !== 'ALL' && p.etapa !== etapaFilter) {
-          return false
+        } else if (etapaFilter !== 'ALL') {
+          if (!checkMatch(etapaFilter)) return false
         }
       }
 
@@ -249,13 +312,8 @@ export default function GeoespacialPanel({
       return '#ef4444'
     }
 
-    // By Etapa
-    const e = (p.etapa || '').toLowerCase()
-    if (e.includes('pozo')) return '#a1a1aa'
-    if (e.includes('obra')) return '#71717a'
-    if (e.includes('preventa')) return '#d4d4d8'
-    if (e.includes('terminada') || e.includes('entrega')) return '#10b981'
-    return '#94a3b8'
+    // By Etapa con colores oficiales Citrino Intelligence
+    return getEtapaInfo(p.etapa).color
   }
 
   // Helper: Bubble radius calculation
@@ -288,7 +346,7 @@ export default function GeoespacialPanel({
     const map = L.map(mapContainerRef.current, {
       center: config.center,
       zoom: config.zoom,
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: false,
     })
 
@@ -411,14 +469,15 @@ export default function GeoespacialPanel({
         })
 
         // Popup Content
+        const etapaInfo = getEtapaInfo(p.etapa)
         const popupHtml = `
           <div style="padding: 12px 14px; min-width: 220px; font-family: 'Inter', sans-serif;">
             <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
               <div style="font-weight: 700; font-size: 13px; color: ${popupText}; line-height: 1.25;">
                 ${p.proyecto}
               </div>
-              <span style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); color: ${popupText}; border: 1px solid rgba(255, 255, 255, 0.15); white-space: nowrap;">
-                ${p.etapa || 'En Curso'}
+              <span style="font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: ${etapaInfo.color}22; color: ${etapaInfo.color}; border: 1px solid ${etapaInfo.color}66; white-space: nowrap;">
+                ${etapaInfo.label}
               </span>
             </div>
 
@@ -685,7 +744,7 @@ export default function GeoespacialPanel({
   }
 
   return (
-    <div className="panel panel-center" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+    <div className="panel panel-center" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', height: '100%', flex: 1, minHeight: 0 }}>
       {/* ─── Top Header & GIS Toolbar ────────────────────────────────────────── */}
       <div className="panel-header" style={{
         display: 'flex',
@@ -696,11 +755,12 @@ export default function GeoespacialPanel({
         background: 'var(--bg-base)',
         gap: 10,
         flexWrap: 'wrap',
+        flexShrink: 0,
       }}>
         {/* Left: Title & Count */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontWeight: 600, fontSize: 12, color: 'var(--text-primary)' }}>
-            Vista Geoespacial GIS
+            Vista Geoespacial
           </span>
           <span style={{
             fontSize: 10,
@@ -866,48 +926,6 @@ export default function GeoespacialPanel({
             </div>
           )}
 
-          {/* QGIS Integration Panel Trigger */}
-          <button
-            onClick={() => setShowQgisPanel(!showQgisPanel)}
-            title="Administrador de capas GIS y conexión con QGIS"
-            style={{
-              background: showQgisPanel ? 'var(--bg-active)' : 'var(--bg-card)',
-              border: `1px solid ${showQgisPanel ? 'var(--border-bright)' : 'var(--border-default)'}`,
-              color: showQgisPanel ? '#ffffff' : 'var(--text-primary)',
-              padding: '4px 10px',
-              borderRadius: 4,
-              fontSize: 11,
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.12s',
-            }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <polygon points="12 2 2 7 12 12 22 7 12 2" />
-              <polyline points="2 17 12 22 22 17" />
-              <polyline points="2 12 12 17 22 12" />
-            </svg>
-            <span>Capas QGIS</span>
-            {qgisLayers.filter((l) => l.visible).length > 0 && (
-              <span style={{
-                background: 'var(--text-primary)',
-                color: 'var(--bg-base)',
-                borderRadius: '50%',
-                width: 15,
-                height: 15,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 9.5,
-                fontWeight: 700,
-              }}>
-                {qgisLayers.filter((l) => l.visible).length}
-              </span>
-            )}
-          </button>
-
           {/* Project List Drawer Toggle */}
           <button
             onClick={() => setShowProjectList(!showProjectList)}
@@ -930,8 +948,8 @@ export default function GeoespacialPanel({
       </div>
 
       {/* ─── Main Map Canvas Area ────────────────────────────────────────────── */}
-      <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
-        <div ref={mapContainerRef} style={{ width: '100%', height: '100%', minHeight: 400 }} />
+      <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%', minHeight: 0, overflow: 'hidden' }}>
+        <div ref={mapContainerRef} style={{ width: '100%', height: '100%', minHeight: 0 }} />
 
         {/* Loading Overlay */}
         {loading && (
@@ -1004,7 +1022,7 @@ export default function GeoespacialPanel({
         {/* ─── Floating Legend (Dynamic according to Map Mode) ──────────────── */}
         <div style={{
           position: 'absolute',
-          bottom: 24,
+          bottom: 12,
           left: 14,
           zIndex: 800,
           background: 'var(--bg-panel)',
@@ -1015,6 +1033,8 @@ export default function GeoespacialPanel({
           boxShadow: 'var(--shadow-panel)',
           fontSize: 10.5,
           minWidth: 170,
+          maxHeight: 'calc(100% - 60px)',
+          overflowY: 'auto',
         }}>
           {/* Mode: Heatmap Legend */}
           {mapMode === 'heatmap' && (
@@ -1066,7 +1086,7 @@ export default function GeoespacialPanel({
               <div style={{ fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 6, textTransform: 'uppercase', fontSize: 9.5, letterSpacing: 0.5 }}>
                 {colorMetric === 'meses_stock' && 'Meses de Stock (Riesgo)'}
                 {colorMetric === 'ritmo_venta' && 'Ritmo de Venta (und/mes)'}
-                {colorMetric === 'etapa' && 'Etapas de Construcción'}
+                {colorMetric === 'etapa' && 'Etapas de Obra'}
               </div>
 
               {colorMetric === 'meses_stock' && (
@@ -1112,23 +1132,13 @@ export default function GeoespacialPanel({
               )}
 
               {colorMetric === 'etapa' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: 2, background: '#71717a' }} />
-                    <span style={{ color: 'var(--text-primary)' }}>Obra bruta / fina</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: 2, background: '#a1a1aa' }} />
-                    <span style={{ color: 'var(--text-primary)' }}>En Pozo</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: 2, background: '#d4d4d8' }} />
-                    <span style={{ color: 'var(--text-primary)' }}>Preventa temprana</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: 2, background: '#10b981' }} />
-                    <span style={{ color: 'var(--text-primary)' }}>Terminada / Entrega</span>
-                  </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {ETAPAS_CITRINO.map(({ label, color }) => (
+                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
+                      <span style={{ color: 'var(--text-primary)', fontSize: 10.5 }}>{label}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

@@ -9,7 +9,7 @@ import GeoespacialPanel from './components/GeoespacialPanel'
 import WorkspaceOSPanel from './components/WorkspaceOSPanel'
 import AuthScreen from './components/AuthScreen'
 import LeftAnalyticsBar from './components/LeftAnalyticsBar'
-import SubHeader from './components/SubHeader'
+import SubHeader, { type Tab } from './components/SubHeader'
 import FilterBar from './components/FilterBar'
 import HipotecarioPanel from './components/HipotecarioPanel'
 import ChapterDossierPanel from './components/ChapterDossierPanel'
@@ -54,7 +54,6 @@ const IconAnalysis = () => (
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 type Ciudad = 'SCZ' | 'LPZ' | 'CBB' | 'ALL'
-type Tab = 'mercado' | 'tipologias' | 'proyectos' | 'geoespacial' | 'hipotecario' | 'chapter_dossier'
 
 const CIUDAD_LABELS: Record<Ciudad, string> = {
   SCZ: 'Santa Cruz',
@@ -176,7 +175,20 @@ export default function App() {
   const handleSelectChapter = (chapterId: string, _sectionId: string) => {
     setActiveChapter(chapterId)
     if (chapterId === '1.1' || chapterId === '1.2') {
-      setActiveTab('proyectos')
+      const chapter1Tabs: Tab[] = [
+        'proyectos',
+        'tipologias',
+        'geoespacial',
+        'resumen_general',
+        'stock_unidades',
+        'stock_usd',
+        'ritmo_ventas',
+        'meses_stock',
+        'analisis_producto',
+      ]
+      if (!chapter1Tabs.includes(activeTab)) {
+        setActiveTab('proyectos')
+      }
     } else if (chapterId === '5.1') {
       setActiveTab('geoespacial')
     } else {
@@ -186,7 +198,15 @@ export default function App() {
 
   const handleSubTabChange = (t: Tab) => {
     setActiveTab(t)
-    if (t === 'proyectos') {
+    if (
+      t === 'proyectos' ||
+      t === 'resumen_general' ||
+      t === 'stock_unidades' ||
+      t === 'stock_usd' ||
+      t === 'ritmo_ventas' ||
+      t === 'meses_stock' ||
+      t === 'analisis_producto'
+    ) {
       setActiveChapter('1.1')
     } else if (t === 'tipologias') {
       setActiveChapter('3.1')
@@ -466,6 +486,83 @@ export default function App() {
                   <WorkspacePanel
                     ciudad={ciudad}
                     zonaFilter={zonaFilter}
+                    etapaFilter={etapaFilterArr}
+                    selectedIndicador={selectedIndicador}
+                    onSelectIndicador={setSelectedIndicador}
+                    theme={theme}
+                  />
+                )}
+
+                {activeTab === 'resumen_general' && (
+                  <WorkspacePanel
+                    key="resumen_general"
+                    ciudad={ciudad}
+                    zonaFilter={zonaFilter}
+                    etapaFilter={etapaFilterArr}
+                    selectedIndicador={selectedIndicador}
+                    onSelectIndicador={setSelectedIndicador}
+                    initialMetric="stock_zona"
+                    kpiMode="resumen_general"
+                    theme={theme}
+                  />
+                )}
+
+                {activeTab === 'stock_unidades' && (
+                  <WorkspacePanel
+                    key="stock_unidades"
+                    ciudad={ciudad}
+                    zonaFilter={zonaFilter}
+                    etapaFilter={etapaFilterArr}
+                    selectedIndicador={selectedIndicador}
+                    onSelectIndicador={setSelectedIndicador}
+                    initialMetric="stock_zona"
+                    kpiMode="stock_unidades"
+                    theme={theme}
+                  />
+                )}
+
+                {activeTab === 'stock_usd' && (
+                  <WorkspacePanel
+                    key="stock_usd"
+                    ciudad={ciudad}
+                    zonaFilter={zonaFilter}
+                    etapaFilter={etapaFilterArr}
+                    selectedIndicador={selectedIndicador}
+                    onSelectIndicador={setSelectedIndicador}
+                    initialMetric="usd_zona"
+                    theme={theme}
+                  />
+                )}
+
+                {activeTab === 'ritmo_ventas' && (
+                  <WorkspacePanel
+                    key="ritmo_ventas"
+                    ciudad={ciudad}
+                    zonaFilter={zonaFilter}
+                    etapaFilter={etapaFilterArr}
+                    selectedIndicador={selectedIndicador}
+                    onSelectIndicador={setSelectedIndicador}
+                    initialMetric="ritmo_zona"
+                    theme={theme}
+                  />
+                )}
+
+                {activeTab === 'meses_stock' && (
+                  <WorkspacePanel
+                    key="meses_stock"
+                    ciudad={ciudad}
+                    zonaFilter={zonaFilter}
+                    etapaFilter={etapaFilterArr}
+                    selectedIndicador={selectedIndicador}
+                    onSelectIndicador={setSelectedIndicador}
+                    initialMetric="meses_zona"
+                    theme={theme}
+                  />
+                )}
+
+                {activeTab === 'analisis_producto' && (
+                  <TipologiasPanel
+                    ciudad={ciudad}
                     etapaFilter={etapaFilterArr}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}

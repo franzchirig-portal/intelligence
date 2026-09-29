@@ -22,17 +22,17 @@
   --bg-card:         #252526;
 
   /* Borders — Antigravity IDE Exact Tokens */
-  --border-subtle:   #2b2d30;
-  --border-default:  #333842;
-  --border-bright:   #444c56;
-  --border-accent:   #444c56;
+  --border-subtle:   #2e3440;
+  --border-default:  #3b4252;
+  --border-bright:   #4c566a;
+  --border-accent:   #4c566a;
 
   /* Text */
-  --text-primary:    #f3f3f3;
-  --text-secondary:  #9d9d9d;
-  --text-muted:      #6e6e6e;
-  --text-accent:     #f3f3f3;
-  --text-citrino:    #f3f3f3;
+  --text-primary:    #f8fafc;
+  --text-secondary:  #cbd5e1;
+  --text-muted:      #94a3b8;
+  --text-accent:     #f8fafc;
+  --text-citrino:    #f8fafc;
   --text-success:    #10b981;
   --text-warning:    #f59e0b;
   --text-danger:     #f43f5e;
@@ -96,7 +96,7 @@
   /* Text */
   --text-primary:    #0f172a;
   --text-secondary:  #334155;
-  --text-muted:      #64748b;
+  --text-muted:      #475569;
   --text-accent:     #0f172a;
   --text-citrino:    #0f172a;
   --text-success:    #059669;

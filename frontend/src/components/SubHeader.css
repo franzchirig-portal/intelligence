@@ -1,23 +1,40 @@
 /* ─── Sub Header — Azul Institucional #002857 ────────────────────────────── */
 .sub-header {
-  height: 36px;
-  min-height: 36px;
+  height: 38px;
+  min-height: 38px;
   background: #002857;
   display: flex;
   align-items: stretch;
-  padding: 0;
+  padding: 0 4px;
   flex-shrink: 0;
   /* Subtle depth shadow */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   z-index: 99;
   position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.sub-header::-webkit-scrollbar {
+  height: 3px;
+}
+
+.sub-header::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sub-header::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 2px;
 }
 
 .sub-header-tabs {
   display: flex;
   align-items: stretch;
   height: 100%;
-  gap: 0;
+  gap: 2px;
 }
 
 .sub-header-tab {
@@ -28,7 +45,7 @@
   font-family: inherit;
   font-size: 12px;
   font-weight: 500;
-  padding: 0 18px;
+  padding: 0 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -37,6 +54,23 @@
   transition: color 0.14s, background 0.14s;
   letter-spacing: 0.01em;
   outline: none;
+  flex-shrink: 0;
+}
+
+.sub-header-tab-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sub-header-tab-label {
+  display: inline-block;
+}
+
+.sub-header-tab-unit {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.82;
 }
 
 .sub-header-tab:hover {
@@ -47,7 +81,11 @@
 .sub-header-tab.active {
   color: #ffffff;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.sub-header-tab.active .sub-header-tab-unit {
+  opacity: 1;
 }
 
 /* Active indicator: bottom border */
@@ -57,7 +95,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 2.5px;
   background: #ffffff;
   border-radius: 2px 2px 0 0;
 }
@@ -71,3 +109,4 @@
 [data-theme="light"] .sub-header {
   box-shadow: 0 2px 6px rgba(21, 101, 192, 0.3);
 }
+
