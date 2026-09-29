@@ -1,0 +1,337 @@
+/* ─── Responsive / Móvil ─────────────────────────────────────────────────────
+   Todo lo específico de pantallas pequeñas vive aquí. Los paneles usan muchos
+   estilos inline, por eso algunas reglas necesitan !important y selectores
+   [style*=…] acotados a .workspace. */
+
+.mobile-only,
+.mobile-backdrop,
+.mobile-drawer-actions {
+  display: none;
+}
+
+.mobile-drawer {
+  display: contents;
+}
+
+/* ─── Tablet y móvil: capítulos como drawer ──────────────────────────────── */
+@media (max-width: 1024px) {
+  .mobile-only {
+    display: inline-flex;
+  }
+
+  .mobile-icon-btn {
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 900;
+  }
+
+  /* Drawer a la derecha (mismo lado que el botón ☰) */
+  .mobile-drawer {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    width: min(320px, 85vw);
+    background: #0a0f1a;
+    overflow-y: auto;
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+  }
+  .mobile-sheet-menu .mobile-drawer {
+    transform: translateX(0);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.4);
+  }
+  .mobile-drawer .left-analytics-bar {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 0 auto;
+  }
+  .mobile-menu-btn {
+    margin-left: 4px;
+  }
+  /* El ☰ reemplaza a la flecha de contraer del sidebar */
+  .mobile-drawer .lab-collapse-btn {
+    display: none !important;
+  }
+  /* Drawer y fondo debajo de la barra superior: el ✕ queda visible */
+  .mobile-sheet-menu .mobile-backdrop,
+  .mobile-drawer {
+    top: 35px;
+  }
+
+  .chat-aside,
+  .app-panels-row > .panel-right {
+    position: fixed !important;
+    inset: 35px 0 0 0;
+    height: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    z-index: 950;
+  }
+}
+
+/* ─── Móvil ──────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .app-shell {
+    height: 100dvh;
+  }
+
+  /* Topbar: logo + hamburguesa + ciudades; el resto se compacta */
+  .chat-aside,
+  .app-panels-row > .panel-right {
+    top: 81px;
+  }
+  .mobile-sheet-menu .mobile-backdrop,
+  .mobile-drawer {
+    top: 44px;
+  }
+  .ide-topbar {
+    height: auto;
+    min-height: 44px;
+    flex-wrap: wrap;
+  }
+  /* Fila 1: logo · perfil · ☰   —   Fila 2: ciudades */
+  .ide-topbar-left {
+    height: 44px;
+    order: 0;
+  }
+  .ide-topbar-right {
+    display: contents;
+  }
+  .ide-topbar .topbar-profile-wrapper {
+    order: 1;
+    margin-left: auto;
+    align-self: center;
+  }
+  .ide-topbar .mobile-menu-btn {
+    order: 2;
+    height: 44px;
+  }
+  .ide-topbar .topbar-cities-wrapper {
+    order: 3;
+    flex: 1 0 100%;
+    height: 36px;
+    padding: 0 12px;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .ide-topbar .topbar-periodo-wrapper,
+  .ide-topbar .topbar-text-btn,
+  .topbar-divider,
+  .topbar-moneda-wrapper {
+    display: none !important;
+  }
+
+  /* Footer: una línea compacta con conexión + vista/proyecto activo */
+  .status-bar {
+    height: auto;
+    min-height: 24px;
+    padding: 4px 12px calc(4px + env(safe-area-inset-bottom));
+    gap: 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .status-bar > span:nth-of-type(3),
+  .status-bar > span:nth-of-type(4),
+  .status-bar .status-right {
+    display: none;
+  }
+  .status-bar > span:last-of-type {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  /* Acciones dentro del drawer */
+  .mobile-drawer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .mobile-drawer-actions .topbar-periodo-wrapper {
+    justify-content: space-between;
+  }
+  .mobile-drawer-actions .topbar-periodo-select {
+    min-height: 36px;
+    min-width: 150px;
+  }
+  .mobile-drawer-btn {
+    min-height: 40px;
+    padding: 0 12px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #ffffff;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .mobile-drawer-btn.active {
+    border-color: #ff7a00;
+    color: #ff7a00;
+  }
+  .citrino-header-logo-img {
+    max-height: 22px;
+    width: auto;
+  }
+
+  /* Sub-header: pestañas en tira desplazable izq/der */
+  .sub-header {
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+    /* Barra de desplazamiento visible como pista de que hay más pestañas */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 122, 0, 0.6) transparent;
+  }
+  .sub-header::-webkit-scrollbar-thumb {
+    background: rgba(255, 122, 0, 0.6);
+  }
+  .sub-header-tabs {
+    flex-wrap: nowrap;
+    padding: 0 12px;
+  }
+  .sub-header-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+    scroll-snap-align: center;
+  }
+
+  /* Workspace: una sola columna con scroll vertical */
+  .workspace {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-direction: column;
+    -webkit-overflow-scrolling: touch;
+  }
+  .workspace > * {
+    min-width: 0;
+    width: 100% !important;
+    flex: none !important;
+    overflow: visible !important;
+  }
+  .workspace .panel,
+  .workspace [class*="panel"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Estilos inline: rejillas a 1 columna y anchos fijos contenidos */
+  .workspace [style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+  .workspace [style*="repeat(4"],
+  .workspace [style*="repeat(5"],
+  .workspace [style*="repeat(3"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .workspace [style*="width:"],
+  .workspace [style*="min-width"] {
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  .workspace [style*="display: flex"]:not([style*="column"]) {
+    flex-wrap: wrap;
+  }
+
+  /* Tablas: scroll horizontal dentro de su contenedor */
+  .workspace table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Gráficos y mapas */
+  .workspace .echarts-for-react {
+    width: 100% !important;
+    min-height: 240px;
+  }
+  .workspace .leaflet-container,
+  .workspace .maplibregl-map,
+  .workspace .mapboxgl-map {
+    height: 60vh !important;
+    min-height: 320px;
+  }
+
+  /* Filtros: botón fijo + bottom-sheet */
+  .mobile-filters-btn {
+    position: fixed;
+    right: 16px;
+    bottom: calc(40px + env(safe-area-inset-bottom));
+    z-index: 800;
+    align-items: center;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 999px;
+    background: #ff7a00;
+    color: #ffffff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+  }
+  .filter-bar {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 75dvh;
+    overflow-y: auto;
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom)) !important;
+    border-radius: 14px 14px 0 0;
+    z-index: 1000;
+    transform: translateY(100%);
+    transition: transform 0.2s ease;
+  }
+  .mobile-sheet-filters .filter-bar {
+    transform: translateY(0);
+  }
+  .mobile-sheet-filters .mobile-filters-btn {
+    display: none;
+  }
+  .filter-bar-selects {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .filter-select-wrapper {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .filter-select {
+    width: 100%;
+    max-width: none;
+    min-height: 40px;
+    font-size: 14px;
+  }
+}

@@ -18,6 +18,7 @@ import { fetchPeriodos } from './lib/supabase'
 import type { IndicadorFull } from './lib/supabase'
 import citrinoLogoLight from './assets/citrino-full-logo-cropped.png'
 import citrinoLogoDark from './assets/citrino-full-logo-dark.png'
+import './mobile.css'
 
 /* ─── Icons ──────────────────────────────────────────────────────────────── */
 const IconUser = () => (
@@ -99,6 +100,8 @@ export default function App() {
 
   // Profile dropdown
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  // Móvil: drawer de capítulos o bottom-sheet de filtros
+  const [mobileSheet, setMobileSheet] = useState<'none' | 'menu' | 'filters'>('none')
   const profileMenuRef = useRef<HTMLDivElement>(null)
 
   // ── Effects ─────────────────────────────────────────────────────────────
@@ -174,6 +177,7 @@ export default function App() {
 
   const handleSelectChapter = (chapterId: string, _sectionId: string) => {
     setActiveChapter(chapterId)
+    setMobileSheet('none')
     if (chapterId === '1.1' || chapterId === '1.2') {
       const chapter1Tabs: Tab[] = [
         'proyectos',
@@ -198,6 +202,7 @@ export default function App() {
 
   const handleSubTabChange = (t: Tab) => {
     setActiveTab(t)
+    setMobileSheet('none')
     if (
       t === 'proyectos' ||
       t === 'resumen_general' ||
@@ -222,6 +227,24 @@ export default function App() {
     return `${dd}/${m}/${y}`
   }
 
+  // Selector de periodo: en la topbar (escritorio) y en el menú móvil
+  const periodoControl = (
+    <div className="topbar-periodo-wrapper">
+      <label className="topbar-filter-label">Periodo</label>
+      <select
+        className="topbar-periodo-select"
+        value={periodoFilter}
+        onChange={(e) => setPeriodoFilter(e.target.value)}
+        aria-label="Filtrar por período"
+      >
+        <option value="ALL">Todos</option>
+        {periodos.map((p) => (
+          <option key={p} value={p}>{formatPeriodo(p)}</option>
+        ))}
+      </select>
+    </div>
+  )
+
   // ── Loading & Auth guards ─────────────────────────────────────────────────
   if (authLoading) {
     return (
@@ -242,7 +265,10 @@ export default function App() {
   const etapaFilterArr = etapaFilter !== 'ALL' ? [etapaFilter] : selectedEtapas
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell mobile-sheet-${mobileSheet}`}>
+      {mobileSheet !== 'none' && (
+        <div className="mobile-backdrop" onClick={() => setMobileSheet('none')} aria-hidden="true" />
+      )}
 
       {/* ── Header 1: Principal (HeaderSidebar) ─────────────────────────── */}
       <header className="ide-topbar">
@@ -288,20 +314,7 @@ export default function App() {
           <div className="topbar-divider" />
 
           {/* Periodo selector */}
-          <div className="topbar-periodo-wrapper">
-            <label className="topbar-filter-label">Periodo</label>
-            <select
-              className="topbar-periodo-select"
-              value={periodoFilter}
-              onChange={(e) => setPeriodoFilter(e.target.value)}
-              aria-label="Filtrar por período"
-            >
-              <option value="ALL">Todos</option>
-              {periodos.map((p) => (
-                <option key={p} value={p}>{formatPeriodo(p)}</option>
-              ))}
-            </select>
-          </div>
+          {periodoControl}
 
           {/* Moneda toggle (sin recuadros) */}
           <div className="topbar-moneda-wrapper">
@@ -448,15 +461,44 @@ export default function App() {
             )}
           </div>
         </div>
+
+        <button
+          type="button"
+          className="mobile-only mobile-icon-btn mobile-menu-btn"
+          aria-label={mobileSheet === 'menu' ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={mobileSheet === 'menu'}
+          onClick={() => setMobileSheet((m) => (m === 'menu' ? 'none' : 'menu'))}
+        >
+          {mobileSheet === 'menu' ? '✕' : '☰'}
+        </button>
       </header>
 
       {/* ── Body: Analytics Bar + Main Workspace ────────────────────────── */}
       <div className="app-body">
         {/* Left Analytics Bar (se extiende hasta el topbar principal con capítulos desplegables) */}
-        <LeftAnalyticsBar
-          activeChapter={activeChapter}
-          onSelectChapter={handleSelectChapter}
-        />
+        <div className="mobile-drawer">
+          <div className="mobile-drawer-actions">
+            {periodoControl}
+            <button
+              type="button"
+              className={`mobile-drawer-btn ${analysisOpen ? 'active' : ''}`}
+              onClick={() => { setAnalysisOpen((v) => !v); setMobileSheet('none') }}
+            >
+              Análisis y Diagnóstico
+            </button>
+            <button
+              type="button"
+              className={`mobile-drawer-btn ${chatOpen ? 'active' : ''}`}
+              onClick={() => { setChatOpen((v) => !v); setMobileSheet('none') }}
+            >
+              Asistente AI
+            </button>
+          </div>
+          <LeftAnalyticsBar
+            activeChapter={activeChapter}
+            onSelectChapter={handleSelectChapter}
+          />
+        </div>
 
         {/* Contenedor derecho: Fila de Paneles Analíticos + FilterBar delimitado con el Sidebar Izquierdo */}
         <div className="app-workspace-wrapper">
@@ -620,6 +662,13 @@ export default function App() {
           </div>
 
           {/* ── Footer Secundario: Filter Bar (delimita con el sidebar izquierdo y cubre la base de chat, main y análisis) ── */}
+          <button
+            type="button"
+            className="mobile-only mobile-filters-btn"
+            onClick={() => setMobileSheet((m) => (m === 'filters' ? 'none' : 'filters'))}
+          >
+            Filtros
+          </button>
           <FilterBar
             ciudad={ciudad}
             zonaFilter={zonaFilter}
