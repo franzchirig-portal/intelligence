@@ -35,6 +35,9 @@ export interface IndicadorCenso {
   und_vendidas: number | null
   und_por_vender: number | null
   pct_vendido: number | null
+  pct_por_vender?: number | null
+  stock_vendido?: number | null
+  stock_x_vender?: number | null
   ritmo_venta: number | null
   meses_stock: number | null
   stock_total: number | null

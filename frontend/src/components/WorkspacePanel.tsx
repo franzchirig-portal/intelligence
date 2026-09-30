@@ -15,7 +15,7 @@ interface Props {
   selectedIndicador?: IndicadorFull | null
   onSelectIndicador?: (ind: IndicadorFull | null) => void
   initialMetric?: MetricType
-  kpiMode?: 'default' | 'stock_unidades' | 'resumen_general'
+  kpiMode?: 'default' | 'stock_unidades' | 'stock_usd' | 'resumen_general'
   theme?: 'dark' | 'light'
 }
 
@@ -92,6 +92,8 @@ export default function WorkspacePanel({
   const [showPorVender, setShowPorVender] = useState(true)
   const isResumenGeneral = kpiMode === 'resumen_general'
   const isStockUnidades = kpiMode === 'stock_unidades'
+  const isStockUSD = kpiMode === 'stock_usd'
+  const isStockMode = isStockUnidades || isStockUSD
 
   useEffect(() => {
     setLoading(true)
@@ -144,26 +146,63 @@ export default function WorkspacePanel({
   const avgPorVenderPorProy = filteredProjects.length > 0 ? totalStockUnd / filteredProjects.length : 0
   const avgPorVenderPorProyInt = Math.round(avgPorVenderPorProy)
 
+  // USD Global aggregate metrics (Tarea 6: Stock en Venta USD usando stock_x_vender y stock_vendido)
+  const totalStockXVenderUSD = filteredProjects.reduce((s, p) => s + (p.stock_x_vender ?? 0), 0)
+  const totalStockVendidoUSD = filteredProjects.reduce((s, p) => s + (p.stock_vendido ?? 0), 0)
+  const totalInicialUSD = filteredProjects.reduce((s, p) => {
+    const t = p.stock_total ?? 0
+    return s + (t > 0 ? t : (p.stock_vendido ?? 0) + (p.stock_x_vender ?? 0))
+  }, 0)
+
+  const pctVendidoUSD = totalInicialUSD > 0 ? (totalStockVendidoUSD / totalInicialUSD) * 100 : 0
+  const pctPorVenderUSD = totalInicialUSD > 0 ? (totalStockXVenderUSD / totalInicialUSD) * 100 : 0
+
+  const avgVendidoPorProyUSD = filteredProjects.length > 0 ? totalStockVendidoUSD / filteredProjects.length : 0
+  const avgPorVenderPorProyUSD = filteredProjects.length > 0 ? totalStockXVenderUSD / filteredProjects.length : 0
+  const avgStockInicialUSD = filteredProjects.length > 0 ? Math.round(totalInicialUSD / filteredProjects.length) : 0
+
   const totalRitmoMensual = filteredProjects.reduce((s, p) => s + (p.ritmo_venta ?? 0), 0)
   const avgRitmoPorProyecto = filteredProjects.length > 0 ? totalRitmoMensual / filteredProjects.length : 0
   const avgMesesStock = totalRitmoMensual > 0 ? totalStockUnd / totalRitmoMensual : 0
 
-  // Tarea 5: Promedio Stock Inicial & Agrupación ZONAS vs SUBZONAS (desde oferta_proyectos)
+  // Promedio Stock Inicial & Agrupación ZONAS vs SUBZONAS (desde oferta_proyectos)
   const avgStockInicial = filteredProjects.length > 0 ? Math.round(totalInicial / filteredProjects.length) : 0
-  const isBySubzona = isStockUnidades && metricType === 'stock_subzona'
+  const isBySubzona = isStockMode && metricType === 'stock_subzona'
 
   // Agrupación por ZONAS de oferta_proyectos
   const zonaStockMetrics = useMemo(() => {
-    const groups = new Map<string, { name: string; totalStockUnd: number; totalVendidas: number; totalInicial: number; totalProyectos: number }>()
+    const groups = new Map<string, {
+      name: string
+      totalStockUnd: number
+      totalVendidas: number
+      totalInicial: number
+      totalStockXVenderUSD: number
+      totalStockVendidoUSD: number
+      totalInicialUSD: number
+      totalProyectos: number
+    }>()
     filteredProjects.forEach((p) => {
       const key = (p.ZONAS || 'Sin Zona').trim()
       if (!groups.has(key)) {
-        groups.set(key, { name: key, totalStockUnd: 0, totalVendidas: 0, totalInicial: 0, totalProyectos: 0 })
+        groups.set(key, {
+          name: key,
+          totalStockUnd: 0,
+          totalVendidas: 0,
+          totalInicial: 0,
+          totalStockXVenderUSD: 0,
+          totalStockVendidoUSD: 0,
+          totalInicialUSD: 0,
+          totalProyectos: 0,
+        })
       }
       const g = groups.get(key)!
       g.totalStockUnd += (p.und_por_vender ?? 0)
       g.totalVendidas += (p.und_vendidas ?? 0)
       g.totalInicial += (p.und_totales ?? 0)
+      g.totalStockXVenderUSD += (p.stock_x_vender ?? 0)
+      g.totalStockVendidoUSD += (p.stock_vendido ?? 0)
+      const t = p.stock_total ?? 0
+      g.totalInicialUSD += (t > 0 ? t : (p.stock_vendido ?? 0) + (p.stock_x_vender ?? 0))
       g.totalProyectos += 1
     })
     return Array.from(groups.values())
@@ -171,16 +210,38 @@ export default function WorkspacePanel({
 
   // Agrupación por SUBZONAS de oferta_proyectos
   const subzonaStockMetrics = useMemo(() => {
-    const groups = new Map<string, { name: string; totalStockUnd: number; totalVendidas: number; totalInicial: number; totalProyectos: number }>()
+    const groups = new Map<string, {
+      name: string
+      totalStockUnd: number
+      totalVendidas: number
+      totalInicial: number
+      totalStockXVenderUSD: number
+      totalStockVendidoUSD: number
+      totalInicialUSD: number
+      totalProyectos: number
+    }>()
     filteredProjects.forEach((p) => {
       const key = (p.SUBZONAS || 'Sin Subzona').trim()
       if (!groups.has(key)) {
-        groups.set(key, { name: key, totalStockUnd: 0, totalVendidas: 0, totalInicial: 0, totalProyectos: 0 })
+        groups.set(key, {
+          name: key,
+          totalStockUnd: 0,
+          totalVendidas: 0,
+          totalInicial: 0,
+          totalStockXVenderUSD: 0,
+          totalStockVendidoUSD: 0,
+          totalInicialUSD: 0,
+          totalProyectos: 0,
+        })
       }
       const g = groups.get(key)!
       g.totalStockUnd += (p.und_por_vender ?? 0)
       g.totalVendidas += (p.und_vendidas ?? 0)
       g.totalInicial += (p.und_totales ?? 0)
+      g.totalStockXVenderUSD += (p.stock_x_vender ?? 0)
+      g.totalStockVendidoUSD += (p.stock_vendido ?? 0)
+      const t = p.stock_total ?? 0
+      g.totalInicialUSD += (t > 0 ? t : (p.stock_vendido ?? 0) + (p.stock_x_vender ?? 0))
       g.totalProyectos += 1
     })
     return Array.from(groups.values())
@@ -248,6 +309,29 @@ export default function WorkspacePanel({
   const deltaAvgPorVenderPct = prevAvgPorVender > 0 ? ((avgPorVenderPorProy - prevAvgPorVender) / prevAvgPorVender) * 100 : null
   const deltaPctPorVender = pctPorVender - prevPctPorVender
 
+  // Previous snapshot metrics for Stock en Ventas (USD)
+  const prevStockXVenderUSD = prevProjects.reduce((s, p) => s + (p.stock_x_vender ?? 0), 0)
+  const prevStockVendidoUSD = prevProjects.reduce((s, p) => s + (p.stock_vendido ?? 0), 0)
+  const prevStockTotalUSD = prevProjects.reduce((s, p) => {
+    const t = p.stock_total ?? 0
+    return s + (t > 0 ? t : (p.stock_vendido ?? 0) + (p.stock_x_vender ?? 0))
+  }, 0)
+
+  const prevAvgVendidoUSD = prevProjects.length > 0 ? prevStockVendidoUSD / prevProjects.length : 0
+  const prevAvgPorVenderUSD = prevProjects.length > 0 ? prevStockXVenderUSD / prevProjects.length : 0
+  const prevPctVendidoUSD = prevStockTotalUSD > 0 ? (prevStockVendidoUSD / prevStockTotalUSD) * 100 : 0
+  const prevPctPorVenderUSD = prevStockTotalUSD > 0 ? (prevStockXVenderUSD / prevStockTotalUSD) * 100 : 0
+
+  const deltaAvgVendidoUSD = avgVendidoPorProyUSD - prevAvgVendidoUSD
+  const deltaAvgVendidoUSDPct = prevAvgVendidoUSD > 0 ? (deltaAvgVendidoUSD / prevAvgVendidoUSD) * 100 : null
+
+  const deltaPctVendidoUSD = pctVendidoUSD - prevPctVendidoUSD
+
+  const deltaAvgPorVenderUSD = avgPorVenderPorProyUSD - prevAvgPorVenderUSD
+  const deltaAvgPorVenderUSDPct = prevAvgPorVenderUSD > 0 ? (deltaAvgPorVenderUSD / prevAvgPorVenderUSD) * 100 : null
+
+  const deltaPctPorVenderUSD = pctPorVenderUSD - prevPctPorVenderUSD
+
   // ─── Stage breakdowns for the 3 Pie Charts (Tarea 3) ──────────────────────
   let countPreventa = 0
   let countObraBruta = 0
@@ -308,8 +392,8 @@ export default function WorkspacePanel({
   // 1. Gráfico de Barras Laterales — Cantidad de Proyectos por Etapa (Color base: Gris Degradado #52525b-#a1a1aa)
   function getResumenEtapasBarOption() {
     const isDark = theme === 'dark'
-    // Order bottom-to-top so 'Preventa' is at the top of the horizontal bar chart
-    const stages = [...stageItems].reverse()
+    // Orden descendente (de mayor a menor de arriba hacia abajo)
+    const stages = [...stageItems].sort((a, b) => a.count - b.count)
 
     const countTextColor = isDark ? '#cbd5e1' : '#475569'
     const countTextDimmedColor = isDark ? 'rgba(148, 163, 184, 0.4)' : 'rgba(100, 116, 139, 0.4)'
@@ -570,22 +654,29 @@ export default function WorkspacePanel({
     }
   }
 
-  // ─── Tarea 5: ECharts Dual Lateral Bar Builders (Stock por Vender & Vendido) ──
-  // 1. Stock por Vender (Unidades): color="#1565c0"
+  // ─── Tarea 5 & Tarea 6: ECharts Dual Lateral Bar Builders (Stock por Vender & Vendido) ──
+  // 1. Stock por Vender (Unidades o USD): color="#1565c0"
   function getStockPorVenderBarOption() {
     const isDark = theme === 'dark'
-    const items = (isBySubzona ? subzonaStockMetrics : zonaStockMetrics)
-      .filter((g) => g.totalStockUnd > 0)
-      .sort((a, b) => b.totalStockUnd - a.totalStockUnd)
-      .slice(0, 14)
-      .reverse()
+    const sourceItems = isBySubzona ? subzonaStockMetrics : zonaStockMetrics
+    const items = isStockUSD
+      ? sourceItems
+          .filter((g) => g.totalStockXVenderUSD > 0)
+          .sort((a, b) => b.totalStockXVenderUSD - a.totalStockXVenderUSD)
+          .slice(0, 14)
+          .reverse()
+      : sourceItems
+          .filter((g) => g.totalStockUnd > 0)
+          .sort((a, b) => b.totalStockUnd - a.totalStockUnd)
+          .slice(0, 14)
+          .reverse()
 
     if (items.length === 0) {
       return {
         ...CHART_BASE,
         title: {
           show: true,
-          text: '0 unds',
+          text: isStockUSD ? '$0 USD' : '0 unds',
           subtext: 'Sin unidades en oferta disponibles',
           left: 'center',
           top: '40%',
@@ -608,13 +699,19 @@ export default function WorkspacePanel({
         textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
         formatter: (params: any) => {
           const p = params[0]
-          return `<b>${p.name}</b><br/>Stock por Vender: <b style="color:#60a5fa">${Number(p.value).toLocaleString('es-BO')} unds</b>`
+          const valFormatted = isStockUSD ? `${fmtUSD(Number(p.value))} USD` : `${Number(p.value).toLocaleString('es-BO')} unds`
+          const tagColor = isStockUSD ? '#26c6da' : '#60a5fa'
+          return `<b>${p.name}</b><br/>Stock por Vender: <b style="color:${tagColor}">${valFormatted}</b>`
         },
       },
       xAxis: {
         type: 'value',
         splitLine: { lineStyle: { color: isDark ? '#2a2e39' : '#e2e8f0' } },
-        axisLabel: { fontSize: 10, color: isDark ? '#94a3b8' : '#64748b' },
+        axisLabel: {
+          fontSize: 10,
+          color: isDark ? '#94a3b8' : '#64748b',
+          formatter: isStockUSD ? (v: number) => fmtUSD(v) : undefined,
+        },
       },
       yAxis: {
         type: 'category',
@@ -627,13 +724,13 @@ export default function WorkspacePanel({
           name: 'Stock por Vender',
           type: 'bar',
           barMaxWidth: 16,
-          data: items.map((z) => z.totalStockUnd),
+          data: items.map((z) => (isStockUSD ? z.totalStockXVenderUSD : z.totalStockUnd)),
           itemStyle: {
-            color: '#1565c0',
+            color: isStockUSD ? '#00838f' : '#1565c0',
             borderRadius: [0, 4, 4, 0],
           },
           emphasis: {
-            itemStyle: { color: '#1e88e5' },
+            itemStyle: { color: isStockUSD ? '#0097a7' : '#1e88e5' },
           },
           label: {
             show: true,
@@ -641,28 +738,38 @@ export default function WorkspacePanel({
             fontSize: 10.5,
             fontWeight: 600,
             color: isDark ? '#f1f5f9' : '#0f172a',
-            formatter: (p: any) => (p.value > 0 ? Number(p.value).toLocaleString('es-BO') : ''),
+            formatter: (p: any) => {
+              if (!p.value || p.value <= 0) return ''
+              return isStockUSD ? fmtUSD(p.value) : Number(p.value).toLocaleString('es-BO')
+            },
           },
         },
       ],
     }
   }
 
-  // 2. Stock Vendido (Unidades): color="#ef4444"
+  // 2. Stock Vendido (Unidades o USD): color="#ef4444"
   function getStockVendidoBarOption() {
     const isDark = theme === 'dark'
-    const items = (isBySubzona ? subzonaStockMetrics : zonaStockMetrics)
-      .filter((g) => g.totalVendidas > 0)
-      .sort((a, b) => b.totalVendidas - a.totalVendidas)
-      .slice(0, 14)
-      .reverse()
+    const sourceItems = isBySubzona ? subzonaStockMetrics : zonaStockMetrics
+    const items = isStockUSD
+      ? sourceItems
+          .filter((g) => g.totalStockVendidoUSD > 0)
+          .sort((a, b) => b.totalStockVendidoUSD - a.totalStockVendidoUSD)
+          .slice(0, 14)
+          .reverse()
+      : sourceItems
+          .filter((g) => g.totalVendidas > 0)
+          .sort((a, b) => b.totalVendidas - a.totalVendidas)
+          .slice(0, 14)
+          .reverse()
 
     if (items.length === 0) {
       return {
         ...CHART_BASE,
         title: {
           show: true,
-          text: '0 unds',
+          text: isStockUSD ? '$0 USD' : '0 unds',
           subtext: 'Sin unidades vendidas registradas',
           left: 'center',
           top: '40%',
@@ -685,13 +792,18 @@ export default function WorkspacePanel({
         textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
         formatter: (params: any) => {
           const p = params[0]
-          return `<b>${p.name}</b><br/>Stock Vendido: <b style="color:#f87171">${Number(p.value).toLocaleString('es-BO')} unds</b>`
+          const valFormatted = isStockUSD ? `${fmtUSD(Number(p.value))} USD` : `${Number(p.value).toLocaleString('es-BO')} unds`
+          return `<b>${p.name}</b><br/>Stock Vendido: <b style="color:#f87171">${valFormatted}</b>`
         },
       },
       xAxis: {
         type: 'value',
         splitLine: { lineStyle: { color: isDark ? '#2a2e39' : '#e2e8f0' } },
-        axisLabel: { fontSize: 10, color: isDark ? '#94a3b8' : '#64748b' },
+        axisLabel: {
+          fontSize: 10,
+          color: isDark ? '#94a3b8' : '#64748b',
+          formatter: isStockUSD ? (v: number) => fmtUSD(v) : undefined,
+        },
       },
       yAxis: {
         type: 'category',
@@ -704,7 +816,7 @@ export default function WorkspacePanel({
           name: 'Stock Vendido',
           type: 'bar',
           barMaxWidth: 16,
-          data: items.map((z) => z.totalVendidas),
+          data: items.map((z) => (isStockUSD ? z.totalStockVendidoUSD : z.totalVendidas)),
           itemStyle: {
             color: '#ef4444',
             borderRadius: [0, 4, 4, 0],
@@ -718,7 +830,10 @@ export default function WorkspacePanel({
             fontSize: 10.5,
             fontWeight: 600,
             color: isDark ? '#f1f5f9' : '#0f172a',
-            formatter: (p: any) => (p.value > 0 ? Number(p.value).toLocaleString('es-BO') : ''),
+            formatter: (p: any) => {
+              if (!p.value || p.value <= 0) return ''
+              return isStockUSD ? fmtUSD(p.value) : Number(p.value).toLocaleString('es-BO')
+            },
           },
         },
       ],
@@ -1054,7 +1169,7 @@ export default function WorkspacePanel({
     )
   }
 
-  // KPIs "Promedio Vendido por Proyecto" y "Porcentaje Vendido" (vista Stock en Unidades).
+  // KPIs "Promedio Vendido por Proyecto" y "Porcentaje Vendido" (vista Stock en Unidades o USD).
   // Se renderizan arriba en escritorio y entre las gráficas de barras en móvil.
   const kpisVendido = (
     <>
@@ -1067,23 +1182,41 @@ export default function WorkspacePanel({
         boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
       }}>
         <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
-          {avgVendidasPorProyInt.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>und/proy</span>
+          {isStockUSD ? fmtUSD(avgVendidoPorProyUSD) : avgVendidasPorProyInt.toLocaleString('es-BO')}{' '}
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
+            {isStockUSD ? 'USD/proy' : 'und/proy'}
+          </span>
         </div>
         <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
           Promedio Vendido por Proyecto
         </div>
         <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-          {prevSnapshotDate && prevAvgVendidas > 0 ? (
-            <>
-              <span className={deltaAvgVendidas >= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                {deltaAvgVendidas >= 0 ? `▲ +${deltaAvgVendidasPct != null ? deltaAvgVendidasPct.toFixed(1) : deltaAvgVendidas}%` : `▼ ${deltaAvgVendidasPct != null ? deltaAvgVendidasPct.toFixed(1) : deltaAvgVendidas}%`}
+          {isStockUSD ? (
+            prevSnapshotDate && prevAvgVendidoUSD > 0 ? (
+              <>
+                <span className={deltaAvgVendidoUSD >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                  {deltaAvgVendidoUSD >= 0 ? `▲ +${deltaAvgVendidoUSDPct != null ? deltaAvgVendidoUSDPct.toFixed(1) : deltaAvgVendidoUSD}%` : `▼ ${deltaAvgVendidoUSDPct != null ? deltaAvgVendidoUSDPct.toFixed(1) : deltaAvgVendidoUSD}%`}
+                </span>
+                <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {fmtUSD(totalStockVendidoUSD)} vendidos tot.</span>
+              </>
+            ) : (
+              <span style={{ color: 'var(--text-muted)' }}>
+                Total vendido: <strong style={{ color: 'var(--accent-emerald)' }}>{fmtUSD(totalStockVendidoUSD)} USD</strong>
               </span>
-              <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalVendidas.toLocaleString('es-BO')} vendidas tot.</span>
-            </>
+            )
           ) : (
-            <span style={{ color: 'var(--text-muted)' }}>
-              Total vendidas: <strong style={{ color: 'var(--accent-emerald)' }}>{totalVendidas.toLocaleString('es-BO')} unds</strong>
-            </span>
+            prevSnapshotDate && prevAvgVendidas > 0 ? (
+              <>
+                <span className={deltaAvgVendidas >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                  {deltaAvgVendidas >= 0 ? `▲ +${deltaAvgVendidasPct != null ? deltaAvgVendidasPct.toFixed(1) : deltaAvgVendidas}%` : `▼ ${deltaAvgVendidasPct != null ? deltaAvgVendidasPct.toFixed(1) : deltaAvgVendidas}%`}
+                </span>
+                <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalVendidas.toLocaleString('es-BO')} vendidas tot.</span>
+              </>
+            ) : (
+              <span style={{ color: 'var(--text-muted)' }}>
+                Total vendidas: <strong style={{ color: 'var(--accent-emerald)' }}>{totalVendidas.toLocaleString('es-BO')} unds</strong>
+              </span>
+            )
           )}
         </div>
       </div>
@@ -1097,23 +1230,38 @@ export default function WorkspacePanel({
         boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
       }}>
         <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
-          {pctVendido.toFixed(1)}%
+          {isStockUSD ? `${pctVendidoUSD.toFixed(1)}%` : `${pctVendido.toFixed(1)}%`}
         </div>
         <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
           Porcentaje Vendido
         </div>
         <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-          {prevSnapshotDate && prevPctVendido > 0 ? (
-            <>
-              <span className={deltaPctVendido >= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                {deltaPctVendido >= 0 ? `▲ +${deltaPctVendido.toFixed(1)}%` : `▼ ${deltaPctVendido.toFixed(1)}%`}
+          {isStockUSD ? (
+            prevSnapshotDate && prevPctVendidoUSD > 0 ? (
+              <>
+                <span className={deltaPctVendidoUSD >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                  {deltaPctVendidoUSD >= 0 ? `▲ +${deltaPctVendidoUSD.toFixed(1)}%` : `▼ ${deltaPctVendidoUSD.toFixed(1)}%`}
+                </span>
+                <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {fmtUSD(totalStockXVenderUSD)} por vender</span>
+              </>
+            ) : (
+              <span style={{ color: 'var(--text-muted)' }}>
+                Por vender: <strong style={{ color: 'var(--citrino-teal-light)' }}>{fmtUSD(totalStockXVenderUSD)} USD</strong>
               </span>
-              <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} por vender</span>
-            </>
+            )
           ) : (
-            <span style={{ color: 'var(--text-muted)' }}>
-              Por vender: <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
-            </span>
+            prevSnapshotDate && prevPctVendido > 0 ? (
+              <>
+                <span className={deltaPctVendido >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                  {deltaPctVendido >= 0 ? `▲ +${deltaPctVendido.toFixed(1)}%` : `▼ ${deltaPctVendido.toFixed(1)}%`}
+                </span>
+                <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} por vender</span>
+              </>
+            ) : (
+              <span style={{ color: 'var(--text-muted)' }}>
+                Por vender: <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
+              </span>
+            )
           )}
         </div>
       </div>
@@ -1134,7 +1282,7 @@ export default function WorkspacePanel({
           Datos de: Censos Inmobiliarios 2025 - 2026 · {ciudad === 'ALL' ? 'Bolivia' : ciudad}
         </div>
 
-        {/* Interactive KPI Cards (3 cards for resumen_general, 4 cards for default) */}
+        {/* Interactive KPI Cards (3 cards for resumen_general, 4 cards for stock_unidades / stock_usd, 4 cards for default) */}
         {isResumenGeneral ? (
           <div style={{
             display: 'grid',
@@ -1247,7 +1395,7 @@ export default function WorkspacePanel({
               </div>
             </div>
           </div>
-        ) : isStockUnidades ? (
+        ) : (isStockUnidades || isStockUSD) ? (
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
@@ -1267,23 +1415,41 @@ export default function WorkspacePanel({
               boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
             }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: -0.5 }}>
-                {avgPorVenderPorProyInt.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>und/proy</span>
+                {isStockUSD ? fmtUSD(avgPorVenderPorProyUSD) : avgPorVenderPorProyInt.toLocaleString('es-BO')}{' '}
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
+                  {isStockUSD ? 'USD/proy' : 'und/proy'}
+                </span>
               </div>
               <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
                 Promedio por Vender por Proyecto
               </div>
               <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                {prevSnapshotDate && prevAvgPorVender > 0 ? (
-                  <>
-                    <span className={deltaAvgPorVender <= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                      {deltaAvgPorVender >= 0 ? `▲ +${deltaAvgPorVenderPct != null ? deltaAvgPorVenderPct.toFixed(1) : deltaAvgPorVender}%` : `▼ ${deltaAvgPorVenderPct != null ? deltaAvgPorVenderPct.toFixed(1) : deltaAvgPorVender}%`}
+                {isStockUSD ? (
+                  prevSnapshotDate && prevAvgPorVenderUSD > 0 ? (
+                    <>
+                      <span className={deltaAvgPorVenderUSD <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                        {deltaAvgPorVenderUSD >= 0 ? `▲ +${deltaAvgPorVenderUSDPct != null ? deltaAvgPorVenderUSDPct.toFixed(1) : deltaAvgPorVenderUSD}%` : `▼ ${deltaAvgPorVenderUSDPct != null ? deltaAvgPorVenderUSDPct.toFixed(1) : deltaAvgPorVenderUSD}%`}
+                      </span>
+                      <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {fmtUSD(totalStockXVenderUSD)} por vender tot.</span>
+                    </>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      Total disponible: <strong style={{ color: 'var(--accent-cyan)' }}>{fmtUSD(totalStockXVenderUSD)} USD</strong>
                     </span>
-                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} por vender tot.</span>
-                  </>
+                  )
                 ) : (
-                  <span style={{ color: 'var(--text-muted)' }}>
-                    Total disponible: <strong style={{ color: 'var(--accent-cyan)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
-                  </span>
+                  prevSnapshotDate && prevAvgPorVender > 0 ? (
+                    <>
+                      <span className={deltaAvgPorVender <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                        {deltaAvgPorVender >= 0 ? `▲ +${deltaAvgPorVenderPct != null ? deltaAvgPorVenderPct.toFixed(1) : deltaAvgPorVender}%` : `▼ ${deltaAvgPorVenderPct != null ? deltaAvgPorVenderPct.toFixed(1) : deltaAvgPorVender}%`}
+                      </span>
+                      <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} por vender tot.</span>
+                    </>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      Total disponible: <strong style={{ color: 'var(--accent-cyan)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
+                    </span>
+                  )
                 )}
               </div>
             </div>
@@ -1297,23 +1463,38 @@ export default function WorkspacePanel({
               boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
             }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--citrino-teal-light)', letterSpacing: -0.5 }}>
-                {pctPorVender.toFixed(1)}%
+                {isStockUSD ? `${pctPorVenderUSD.toFixed(1)}%` : `${pctPorVender.toFixed(1)}%`}
               </div>
               <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
                 Porcentaje por Vender
               </div>
               <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                {prevSnapshotDate && prevPctPorVender > 0 ? (
-                  <>
-                    <span className={deltaPctPorVender <= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                      {deltaPctPorVender >= 0 ? `▲ +${deltaPctPorVender.toFixed(1)}%` : `▼ ${deltaPctPorVender.toFixed(1)}%`}
+                {isStockUSD ? (
+                  prevSnapshotDate && prevPctPorVenderUSD > 0 ? (
+                    <>
+                      <span className={deltaPctPorVenderUSD <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                        {deltaPctPorVenderUSD >= 0 ? `▲ +${deltaPctPorVenderUSD.toFixed(1)}%` : `▼ ${deltaPctPorVenderUSD.toFixed(1)}%`}
+                      </span>
+                      <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {fmtUSD(totalStockXVenderUSD)} en stock</span>
+                    </>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      En oferta: <strong style={{ color: 'var(--citrino-teal-light)' }}>{fmtUSD(totalStockXVenderUSD)} USD</strong>
                     </span>
-                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} en stock</span>
-                  </>
+                  )
                 ) : (
-                  <span style={{ color: 'var(--text-muted)' }}>
-                    En oferta: <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
-                  </span>
+                  prevSnapshotDate && prevPctPorVender > 0 ? (
+                    <>
+                      <span className={deltaPctPorVender <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                        {deltaPctPorVender >= 0 ? `▲ +${deltaPctPorVender.toFixed(1)}%` : `▼ ${deltaPctPorVender.toFixed(1)}%`}
+                      </span>
+                      <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} en stock</span>
+                    </>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      En oferta: <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
+                    </span>
+                  )
                 )}
               </div>
             </div>
@@ -1429,11 +1610,11 @@ export default function WorkspacePanel({
         {/* Subheader with Metric Selector Pill & View Switcher */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {isStockUnidades ? (
+            {isStockMode ? (
               <>
                 <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: -0.2 }}>
                   {viewMode === 'chart'
-                    ? 'Stock por Unidades'
+                    ? (isStockUSD ? 'Stock en USD' : 'Stock por Unidades')
                     : viewMode === 'table'
                     ? 'Lista de Proyectos'
                     : 'Localización de Proyectos'}
@@ -1718,8 +1899,8 @@ export default function WorkspacePanel({
                   </div>
                 </div>
               </div>
-            ) : isStockUnidades ? (
-              /* Tarea 5: 2 Gráficas de Barras Laterales (Stock por Vender & Stock Vendido) */
+            ) : isStockMode ? (
+              /* Tarea 5 & Tarea 6: 2 Gráficas de Barras Laterales (Stock por Vender & Stock Vendido) */
               <div style={{
                 flex: 1,
                 display: 'grid',
@@ -1745,16 +1926,16 @@ export default function WorkspacePanel({
                     <span style={{
                       fontSize: 10.5,
                       fontWeight: 600,
-                      background: 'rgba(21, 101, 192, 0.15)',
-                      color: '#60a5fa',
+                      background: isStockUSD ? 'rgba(0, 131, 143, 0.15)' : 'rgba(21, 101, 192, 0.15)',
+                      color: isStockUSD ? '#00838f' : '#60a5fa',
                       padding: '2px 8px',
                       borderRadius: 12,
                     }}>
-                      {totalStockUnd.toLocaleString('es-BO')} unds en oferta
+                      {isStockUSD ? `${fmtUSD(totalStockXVenderUSD)} en oferta` : `${totalStockUnd.toLocaleString('es-BO')} unds en oferta`}
                     </span>
                   </div>
                   <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
-                    Unidades disponibles censadas agrupadas por {isBySubzona ? 'subzona' : 'zona'}
+                    {isStockUSD ? 'Monto USD disponible censado agrupado por ' : 'Unidades disponibles censadas agrupadas por '}{isBySubzona ? 'subzona' : 'zona'}
                   </div>
                   <div style={{ flex: 1, minHeight: 240, width: '100%' }}>
                     <ReactECharts
@@ -1794,11 +1975,11 @@ export default function WorkspacePanel({
                       padding: '2px 8px',
                       borderRadius: 12,
                     }}>
-                      {totalVendidas.toLocaleString('es-BO')} unds vendidas
+                      {isStockUSD ? `${fmtUSD(totalStockVendidoUSD)} vendidos` : `${totalVendidas.toLocaleString('es-BO')} unds vendidas`}
                     </span>
                   </div>
                   <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
-                    Unidades históricamente colocadas agrupadas por {isBySubzona ? 'subzona' : 'zona'}
+                    {isStockUSD ? 'Monto USD históricamente colocado agrupado por ' : 'Unidades históricamente colocadas agrupadas por '}{isBySubzona ? 'subzona' : 'zona'}
                   </div>
                   <div style={{ flex: 1, minHeight: 240, width: '100%' }}>
                     <ReactECharts
@@ -1836,8 +2017,8 @@ export default function WorkspacePanel({
               {/* Left: Always show Proyectos analizados, Zonas activas & Promedio Stock Inicial */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, color: 'var(--text-muted)', fontSize: 11 }}>
                 <span>Proyectos analizados: <strong style={{ color: 'var(--text-primary)' }}>{filteredProjects.length}</strong></span>
-                <span>{isStockUnidades && metricType === 'stock_subzona' ? 'Subzonas activas:' : 'Zonas activas:'} <strong style={{ color: 'var(--text-primary)' }}>{activeZonesCount}</strong></span>
-                <span>Promedio Stock Inicial: <strong style={{ color: 'var(--text-primary)' }}>{avgStockInicial.toLocaleString('es-BO')}</strong> unds</span>
+                <span>{isStockMode && metricType === 'stock_subzona' ? 'Subzonas activas:' : 'Zonas activas:'} <strong style={{ color: 'var(--text-primary)' }}>{activeZonesCount}</strong></span>
+                <span>Promedio Stock Inicial: <strong style={{ color: 'var(--text-primary)' }}>{isStockUSD ? fmtUSD(avgStockInicialUSD) : `${avgStockInicial.toLocaleString('es-BO')} unds`}</strong></span>
               </div>
 
               {/* Right: Only show Vendidos/Por Vender when not in resumen_general */}
@@ -1847,14 +2028,22 @@ export default function WorkspacePanel({
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
                     <span style={{ width: 14, height: 3, background: '#ef4444', display: 'inline-block', borderRadius: 2 }} />
                     <span style={{ color: 'var(--text-secondary)' }}>Vendidas:</span>
-                    <strong style={{ color: 'var(--text-primary)' }}>{totalVendidas.toLocaleString('es-BO')} ({pctVendido.toFixed(1)}%)</strong>
+                    <strong style={{ color: 'var(--text-primary)' }}>
+                      {isStockUSD
+                        ? `${fmtUSD(totalStockVendidoUSD)} (${pctVendidoUSD.toFixed(1)}%)`
+                        : `${totalVendidas.toLocaleString('es-BO')} (${pctVendido.toFixed(1)}%)`}
+                    </strong>
                   </div>
 
                   {/* Por Vender */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
-                    <span style={{ width: 14, height: 3, background: '#1565c0', display: 'inline-block', borderRadius: 2 }} />
+                    <span style={{ width: 14, height: 3, background: isStockUSD ? '#00838f' : '#1565c0', display: 'inline-block', borderRadius: 2 }} />
                     <span style={{ color: 'var(--text-secondary)' }}>Por Vender (Stock):</span>
-                    <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} ({pctPorVender.toFixed(1)}%)</strong>
+                    <strong style={{ color: 'var(--citrino-teal-light)' }}>
+                      {isStockUSD
+                        ? `${fmtUSD(totalStockXVenderUSD)} (${pctPorVenderUSD.toFixed(1)}%)`
+                        : `${totalStockUnd.toLocaleString('es-BO')} (${pctPorVender.toFixed(1)}%)`}
+                    </strong>
                   </div>
                 </div>
               )}

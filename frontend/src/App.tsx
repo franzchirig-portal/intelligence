@@ -571,7 +571,8 @@ export default function App() {
                     etapaFilter={etapaFilterArr}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
-                    initialMetric="usd_zona"
+                    initialMetric="stock_zona"
+                    kpiMode="stock_usd"
                     theme={theme}
                   />
                 )}
