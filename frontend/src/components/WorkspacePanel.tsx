@@ -75,6 +75,11 @@ export default function WorkspacePanel({
   const [viewMode, setViewMode] = useState<'chart' | 'table' | 'map'>('chart')
   const [metricType, setMetricType] = useState<MetricType>(initialMetric || 'stock_zona')
   const [searchTable, setSearchTable] = useState('')
+  const [selectedResumenStage, setSelectedResumenStage] = useState<string | null>(null)
+
+  useEffect(() => {
+    setSelectedResumenStage(null)
+  }, [ciudad, zonaFilter, etapaFilter])
 
   useEffect(() => {
     if (initialMetric) {
@@ -285,238 +290,198 @@ export default function WorkspacePanel({
     }
   })
 
-  // ─── ECharts Pie Option Builders (Tarea 3: Torta Dinámica) ─────────────────
-  // 1. Activos: Preventa="#59aef4", Obra bruta="#ffcd04", Obra fina="#175192", Terminada="#0e9d58"
-  function getActivosPieOption() {
-    const data = [
-      { value: countPreventa, name: 'Preventa', itemStyle: { color: '#59aef4' } },
-      { value: countObraBruta, name: 'Obra bruta', itemStyle: { color: '#ffcd04' } },
-      { value: countObraFina, name: 'Obra fina', itemStyle: { color: '#175192' } },
-      { value: countTerminada, name: 'Terminada', itemStyle: { color: '#0e9d58' } },
-    ].filter((d) => d.value > 0)
+  // ─── Tarea Nueva: Resumen General - Barras Laterales y Gráfico Circular Dinámicos ──
+  const countInactivos = countParalizada + countClandestina
+  const totalProyectosResumen = filteredProjects.length
 
-    if (data.length === 0) {
-      return {
-        ...CHART_BASE,
-        title: {
-          show: true,
-          text: '0',
-          subtext: 'Sin proyectos activos',
-          left: 'center',
-          top: '38%',
-          textStyle: { fontSize: 20, fontWeight: 700, color: '#94a3b8' },
-          subtextStyle: { fontSize: 10.5, color: '#64748b' },
-        },
-        legend: { show: false },
-        tooltip: { show: false },
-        series: [{
-          type: 'pie',
-          radius: ['45%', '68%'],
-          center: ['50%', '48%'],
-          silent: true,
-          data: [{ value: 1, itemStyle: { color: 'rgba(255,255,255,0.06)' } }],
-          label: { show: false },
-        }],
-      }
-    }
+  const stageItems = [
+    { id: 'Preventa', name: 'Preventa', count: countPreventa, pct: totalProyectosResumen > 0 ? (countPreventa / totalProyectosResumen) * 100 : 0, color: '#59aef4' },
+    { id: 'Obra bruta', name: 'Obra bruta', count: countObraBruta, pct: totalProyectosResumen > 0 ? (countObraBruta / totalProyectosResumen) * 100 : 0, color: '#ffcd04' },
+    { id: 'Obra fina', name: 'Obra fina', count: countObraFina, pct: totalProyectosResumen > 0 ? (countObraFina / totalProyectosResumen) * 100 : 0, color: '#175192' },
+    { id: 'Terminada', name: 'Terminada', count: countTerminada, pct: totalProyectosResumen > 0 ? (countTerminada / totalProyectosResumen) * 100 : 0, color: '#ad7fe6' },
+    { id: 'Vendida', name: 'Vendida', count: countVendida, pct: totalProyectosResumen > 0 ? (countVendida / totalProyectosResumen) * 100 : 0, color: '#0e9d58' },
+    { id: 'Inactivos', name: 'Inactivos', count: countInactivos, pct: totalProyectosResumen > 0 ? (countInactivos / totalProyectosResumen) * 100 : 0, color: '#991b1b' },
+  ]
+
+  // 1. Gráfico de Barras Laterales — Cantidad de Proyectos por Etapa (Color base: #1565c0)
+  function getResumenEtapasBarOption() {
+    const isDark = theme === 'dark'
+    // Order bottom-to-top so 'Preventa' is at the top of the horizontal bar chart
+    const stages = [...stageItems].reverse()
 
     return {
       ...CHART_BASE,
-      title: { show: false },
+      grid: { left: 10, right: 65, top: 15, bottom: 10, containLabel: true },
       tooltip: {
-        trigger: 'item',
-        backgroundColor: '#0f172a',
-        borderColor: '#334155',
-        textStyle: { color: '#f8fafc', fontSize: 11 },
-        formatter: (params: any) => `<b>${params.name}</b><br/>Proyectos: <b>${params.value}</b> (${params.percent}%)`,
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        backgroundColor: isDark ? '#0f172a' : '#ffffff',
+        borderColor: isDark ? '#334155' : '#cbd5e1',
+        textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
+        formatter: (params: any) => {
+          const p = params[0]
+          const item = stageItems.find((s) => s.name === p.name)
+          const pct = item ? item.pct.toFixed(1) : '0'
+          return `<b>${p.name}</b><br/>Cantidad: <b style="color:#60a5fa">${p.value} proyectos</b> (${pct}%)`
+        },
       },
-      legend: {
-        bottom: 2,
-        left: 'center',
-        itemWidth: 10,
-        itemHeight: 10,
-        textStyle: { color: '#94a3b8', fontSize: 10.5 },
-        orient: 'horizontal',
+      xAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: isDark ? '#2a2e39' : '#e2e8f0' } },
+        axisLabel: { fontSize: 10, color: isDark ? '#94a3b8' : '#64748b' },
+      },
+      yAxis: {
+        type: 'category',
+        data: stages.map((s) => s.name),
+        axisLabel: {
+          fontSize: 11,
+          color: isDark ? '#cbd5e1' : '#334155',
+          fontWeight: 600,
+          formatter: (val: string) => {
+            if (selectedResumenStage && selectedResumenStage !== val) {
+              return `{dimmed|${val}}`
+            }
+            return val
+          },
+          rich: {
+            dimmed: {
+              color: isDark ? 'rgba(148, 163, 184, 0.4)' : 'rgba(100, 116, 139, 0.4)',
+              fontWeight: 400,
+            },
+          },
+        },
+        axisLine: { lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
       },
       series: [
         {
-          name: 'Proyectos Activos',
-          type: 'pie',
-          radius: ['42%', '68%'],
-          center: ['50%', '42%'],
-          avoidLabelOverlap: true,
-          itemStyle: {
-            borderRadius: 4,
-            borderColor: 'var(--bg-card)',
-            borderWidth: 2,
-          },
-          label: {
-            show: true,
-            position: 'outside',
-            formatter: '{b}\n{d}%',
-            fontSize: 10,
-            color: '#cbd5e1',
-            lineHeight: 12,
-          },
-          labelLine: {
-            show: true,
-            length: 8,
-            length2: 8,
-            lineStyle: { color: 'rgba(148, 163, 184, 0.4)' },
-          },
-          data,
+          name: 'Proyectos',
+          type: 'bar',
+          barMaxWidth: 18,
+          data: stages.map((s) => {
+            const isSelected = selectedResumenStage === s.name
+            const hasSelection = selectedResumenStage != null
+
+            if (hasSelection && !isSelected) {
+              // Sombra transparente para las etapas no seleccionadas
+              return {
+                value: s.count,
+                itemStyle: {
+                  color: isDark ? 'rgba(21, 101, 192, 0.12)' : 'rgba(21, 101, 192, 0.15)',
+                  borderColor: isDark ? 'rgba(21, 101, 192, 0.25)' : 'rgba(21, 101, 192, 0.3)',
+                  borderWidth: 1,
+                  borderRadius: [0, 6, 6, 0],
+                },
+                label: {
+                  show: s.count > 0,
+                  position: 'right',
+                  fontSize: 10,
+                  color: isDark ? 'rgba(148, 163, 184, 0.4)' : 'rgba(100, 116, 139, 0.4)',
+                  formatter: '{c}',
+                },
+              }
+            }
+
+            // Normal / Seleccionado: mantiene su color #1565c0
+            return {
+              value: s.count,
+              itemStyle: {
+                color: '#1565c0',
+                borderRadius: [0, 6, 6, 0],
+                shadowColor: isSelected ? 'rgba(21, 101, 192, 0.5)' : 'transparent',
+                shadowBlur: isSelected ? 8 : 0,
+              },
+              label: {
+                show: s.count > 0,
+                position: 'right',
+                fontSize: 10.5,
+                fontWeight: 700,
+                color: isDark ? '#f8fafc' : '#0f172a',
+                formatter: '{c}',
+              },
+            }
+          }),
         },
       ],
     }
   }
 
-  // 2. Vendidos: Vendida="rojo" (#ef4444)
-  function getVendidosPieOption() {
-    if (countVendida === 0) {
-      return {
-        ...CHART_BASE,
-        title: {
-          show: true,
-          text: '0',
-          subtext: '0 proyectos en etapa vendida',
-          left: 'center',
-          top: '38%',
-          textStyle: { fontSize: 20, fontWeight: 700, color: '#94a3b8' },
-          subtextStyle: { fontSize: 10.5, color: '#64748b' },
-        },
-        legend: { show: false },
-        tooltip: { show: false },
-        series: [{
-          type: 'pie',
-          radius: ['45%', '68%'],
-          center: ['50%', '48%'],
-          silent: true,
-          data: [{ value: 1, itemStyle: { color: 'rgba(255,255,255,0.06)' } }],
-          label: { show: false },
-        }],
+  // 2. Gráfico Circular Donut — Participación por Etapa (Base: #1565c0, Seleccionado: color de etapa)
+  function getResumenDonutOption() {
+    const isDark = theme === 'dark'
+    const sel = selectedResumenStage ? stageItems.find((s) => s.name === selectedResumenStage) : null
+
+    const data = stageItems.map((s) => {
+      const isSelected = selectedResumenStage === s.name
+      const hasSelection = selectedResumenStage != null
+
+      let sliceColor = '#1565c0'
+      if (hasSelection) {
+        if (isSelected) {
+          sliceColor = s.color
+        } else {
+          sliceColor = isDark ? 'rgba(21, 101, 192, 0.28)' : 'rgba(21, 101, 192, 0.35)'
+        }
       }
-    }
+
+      return {
+        value: s.count,
+        name: s.name,
+        itemStyle: {
+          color: sliceColor,
+          borderColor: isDark ? '#252526' : '#ffffff',
+          borderWidth: 3,
+          borderRadius: 4,
+        },
+        selected: isSelected,
+      }
+    })
 
     return {
       ...CHART_BASE,
-      title: { show: false },
+      title: {
+        text: sel ? `${sel.pct.toFixed(1)}%` : `${totalProyectosResumen}`,
+        subtext: sel ? `${sel.name}\n${sel.count} proyectos` : 'Proyectos Totales\n100% de la oferta',
+        left: 'center',
+        top: '38%',
+        textStyle: {
+          fontSize: 28,
+          fontWeight: 800,
+          color: sel ? sel.color : (isDark ? '#f8fafc' : '#0f172a'),
+          lineHeight: 32,
+        },
+        subtextStyle: {
+          fontSize: 11,
+          fontWeight: 600,
+          color: isDark ? '#94a3b8' : '#64748b',
+          lineHeight: 15,
+        },
+      },
       tooltip: {
         trigger: 'item',
-        backgroundColor: '#0f172a',
-        borderColor: '#334155',
-        textStyle: { color: '#f8fafc', fontSize: 11 },
-        formatter: (params: any) => `<b>${params.name}</b><br/>Proyectos: <b>${params.value}</b> (${params.percent}%)`,
-      },
-      legend: {
-        bottom: 2,
-        left: 'center',
-        itemWidth: 10,
-        itemHeight: 10,
-        textStyle: { color: '#94a3b8', fontSize: 10.5 },
+        backgroundColor: isDark ? '#0f172a' : '#ffffff',
+        borderColor: isDark ? '#334155' : '#cbd5e1',
+        textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
+        formatter: (params: any) => {
+          const item = stageItems.find((s) => s.name === params.name)
+          const col = item ? item.color : '#1565c0'
+          return `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:6px;"></span><b>${params.name}</b><br/>Cantidad: <b>${params.value} proy.</b><br/>Participación: <b>${params.percent}%</b>`
+        },
       },
       series: [
         {
-          name: 'Proyectos Vendidos',
+          name: 'Participación por Etapa',
           type: 'pie',
-          radius: ['42%', '68%'],
-          center: ['50%', '42%'],
-          itemStyle: {
-            borderRadius: 4,
-            borderColor: 'var(--bg-card)',
-            borderWidth: 2,
-          },
-          label: {
-            show: true,
-            position: 'outside',
-            formatter: '{b}\n{c} proy. (100%)',
-            fontSize: 10,
-            color: '#cbd5e1',
-          },
-          data: [{ value: countVendida, name: 'Vendida', itemStyle: { color: '#ef4444' } }],
-        },
-      ],
-    }
-  }
-
-  // 3. Inactivos: Paralizada="rojo sangrienta" (#991b1b), Clandestina="rojo claro" (#f87171)
-  function getInactivosPieOption() {
-    const totalInactivos = countParalizada + countClandestina
-    if (totalInactivos === 0) {
-      return {
-        ...CHART_BASE,
-        title: {
-          show: true,
-          text: '0',
-          subtext: '0 inactivos · Mercado 100% operativo',
-          left: 'center',
-          top: '38%',
-          textStyle: { fontSize: 20, fontWeight: 700, color: '#10b981' },
-          subtextStyle: { fontSize: 10.5, color: '#10b981' },
-        },
-        legend: { show: false },
-        tooltip: { show: false },
-        series: [{
-          type: 'pie',
-          radius: ['45%', '68%'],
+          radius: ['52%', '78%'],
           center: ['50%', '48%'],
-          silent: true,
-          data: [{ value: 1, itemStyle: { color: 'rgba(16, 185, 129, 0.2)' } }],
+          avoidLabelOverlap: false,
           label: { show: false },
-        }],
-      }
-    }
-
-    const data = []
-    if (countParalizada > 0) {
-      data.push({ value: countParalizada, name: 'Paralizada', itemStyle: { color: '#991b1b' } })
-    }
-    if (countClandestina > 0) {
-      data.push({ value: countClandestina, name: 'Clandestina', itemStyle: { color: '#f87171' } })
-    }
-
-    return {
-      ...CHART_BASE,
-      title: { show: false },
-      tooltip: {
-        trigger: 'item',
-        backgroundColor: '#0f172a',
-        borderColor: '#334155',
-        textStyle: { color: '#f8fafc', fontSize: 11 },
-        formatter: (params: any) => `<b>${params.name}</b><br/>Proyectos: <b>${params.value}</b> (${params.percent}%)`,
-      },
-      legend: {
-        bottom: 2,
-        left: 'center',
-        itemWidth: 10,
-        itemHeight: 10,
-        textStyle: { color: '#94a3b8', fontSize: 10.5 },
-      },
-      series: [
-        {
-          name: 'Proyectos Inactivos',
-          type: 'pie',
-          radius: ['42%', '68%'],
-          center: ['50%', '42%'],
-          avoidLabelOverlap: true,
-          itemStyle: {
-            borderRadius: 4,
-            borderColor: 'var(--bg-card)',
-            borderWidth: 2,
-          },
-          label: {
-            show: true,
-            position: 'outside',
-            formatter: '{b}\n{c} proy.',
-            fontSize: 10,
-            color: '#cbd5e1',
-          },
-          labelLine: {
-            show: true,
-            length: 8,
-            length2: 8,
-            lineStyle: { color: 'rgba(148, 163, 184, 0.4)' },
-          },
+          labelLine: { show: false },
+          padAngle: 2.5,
           data,
+          emphasis: {
+            scale: true,
+            scaleSize: 6,
+          },
         },
       ],
     }
@@ -1006,6 +971,72 @@ export default function WorkspacePanel({
     )
   }
 
+  // KPIs "Promedio Vendido por Proyecto" y "Porcentaje Vendido" (vista Stock en Unidades).
+  // Se renderizan arriba en escritorio y entre las gráficas de barras en móvil.
+  const kpisVendido = (
+    <>
+      {/* KPI 1: Promedio Vendido por Proyecto */}
+      <div style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-md)',
+        padding: '10px 12px',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+      }}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
+          {avgVendidasPorProyInt.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>und/proy</span>
+        </div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+          Promedio Vendido por Proyecto
+        </div>
+        <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+          {prevSnapshotDate && prevAvgVendidas > 0 ? (
+            <>
+              <span className={deltaAvgVendidas >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                {deltaAvgVendidas >= 0 ? `▲ +${deltaAvgVendidasPct != null ? deltaAvgVendidasPct.toFixed(1) : deltaAvgVendidas}%` : `▼ ${deltaAvgVendidasPct != null ? deltaAvgVendidasPct.toFixed(1) : deltaAvgVendidas}%`}
+              </span>
+              <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalVendidas.toLocaleString('es-BO')} vendidas tot.</span>
+            </>
+          ) : (
+            <span style={{ color: 'var(--text-muted)' }}>
+              Total vendidas: <strong style={{ color: 'var(--accent-emerald)' }}>{totalVendidas.toLocaleString('es-BO')} unds</strong>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* KPI 2: Porcentaje Vendido */}
+      <div style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-md)',
+        padding: '10px 12px',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+      }}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
+          {pctVendido.toFixed(1)}%
+        </div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+          Porcentaje Vendido
+        </div>
+        <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+          {prevSnapshotDate && prevPctVendido > 0 ? (
+            <>
+              <span className={deltaPctVendido >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                {deltaPctVendido >= 0 ? `▲ +${deltaPctVendido.toFixed(1)}%` : `▼ ${deltaPctVendido.toFixed(1)}%`}
+              </span>
+              <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} por vender</span>
+            </>
+          ) : (
+            <span style={{ color: 'var(--text-muted)' }}>
+              Por vender: <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
+            </span>
+          )}
+        </div>
+      </div>
+    </>
+  )
+
   return (
     <div className="panel panel-center" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* ─── SECTION 1: DATOS DESTACADOS (Modern KPI Row) ────────────────── */}
@@ -1136,100 +1167,15 @@ export default function WorkspacePanel({
         ) : isStockUnidades ? (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: 10,
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: 12,
           }}>
-            {/* KPI 1: Stock total en Oferta */}
-            <div style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '10px 12px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: -0.5 }}>
-                {totalStockUnd.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>unds</span>
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
-                Stock total en Oferta
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                {prevSnapshotDate && prevStockUnd > 0 ? (
-                  <>
-                    <span className={deltaStock <= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                      {deltaStock >= 0 ? `▲ +${deltaStockPct != null ? deltaStockPct.toFixed(1) : deltaStock}%` : `▼ ${deltaStockPct != null ? deltaStockPct.toFixed(1) : deltaStock}%`}
-                    </span>
-                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalInicial.toLocaleString('es-BO')} stock inicial</span>
-                  </>
-                ) : (
-                  <span style={{ color: 'var(--text-muted)' }}>
-                    Stock inicial: <strong style={{ color: 'var(--text-primary)' }}>{totalInicial.toLocaleString('es-BO')} unds</strong>
-                  </span>
-                )}
-              </div>
+            {/* KPIs 1-2 (en móvil se muestran entre las dos gráficas de barras) */}
+            <div className="ws-kpis-vendido-top" style={{ display: 'contents' }}>
+              {kpisVendido}
             </div>
 
-            {/* KPI 2: Promedio Vendido por Proyecto */}
-            <div style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '10px 12px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
-                {avgVendidasPorProyInt.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>und/proy</span>
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
-                Promedio Vendido por Proyecto
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                {prevSnapshotDate && prevAvgVendidas > 0 ? (
-                  <>
-                    <span className={deltaAvgVendidas >= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                      {deltaAvgVendidas >= 0 ? `▲ +${deltaAvgVendidasPct != null ? deltaAvgVendidasPct.toFixed(1) : deltaAvgVendidas}%` : `▼ ${deltaAvgVendidasPct != null ? deltaAvgVendidasPct.toFixed(1) : deltaAvgVendidas}%`}
-                    </span>
-                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalVendidas.toLocaleString('es-BO')} vendidas tot.</span>
-                  </>
-                ) : (
-                  <span style={{ color: 'var(--text-muted)' }}>
-                    Total vendidas: <strong style={{ color: 'var(--accent-emerald)' }}>{totalVendidas.toLocaleString('es-BO')} unds</strong>
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* KPI 3: Porcentaje Vendido */}
-            <div style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '10px 12px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
-                {pctVendido.toFixed(1)}%
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
-                Porcentaje Vendido
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                {prevSnapshotDate && prevPctVendido > 0 ? (
-                  <>
-                    <span className={deltaPctVendido >= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                      {deltaPctVendido >= 0 ? `▲ +${deltaPctVendido.toFixed(1)}%` : `▼ ${deltaPctVendido.toFixed(1)}%`}
-                    </span>
-                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} por vender</span>
-                  </>
-                ) : (
-                  <span style={{ color: 'var(--text-muted)' }}>
-                    Por vender: <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* KPI 4: Promedio por Vender por Proyecto */}
+            {/* KPI 3: Promedio por Vender por Proyecto */}
             <div style={{
               background: 'var(--bg-card)',
               border: '1px solid var(--border-subtle)',
@@ -1259,7 +1205,7 @@ export default function WorkspacePanel({
               </div>
             </div>
 
-            {/* KPI 5: Porcentaje por Vender */}
+            {/* KPI 4: Porcentaje por Vender */}
             <div style={{
               background: 'var(--bg-card)',
               border: '1px solid var(--border-subtle)',
@@ -1529,126 +1475,163 @@ export default function WorkspacePanel({
             padding: '14px 16px 10px',
             overflow: 'hidden',
           }}>
-            {/* 3 Pie Charts Grid for Resumen General or standard chart */}
+            {/* Resumen General: 1 Gráfico de Barras Laterales + 1 Gráfico Circular Donut Dinámicos */}
             {isResumenGeneral ? (
               <div style={{
                 flex: 1,
                 display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
+                gridTemplateColumns: 'repeat(2, 1fr)',
                 gap: 12,
                 minHeight: 0,
               }}>
-                {/* Gráfico 1: Proyectos Activos */}
+                {/* Gráfico 1: Barras Laterales — Cantidad de Proyectos por Etapa */}
                 <div style={{
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: 'var(--radius-md)',
-                  padding: '12px 14px 6px',
+                  padding: '12px 14px 8px',
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
+                  minHeight: 0,
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
-                      Etapas de Proyectos Activos
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Cantidad de Proyectos por Etapas
                     </span>
                     <span style={{
-                      fontSize: 10,
+                      fontSize: 10.5,
                       fontWeight: 600,
-                      background: 'rgba(59, 130, 246, 0.15)',
+                      background: 'rgba(21, 101, 192, 0.15)',
                       color: '#60a5fa',
-                      padding: '2px 7px',
+                      padding: '2px 8px',
                       borderRadius: 12,
                     }}>
-                      {countActivosCurrent} proy.
+                      {totalProyectosResumen} proy. totales
                     </span>
                   </div>
                   <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
-                    Preventa · Obra bruta · Obra fina · Terminada
+                    Proyectos censados clasificados por fase constructiva y comercial
                   </div>
-                  <div style={{ flex: 1, minHeight: 220, width: '100%' }}>
+                  <div style={{ flex: 1, minHeight: 250, width: '100%' }}>
                     <ReactECharts
-                      option={getActivosPieOption()}
+                      option={getResumenEtapasBarOption()}
                       notMerge={true}
                       lazyUpdate={true}
                       style={{ height: '100%', width: '100%' }}
+                      onEvents={{
+                        click: (params: any) => {
+                          if (params?.name) {
+                            setSelectedResumenStage((prev) => (prev === params.name ? null : params.name))
+                          }
+                        },
+                      }}
                     />
                   </div>
                 </div>
 
-                {/* Gráfico 2: Proyectos Vendidos */}
+                {/* Gráfico 2: Gráfico Circular Donut — Participación por Etapa */}
                 <div style={{
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: 'var(--radius-md)',
-                  padding: '12px 14px 6px',
+                  padding: '12px 14px 8px',
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
+                  minHeight: 0,
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
-                      Proyectos Vendidos
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Participación por Etapa
                     </span>
-                    <span style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      background: 'rgba(239, 68, 68, 0.15)',
-                      color: '#f87171',
-                      padding: '2px 7px',
-                      borderRadius: 12,
-                    }}>
-                      {countVendida} proy.
-                    </span>
+                    {selectedResumenStage ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedResumenStage(null)}
+                        style={{
+                          background: 'rgba(21, 101, 192, 0.15)',
+                          color: '#60a5fa',
+                          border: '1px solid rgba(21, 101, 192, 0.3)',
+                          borderRadius: 12,
+                          padding: '2px 8px',
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                        title="Hacer clic para ver todas las etapas">
+                        ✕ {selectedResumenStage} (Ver todas)
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                        Haz clic en un segmento para seleccionar
+                      </span>
+                    )}
                   </div>
-                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
-                    Proyectos en etapa Vendida
+                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 4 }}>
+                    Distribución porcentual de la oferta (Inactivos agrupa paralizadas y clandestinas)
                   </div>
-                  <div style={{ flex: 1, minHeight: 220, width: '100%' }}>
+                  <div style={{ flex: 1, minHeight: 215, width: '100%' }}>
                     <ReactECharts
-                      option={getVendidosPieOption()}
+                      option={getResumenDonutOption()}
                       notMerge={true}
                       lazyUpdate={true}
                       style={{ height: '100%', width: '100%' }}
+                      onEvents={{
+                        click: (params: any) => {
+                          if (params?.name) {
+                            setSelectedResumenStage((prev) => (prev === params.name ? null : params.name))
+                          }
+                        },
+                      }}
                     />
                   </div>
-                </div>
 
-                {/* Gráfico 3: Proyectos Inactivos */}
-                <div style={{
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '12px 14px 6px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  overflow: 'hidden',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
-                      Etapas de Proyectos Inactivos
-                    </span>
-                    <span style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      background: 'rgba(220, 38, 38, 0.15)',
-                      color: '#fca5a5',
-                      padding: '2px 7px',
-                      borderRadius: 12,
-                    }}>
-                      {countInactivosCurrent} proy.
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
-                    Paralizada · Clandestina
-                  </div>
-                  <div style={{ flex: 1, minHeight: 220, width: '100%' }}>
-                    <ReactECharts
-                      option={getInactivosPieOption()}
-                      notMerge={true}
-                      lazyUpdate={true}
-                      style={{ height: '100%', width: '100%' }}
-                    />
+                  {/* Leyenda interactiva con los colores asignados a cada etapa */}
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    gap: '6px 12px',
+                    paddingTop: 6,
+                    borderTop: '1px solid var(--border-subtle)',
+                  }}>
+                    {stageItems.map((s) => {
+                      const isSel = selectedResumenStage === s.name
+                      return (
+                        <button
+                          key={s.name}
+                          type="button"
+                          onClick={() => setSelectedResumenStage((prev) => (prev === s.name ? null : s.name))}
+                          style={{
+                            background: isSel ? 'rgba(255,255,255,0.1)' : 'transparent',
+                            border: isSel ? `1px solid ${s.color}` : '1px solid transparent',
+                            borderRadius: 4,
+                            padding: '2px 6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            fontSize: 10.5,
+                            color: isSel ? 'var(--text-primary)' : 'var(--text-secondary)',
+                            fontWeight: isSel ? 700 : 500,
+                            transition: 'all 0.15s ease',
+                          }}>
+                          <span style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            background: s.color,
+                            display: 'inline-block',
+                          }} />
+                          <span>{s.name}</span>
+                          <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>({s.count})</span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
@@ -1698,6 +1681,11 @@ export default function WorkspacePanel({
                       style={{ height: '100%', width: '100%' }}
                     />
                   </div>
+                </div>
+
+                {/* Móvil: KPIs de vendido entre Stock por Vender y Stock Vendido */}
+                <div className="ws-kpis-vendido-mobile">
+                  {kpisVendido}
                 </div>
 
                 {/* Gráfica 2: Stock Vendido por Zona / Subzona (color=#ef4444) */}

@@ -335,3 +335,19 @@
     font-size: 14px;
   }
 }
+
+/* ─── Stock en Ventas (Unidades): KPIs de vendido entre las dos gráficas ─── */
+.ws-kpis-vendido-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .workspace .ws-kpis-vendido-top {
+    display: none !important;
+  }
+  .workspace .ws-kpis-vendido-mobile {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
