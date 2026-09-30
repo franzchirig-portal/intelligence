@@ -303,7 +303,9 @@ export default function WorkspacePanel({
     { id: 'Inactivos', name: 'Inactivos', count: countInactivos, pct: totalProyectosResumen > 0 ? (countInactivos / totalProyectosResumen) * 100 : 0, color: '#991b1b' },
   ]
 
-  // 1. Gráfico de Barras Laterales — Cantidad de Proyectos por Etapa (Color base: #1565c0)
+  const selectedResumenStageItem = selectedResumenStage ? stageItems.find((s) => s.name === selectedResumenStage) : null
+
+  // 1. Gráfico de Barras Laterales — Cantidad de Proyectos por Etapa (Color base: Gris Degradado #52525b-#a1a1aa)
   function getResumenEtapasBarOption() {
     const isDark = theme === 'dark'
     // Order bottom-to-top so 'Preventa' is at the top of the horizontal bar chart
@@ -322,7 +324,8 @@ export default function WorkspacePanel({
           const p = params[0]
           const item = stageItems.find((s) => s.name === p.name)
           const pct = item ? item.pct.toFixed(1) : '0'
-          return `<b>${p.name}</b><br/>Cantidad: <b style="color:#60a5fa">${p.value} proyectos</b> (${pct}%)`
+          const col = item ? item.color : '#a1a1aa'
+          return `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:6px;"></span><b>${p.name}</b><br/>Cantidad: <b style="color:${col}">${p.value} proyectos</b> (${pct}%)`
         },
       },
       xAxis: {
@@ -366,8 +369,8 @@ export default function WorkspacePanel({
               return {
                 value: s.count,
                 itemStyle: {
-                  color: isDark ? 'rgba(21, 101, 192, 0.12)' : 'rgba(21, 101, 192, 0.15)',
-                  borderColor: isDark ? 'rgba(21, 101, 192, 0.25)' : 'rgba(21, 101, 192, 0.3)',
+                  color: isDark ? 'rgba(82, 82, 91, 0.16)' : 'rgba(161, 161, 170, 0.2)',
+                  borderColor: isDark ? 'rgba(82, 82, 91, 0.35)' : 'rgba(161, 161, 170, 0.4)',
                   borderWidth: 1,
                   borderRadius: [0, 6, 6, 0],
                 },
@@ -381,21 +384,37 @@ export default function WorkspacePanel({
               }
             }
 
-            // Normal / Seleccionado: mantiene su color #1565c0
+            // Normal (sin selección) o Seleccionado:
+            // Si está seleccionado -> cambia al color asignado de la etapa (s.color)
+            // Si no hay selección -> color gris degradado de la pestaña proyectos
+            const barColor = isSelected
+              ? s.color
+              : {
+                  type: 'linear',
+                  x: 0,
+                  y: 0,
+                  x2: 1,
+                  y2: 0,
+                  colorStops: [
+                    { offset: 0, color: '#52525b' },
+                    { offset: 1, color: '#a1a1aa' },
+                  ],
+                }
+
             return {
               value: s.count,
               itemStyle: {
-                color: '#1565c0',
+                color: barColor,
                 borderRadius: [0, 6, 6, 0],
-                shadowColor: isSelected ? 'rgba(21, 101, 192, 0.5)' : 'transparent',
-                shadowBlur: isSelected ? 8 : 0,
+                shadowColor: isSelected ? s.color : 'transparent',
+                shadowBlur: isSelected ? 10 : 0,
               },
               label: {
                 show: s.count > 0,
                 position: 'right',
                 fontSize: 10.5,
-                fontWeight: 700,
-                color: isDark ? '#f8fafc' : '#0f172a',
+                fontWeight: isSelected ? 800 : 700,
+                color: isSelected ? (isDark ? '#ffffff' : s.color) : (isDark ? '#f8fafc' : '#0f172a'),
                 formatter: '{c}',
               },
             }
@@ -405,7 +424,7 @@ export default function WorkspacePanel({
     }
   }
 
-  // 2. Gráfico Circular Donut — Participación por Etapa (Base: #1565c0, Seleccionado: color de etapa)
+  // 2. Gráfico Circular Donut — Participación por Etapa (Base: Gris Degradado #52525b-#a1a1aa, Seleccionado: color de etapa)
   function getResumenDonutOption() {
     const isDark = theme === 'dark'
     const sel = selectedResumenStage ? stageItems.find((s) => s.name === selectedResumenStage) : null
@@ -414,12 +433,24 @@ export default function WorkspacePanel({
       const isSelected = selectedResumenStage === s.name
       const hasSelection = selectedResumenStage != null
 
-      let sliceColor = '#1565c0'
+      let sliceColor: any = {
+        type: 'linear',
+        x: 0,
+        y: 0,
+        x2: 1,
+        y2: 1,
+        colorStops: [
+          { offset: 0, color: '#52525b' },
+          { offset: 1, color: '#a1a1aa' },
+        ],
+      }
+
       if (hasSelection) {
         if (isSelected) {
           sliceColor = s.color
         } else {
-          sliceColor = isDark ? 'rgba(21, 101, 192, 0.28)' : 'rgba(21, 101, 192, 0.35)'
+          // Sombra transparente para las demás etapas no seleccionadas
+          sliceColor = isDark ? 'rgba(82, 82, 91, 0.22)' : 'rgba(161, 161, 170, 0.28)'
         }
       }
 
@@ -429,8 +460,10 @@ export default function WorkspacePanel({
         itemStyle: {
           color: sliceColor,
           borderColor: isDark ? '#252526' : '#ffffff',
-          borderWidth: 3,
+          borderWidth: 2.5,
           borderRadius: 4,
+          shadowColor: isSelected ? s.color : 'transparent',
+          shadowBlur: isSelected ? 12 : 0,
         },
         selected: isSelected,
       }
@@ -463,7 +496,7 @@ export default function WorkspacePanel({
         textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
         formatter: (params: any) => {
           const item = stageItems.find((s) => s.name === params.name)
-          const col = item ? item.color : '#1565c0'
+          const col = item ? item.color : '#a1a1aa'
           return `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:6px;"></span><b>${params.name}</b><br/>Cantidad: <b>${params.value} proy.</b><br/>Participación: <b>${params.percent}%</b>`
         },
       },
@@ -1502,8 +1535,8 @@ export default function WorkspacePanel({
                     <span style={{
                       fontSize: 10.5,
                       fontWeight: 600,
-                      background: 'rgba(21, 101, 192, 0.15)',
-                      color: '#60a5fa',
+                      background: theme === 'dark' ? 'rgba(161, 161, 170, 0.12)' : 'rgba(161, 161, 170, 0.18)',
+                      color: theme === 'dark' ? '#cbd5e1' : '#475569',
                       padding: '2px 8px',
                       borderRadius: 12,
                     }}>
@@ -1550,9 +1583,9 @@ export default function WorkspacePanel({
                         type="button"
                         onClick={() => setSelectedResumenStage(null)}
                         style={{
-                          background: 'rgba(21, 101, 192, 0.15)',
-                          color: '#60a5fa',
-                          border: '1px solid rgba(21, 101, 192, 0.3)',
+                          background: selectedResumenStageItem ? `${selectedResumenStageItem.color}22` : 'rgba(161, 161, 170, 0.15)',
+                          color: selectedResumenStageItem ? selectedResumenStageItem.color : '#cbd5e1',
+                          border: `1px solid ${selectedResumenStageItem ? selectedResumenStageItem.color : 'rgba(161, 161, 170, 0.3)'}`,
                           borderRadius: 12,
                           padding: '2px 8px',
                           fontSize: 10.5,
