@@ -7,6 +7,7 @@ import {
 } from '../lib/supabase'
 import type { IndicadorFull, ZonaMetrics } from '../lib/supabase'
 import GeoespacialPanel from './GeoespacialPanel'
+import ResumenEtapasMap from './ResumenEtapasMap'
 
 interface Props {
   ciudad: string
@@ -1794,110 +1795,17 @@ export default function WorkspacePanel({
                   </div>
                 </div>
 
-                {/* Gráfico 2: Gráfico Circular Donut — Participación por Etapa */}
-                <div style={{
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '12px 14px 8px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  overflow: 'hidden',
-                  minHeight: 0,
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
-                      Participación por Etapa
-                    </span>
-                    {selectedResumenStage ? (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedResumenStage(null)}
-                        style={{
-                          background: 'var(--bg-hover)',
-                          color: 'var(--text-primary)',
-                          border: '1px solid var(--border-subtle)',
-                          borderRadius: 12,
-                          padding: '2px 8px',
-                          fontSize: 10.5,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4,
-                        }}
-                        title="Hacer clic para ver todas las etapas">
-                        ✕ {selectedResumenStage} (Ver todas)
-                      </button>
-                    ) : (
-                      <span style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
-                        Haz clic en un segmento para seleccionar
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 4 }}>
-                    Distribución porcentual de la oferta (Inactivos agrupa paralizadas y clandestinas)
-                  </div>
-                  <div style={{ flex: 1, minHeight: 215, width: '100%' }}>
-                    <ReactECharts
-                      option={getResumenDonutOption()}
-                      notMerge={true}
-                      lazyUpdate={true}
-                      style={{ height: '100%', width: '100%' }}
-                      onEvents={{
-                        click: (params: any) => {
-                          if (params?.name) {
-                            setSelectedResumenStage((prev) => (prev === params.name ? null : params.name))
-                          }
-                        },
-                      }}
-                    />
-                  </div>
-
-                  {/* Leyenda interactiva con los colores asignados a cada etapa */}
-                  <div style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                    gap: '6px 12px',
-                    paddingTop: 6,
-                    borderTop: '1px solid var(--border-subtle)',
-                  }}>
-                    {stageItems.map((s) => {
-                      const isSel = selectedResumenStage === s.name
-                      return (
-                        <button
-                          key={s.name}
-                          type="button"
-                          onClick={() => setSelectedResumenStage((prev) => (prev === s.name ? null : s.name))}
-                          style={{
-                            background: isSel ? 'var(--bg-hover)' : 'transparent',
-                            border: isSel ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                            borderRadius: 4,
-                            padding: '2px 6px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 5,
-                            fontSize: 10.5,
-                            color: isSel ? 'var(--text-primary)' : 'var(--text-secondary)',
-                            fontWeight: isSel ? 700 : 500,
-                            transition: 'all 0.15s ease',
-                          }}>
-                          <span style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            background: s.color,
-                            display: 'inline-block',
-                          }} />
-                          <span>{s.name}</span>
-                          <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>({s.count})</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
+                {/* Mapa: Distribución Geoespacial por Etapa */}
+                <ResumenEtapasMap
+                  projects={filteredProjects}
+                  ciudad={ciudad}
+                  selectedStage={selectedResumenStage}
+                  onSelectStage={setSelectedResumenStage}
+                  stageItems={stageItems}
+                  theme={theme}
+                  onSelectIndicador={onSelectIndicador}
+                  selectedIndicador={selectedIndicador}
+                />
               </div>
             ) : isStockMode ? (
               /* Tarea 5 & Tarea 6: 2 Gráficas de Barras Laterales (Stock por Vender & Stock Vendido) */

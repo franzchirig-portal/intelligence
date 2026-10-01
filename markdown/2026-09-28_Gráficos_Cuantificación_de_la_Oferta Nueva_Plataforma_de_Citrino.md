@@ -1,3 +1,4 @@
+
 # Gráficos Cuantificación de la Oferta Nueva:
 
 ## para esta nueva pestaña se van a trabajar los puntos de nuevos gráficos que va mostrar y pestanas que se van a crear.
@@ -100,5 +101,38 @@ mencionó que si el filtro de cambia a stock por subzona las graficas de barras 
 el color de las barras laterales para el stock por vender="#1565c0" y para las barras laterales que son los stock vendidos="#ef4444"
 
 > como detalle para toda la plataforma ajusta los textos y separadores para garantizar legibilidad y contraste. 
-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------
 
+## Vamos hacer un cambio de las graficas circulares.
+
+ya no vamos a tener tres graficas circulares vamos a tener un solo grafico en barras laterales y un solo grafico circular:
+
+el grafico de barras laterales van mostrar las ¨cantidades de proyectos por las etapas¨. el color de las barras vas a ser"#1565c0".
+
+el grafico circular va representar la participación de cada etapa, mencionar que las etapas paralizadas y clandestinas van a ¨Inactivos¨ y el color del circulo va ser "#1565c0".
+
+ahora el estilo de estas graficas van a tener que ser casi similar a las imagenes adjuntas, con la dinamica que cada parte de la grafica circular una vez seleccionado cambie de color y muestre su valor porcentual en el centro de la grafica circular y las graficas de barras deben estar enlazadas con las demas etapas que no se seleccionó en la grafica circular se vuelva como una sobra transparente. y mantenga el color la etapa que fue seleccionado en la grafica circular. 
+
+ha eso los color que se deben mostrar en la grafica circular de cada etapa seleccionada es:
+Preventa="#59aef4", Obra bruta="#ffcd04", Obra fina="#175192", Terminada=¨#ad7fe6¨,Vendida="#0e9d58" y inactivos="rojo sangrienta". la grafica de barras laterales mantienen su color. 
+
+> mencionar que los gráficos deben ser dinámicos.
+-----------------------------------------------------------------
+
+en la pestaña de stock en Ventas vamos a quitar el cuadro de resultados de ¨stock total en oferta¨.
+los demás cuadros de resultados mantenemos. 
+
+-----------------------------------------------------------------
+los graficos de barras laterales y circular de la pestaña ¨Resumen general¨ ya no vamos usar el color "#1565c0". vamos usar el color que gris degradado de la grafica de la pestaña ¨proyectos¨. esto para que cuando selecciones alguna etapa de la grafica circular, asi como cambia de color en la grafica circular también cambie en la grafica de barras laterales. 
+----------------------------------------------------------------------------------------------------
+
+un ajuste más. cuando seleccionó una etapa el color que se vuelve muy fuerte y los borde son blanco/oscuro dependiendo al modo diaurno/nocturo que parecen focos de neón. quita esos bordes y esa luz de neón para ambas graficas. y cuando apunto a una barra las letras que cantidad de proyecto no deben cambiar el color. solo las barras. 
+----------------------------------------------------------------------------------------------------
+
+ahora vamos con la tarea 6. donde vamos a al pestaña de ¨Stock en venta (USD)¨ vamos replicar los mismo que la pestaña de ¨stock en venta (unidade)¨ donde en ves de mostrar la cantidad de oferta en unidades vamos a mostrar la cantidad de oferta en USD. usando los datos las columnas stock_vendido/, stock_x_vender/ de la tabla de oferta_indicadores_censo/
+-----------------------------------------------------------------------------------------------------
+
+en la gráfica de barras laterales de stock por vender de la pestaña ¨stock en venta (USD)¨ el color de las van a ser ¨#00838f¨  
+------------------------------------------------------------------------------------------------------
+
+la grafica de de barras laterales de las cantidades de proyectos por etapas de la pestaña ¨resumen general¨ ordenarlo en orden descendente.
