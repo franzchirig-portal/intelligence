@@ -20,7 +20,7 @@ interface Props {
   theme?: 'dark' | 'light'
 }
 
-export type MetricType = 'stock_zona' | 'stock_subzona' | 'evolucion_temporal' | 'ritmo_zona' | 'usd_zona' | 'meses_zona'
+export type MetricType = 'stock_zona' | 'stock_subzona' | 'evolucion_temporal' | 'ritmo_zona' | 'usd_zona' | 'meses_zona' | 'stock_und_bar' | 'stock_usd_bar' | 'meses_stock_bar'
 
 const CHART_BASE = {
   backgroundColor: 'transparent',
@@ -71,12 +71,23 @@ export default function WorkspacePanel({
   kpiMode = 'default',
   theme = 'light',
 }: Props) {
+  const isResumenGeneral = kpiMode === 'resumen_general'
+  const isStockUnidades = kpiMode === 'stock_unidades'
+  const isStockUSD = kpiMode === 'stock_usd'
+  const isStockMode = isStockUnidades || isStockUSD
+
   const [allIndicadores, setAllIndicadores] = useState<IndicadorFull[]>([])
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<'chart' | 'table' | 'map'>('chart')
-  const [metricType, setMetricType] = useState<MetricType>(initialMetric || 'stock_zona')
+  const [viewMode] = useState<'chart' | 'table' | 'map'>('chart')
+  const [metricType, setMetricType] = useState<MetricType>(
+    initialMetric || (isStockMode ? 'stock_und_bar' : 'stock_zona')
+  )
   const [searchTable, setSearchTable] = useState('')
   const [selectedResumenStage, setSelectedResumenStage] = useState<string | null>(null)
+
+  // Series visibility toggles (like the screenshot checkboxes)
+  const [showVendidas, setShowVendidas] = useState(true)
+  const [showPorVender, setShowPorVender] = useState(true)
 
   useEffect(() => {
     setSelectedResumenStage(null)
@@ -85,16 +96,10 @@ export default function WorkspacePanel({
   useEffect(() => {
     if (initialMetric) {
       setMetricType(initialMetric)
+    } else if (isStockMode) {
+      setMetricType('stock_und_bar')
     }
-  }, [initialMetric])
-
-  // Series visibility toggles (like the screenshot checkboxes)
-  const [showVendidas, setShowVendidas] = useState(true)
-  const [showPorVender, setShowPorVender] = useState(true)
-  const isResumenGeneral = kpiMode === 'resumen_general'
-  const isStockUnidades = kpiMode === 'stock_unidades'
-  const isStockUSD = kpiMode === 'stock_usd'
-  const isStockMode = isStockUnidades || isStockUSD
+  }, [initialMetric, isStockMode])
 
   useEffect(() => {
     setLoading(true)
@@ -169,6 +174,12 @@ export default function WorkspacePanel({
   // Promedio Stock Inicial & Agrupación ZONAS vs SUBZONAS (desde oferta_proyectos)
   const avgStockInicial = filteredProjects.length > 0 ? Math.round(totalInicial / filteredProjects.length) : 0
   const isBySubzona = isStockMode && metricType === 'stock_subzona'
+  // New stock mode lateral bar selector: which metric the two bar charts display
+  const stockBarMode: 'und' | 'usd' | 'meses' = isStockMode
+    ? metricType === 'stock_usd_bar' ? 'usd'
+    : metricType === 'meses_stock_bar' ? 'meses'
+    : 'und'
+    : 'und'
 
   // Agrupación por ZONAS de oferta_proyectos
   const zonaStockMetrics = useMemo(() => {
@@ -333,7 +344,23 @@ export default function WorkspacePanel({
 
   const deltaPctPorVenderUSD = pctPorVenderUSD - prevPctPorVenderUSD
 
-  // ─── Stage breakdowns for the 3 Pie Charts (Tarea 3) ──────────────────────
+  // Determina si hay un filtro de etapas activo (por FilterBar o selección en Resumen General)
+  const isEtapaFiltered = Boolean(
+    (etapaFilter && (
+      Array.isArray(etapaFilter)
+        ? etapaFilter.length > 0 && !etapaFilter.includes('ALL')
+        : etapaFilter !== 'ALL'
+    )) || (selectedResumenStage && selectedResumenStage === 'Vendida')
+  )
+
+  // En Resumen General: por requerimiento, quitar los datos vendidos de las barras y mapa a menos que se filtre por etapas
+  const resumenProjects = useMemo(() => {
+    if (!isResumenGeneral) return filteredProjects
+    if (isEtapaFiltered) return filteredProjects
+    return filteredProjects.filter((p) => !isVendidoStage(p.etapa))
+  }, [isResumenGeneral, filteredProjects, isEtapaFiltered])
+
+  // ─── Stage breakdowns for Resumen General ──────────────────────
   let countPreventa = 0
   let countObraBruta = 0
   let countObraFina = 0
@@ -342,7 +369,7 @@ export default function WorkspacePanel({
   let countParalizada = 0
   let countClandestina = 0
 
-  filteredProjects.forEach((p) => {
+  resumenProjects.forEach((p) => {
     const s = (p.etapa || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
 
     // 1. Inactivos
@@ -375,11 +402,10 @@ export default function WorkspacePanel({
     }
   })
 
-  // ─── Tarea Nueva: Resumen General - Barras Laterales y Gráfico Circular Dinámicos ──
   const countInactivos = countParalizada + countClandestina
-  const totalProyectosResumen = filteredProjects.length
+  const totalProyectosResumen = resumenProjects.length
 
-  const stageItems = [
+  const rawStageItems = [
     { id: 'Preventa', name: 'Preventa', count: countPreventa, pct: totalProyectosResumen > 0 ? (countPreventa / totalProyectosResumen) * 100 : 0, color: '#59aef4' },
     { id: 'Obra bruta', name: 'Obra bruta', count: countObraBruta, pct: totalProyectosResumen > 0 ? (countObraBruta / totalProyectosResumen) * 100 : 0, color: '#ffcd04' },
     { id: 'Obra fina', name: 'Obra fina', count: countObraFina, pct: totalProyectosResumen > 0 ? (countObraFina / totalProyectosResumen) * 100 : 0, color: '#175192' },
@@ -387,6 +413,16 @@ export default function WorkspacePanel({
     { id: 'Vendida', name: 'Vendida', count: countVendida, pct: totalProyectosResumen > 0 ? (countVendida / totalProyectosResumen) * 100 : 0, color: '#0e9d58' },
     { id: 'Inactivos', name: 'Inactivos', count: countInactivos, pct: totalProyectosResumen > 0 ? (countInactivos / totalProyectosResumen) * 100 : 0, color: '#991b1b' },
   ]
+
+  // Si no hay filtro de etapas activo, quitar 'Vendida' de las barras laterales
+  const stageItems = useMemo(() => {
+    if (isEtapaFiltered) {
+      const active = rawStageItems.filter((s) => s.count > 0 || (s.id === 'Vendida' && countVendida > 0))
+      return active.length > 0 ? active : rawStageItems.filter((s) => s.id !== 'Vendida')
+    }
+    // Por defecto, quitar los datos vendidos
+    return rawStageItems.filter((s) => s.id !== 'Vendida')
+  }, [rawStageItems, isEtapaFiltered, countVendida])
 
   const selectedResumenStageItem = selectedResumenStage ? stageItems.find((s) => s.name === selectedResumenStage) : null
 
@@ -655,12 +691,76 @@ export default function WorkspacePanel({
     }
   }
 
-  // ─── Tarea 5 & Tarea 6: ECharts Dual Lateral Bar Builders (Stock por Vender & Vendido) ──
-  // 1. Stock por Vender (Unidades o USD): color="#1565c0"
+  // ─── Tarea 5 & Tarea 6: ECharts Dual Lateral Bar Builders ──
+  // Left Bar Chart: Stock por Vender (Unidades), Stock por Vender (USD), or Meses de Stock
   function getStockPorVenderBarOption() {
     const isDark = theme === 'dark'
-    const sourceItems = isBySubzona ? subzonaStockMetrics : zonaStockMetrics
-    const items = isStockUSD
+
+    // Meses de Stock mode: reuse zonaByMeses data
+    if (stockBarMode === 'meses') {
+      const topZones = [...zonaByMeses].filter(z => z.mesesStock > 0).slice(0, 14).reverse()
+      if (topZones.length === 0) {
+        return {
+          ...CHART_BASE,
+          title: { show: true, text: '—', subtext: 'Sin datos de meses de stock', left: 'center', top: '40%',
+            textStyle: { fontSize: 16, fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b' },
+            subtextStyle: { fontSize: 11, color: isDark ? '#64748b' : '#94a3b8' },
+          },
+          xAxis: { show: false }, yAxis: { show: false }, series: [],
+        }
+      }
+      return {
+        ...CHART_BASE,
+        grid: { left: 8, right: 65, top: 10, bottom: 10, containLabel: true },
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: isDark ? '#0f172a' : '#ffffff',
+          borderColor: isDark ? '#334155' : '#cbd5e1',
+          textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
+          formatter: (params: any) => {
+            const p = params[0]
+            const v = Number(p.value)
+            const color = v > 18 ? '#ef4444' : v > 12 ? '#f59e0b' : '#10b981'
+            return `<b>${p.name}</b><br/>Meses de stock: <b style="color:${color}">${v.toFixed(1)} meses</b>`
+          },
+        },
+        xAxis: {
+          type: 'value',
+          splitLine: { lineStyle: { color: isDark ? '#2a2e39' : '#e2e8f0' } },
+          axisLabel: { fontSize: 10, color: isDark ? '#94a3b8' : '#64748b', formatter: (v: number) => `${v.toFixed(0)}m` },
+        },
+        yAxis: {
+          type: 'category',
+          data: topZones.map((z) => (z.zona.length > 22 ? z.zona.slice(0, 22) + '…' : z.zona)),
+          axisLabel: { fontSize: 10.5, color: isDark ? '#cbd5e1' : '#334155', fontWeight: 500 },
+          axisLine: { lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
+        },
+        series: [{
+          name: 'Meses de Stock',
+          type: 'bar',
+          barMaxWidth: 16,
+          data: topZones.map((z) => z.mesesStock),
+          itemStyle: {
+            color: (param: any) => {
+              const v = param.value
+              if (v > 18) return '#ef4444'
+              if (v > 12) return '#f59e0b'
+              return '#10b981'
+            },
+            borderRadius: [0, 4, 4, 0],
+          },
+          label: {
+            show: true, position: 'right', fontSize: 10.5, fontWeight: 600,
+            color: isDark ? '#f1f5f9' : '#0f172a',
+            formatter: (p: any) => p.value > 0 ? Number(p.value).toFixed(1) : '',
+          },
+        }],
+      }
+    }
+
+    // Unidades or USD mode
+    const sourceItems = zonaStockMetrics
+    const items = stockBarMode === 'usd'
       ? sourceItems
           .filter((g) => g.totalStockXVenderUSD > 0)
           .sort((a, b) => b.totalStockXVenderUSD - a.totalStockXVenderUSD)
@@ -677,7 +777,7 @@ export default function WorkspacePanel({
         ...CHART_BASE,
         title: {
           show: true,
-          text: isStockUSD ? '$0 USD' : '0 unds',
+          text: stockBarMode === 'usd' ? '$0 USD' : '0 unds',
           subtext: 'Sin unidades en oferta disponibles',
           left: 'center',
           top: '40%',
@@ -700,8 +800,8 @@ export default function WorkspacePanel({
         textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
         formatter: (params: any) => {
           const p = params[0]
-          const valFormatted = isStockUSD ? `${fmtUSD(Number(p.value))} USD` : `${Number(p.value).toLocaleString('es-BO')} unds`
-          const tagColor = isStockUSD ? '#26c6da' : '#60a5fa'
+          const valFormatted = stockBarMode === 'usd' ? `${fmtUSD(Number(p.value))} USD` : `${Number(p.value).toLocaleString('es-BO')} unds`
+          const tagColor = stockBarMode === 'usd' ? '#26c6da' : '#60a5fa'
           return `<b>${p.name}</b><br/>Stock por Vender: <b style="color:${tagColor}">${valFormatted}</b>`
         },
       },
@@ -725,13 +825,13 @@ export default function WorkspacePanel({
           name: 'Stock por Vender',
           type: 'bar',
           barMaxWidth: 16,
-          data: items.map((z) => (isStockUSD ? z.totalStockXVenderUSD : z.totalStockUnd)),
+          data: items.map((z) => (stockBarMode === 'usd' ? z.totalStockXVenderUSD : z.totalStockUnd)),
           itemStyle: {
-            color: isStockUSD ? '#00838f' : '#1565c0',
+            color: stockBarMode === 'usd' ? '#00838f' : '#1565c0',
             borderRadius: [0, 4, 4, 0],
           },
           emphasis: {
-            itemStyle: { color: isStockUSD ? '#0097a7' : '#1e88e5' },
+            itemStyle: { color: stockBarMode === 'usd' ? '#0097a7' : '#1e88e5' },
           },
           label: {
             show: true,
@@ -741,7 +841,7 @@ export default function WorkspacePanel({
             color: isDark ? '#f1f5f9' : '#0f172a',
             formatter: (p: any) => {
               if (!p.value || p.value <= 0) return ''
-              return isStockUSD ? fmtUSD(p.value) : Number(p.value).toLocaleString('es-BO')
+              return stockBarMode === 'usd' ? fmtUSD(p.value) : Number(p.value).toLocaleString('es-BO')
             },
           },
         },
@@ -749,11 +849,69 @@ export default function WorkspacePanel({
     }
   }
 
-  // 2. Stock Vendido (Unidades o USD): color="#ef4444"
+  // Right Bar Chart: Stock Vendido (Unidades or USD). In Meses mode: shows Stock por Vender (Unidades) as complementary.
   function getStockVendidoBarOption() {
     const isDark = theme === 'dark'
-    const sourceItems = isBySubzona ? subzonaStockMetrics : zonaStockMetrics
-    const items = isStockUSD
+    const sourceItems = zonaStockMetrics
+
+    // When meses mode: show Stock por Vender (Unidades) as a complementary chart
+    if (stockBarMode === 'meses') {
+      const items = sourceItems
+        .filter((g) => g.totalStockUnd > 0)
+        .sort((a, b) => b.totalStockUnd - a.totalStockUnd)
+        .slice(0, 14)
+        .reverse()
+      if (items.length === 0) {
+        return {
+          ...CHART_BASE,
+          title: { show: true, text: '0 unds', subtext: 'Sin unidades en oferta', left: 'center', top: '40%',
+            textStyle: { fontSize: 16, fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b' },
+            subtextStyle: { fontSize: 11, color: isDark ? '#64748b' : '#94a3b8' },
+          },
+          xAxis: { show: false }, yAxis: { show: false }, series: [],
+        }
+      }
+      return {
+        ...CHART_BASE,
+        grid: { left: 8, right: 65, top: 10, bottom: 10, containLabel: true },
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: isDark ? '#0f172a' : '#ffffff',
+          borderColor: isDark ? '#334155' : '#cbd5e1',
+          textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
+          formatter: (params: any) => {
+            const p = params[0]
+            return `<b>${p.name}</b><br/>Stock por Vender: <b style="color:#60a5fa">${Number(p.value).toLocaleString('es-BO')} unds</b>`
+          },
+        },
+        xAxis: {
+          type: 'value',
+          splitLine: { lineStyle: { color: isDark ? '#2a2e39' : '#e2e8f0' } },
+          axisLabel: { fontSize: 10, color: isDark ? '#94a3b8' : '#64748b' },
+        },
+        yAxis: {
+          type: 'category',
+          data: items.map((z) => (z.name.length > 22 ? z.name.slice(0, 22) + '…' : z.name)),
+          axisLabel: { fontSize: 10.5, color: isDark ? '#cbd5e1' : '#334155', fontWeight: 500 },
+          axisLine: { lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
+        },
+        series: [{
+          name: 'Stock por Vender',
+          type: 'bar', barMaxWidth: 16,
+          data: items.map((z) => z.totalStockUnd),
+          itemStyle: { color: '#1565c0', borderRadius: [0, 4, 4, 0] },
+          emphasis: { itemStyle: { color: '#1e88e5' } },
+          label: {
+            show: true, position: 'right', fontSize: 10.5, fontWeight: 600,
+            color: isDark ? '#f1f5f9' : '#0f172a',
+            formatter: (p: any) => p.value > 0 ? Number(p.value).toLocaleString('es-BO') : '',
+          },
+        }],
+      }
+    }
+
+    // Unidades or USD mode
+    const items = stockBarMode === 'usd'
       ? sourceItems
           .filter((g) => g.totalStockVendidoUSD > 0)
           .sort((a, b) => b.totalStockVendidoUSD - a.totalStockVendidoUSD)
@@ -770,7 +928,7 @@ export default function WorkspacePanel({
         ...CHART_BASE,
         title: {
           show: true,
-          text: isStockUSD ? '$0 USD' : '0 unds',
+          text: stockBarMode === 'usd' ? '$0 USD' : '0 unds',
           subtext: 'Sin unidades vendidas registradas',
           left: 'center',
           top: '40%',
@@ -793,7 +951,7 @@ export default function WorkspacePanel({
         textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
         formatter: (params: any) => {
           const p = params[0]
-          const valFormatted = isStockUSD ? `${fmtUSD(Number(p.value))} USD` : `${Number(p.value).toLocaleString('es-BO')} unds`
+          const valFormatted = stockBarMode === 'usd' ? `${fmtUSD(Number(p.value))} USD` : `${Number(p.value).toLocaleString('es-BO')} unds`
           return `<b>${p.name}</b><br/>Stock Vendido: <b style="color:#f87171">${valFormatted}</b>`
         },
       },
@@ -817,7 +975,7 @@ export default function WorkspacePanel({
           name: 'Stock Vendido',
           type: 'bar',
           barMaxWidth: 16,
-          data: items.map((z) => (isStockUSD ? z.totalStockVendidoUSD : z.totalVendidas)),
+          data: items.map((z) => (stockBarMode === 'usd' ? z.totalStockVendidoUSD : z.totalVendidas)),
           itemStyle: {
             color: '#ef4444',
             borderRadius: [0, 4, 4, 0],
@@ -833,7 +991,7 @@ export default function WorkspacePanel({
             color: isDark ? '#f1f5f9' : '#0f172a',
             formatter: (p: any) => {
               if (!p.value || p.value <= 0) return ''
-              return isStockUSD ? fmtUSD(p.value) : Number(p.value).toLocaleString('es-BO')
+              return stockBarMode === 'usd' ? fmtUSD(p.value) : Number(p.value).toLocaleString('es-BO')
             },
           },
         },
@@ -1325,18 +1483,26 @@ export default function WorkspacePanel({
             </div>
 
             {/* KPI 2: Cantidad de proyectos vendidos */}
-            <div style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '10px 12px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            }}>
+            <div
+              onClick={() => setSelectedResumenStage((prev) => (prev === 'Vendida' ? null : 'Vendida'))}
+              title="Haz clic para filtrar/ver proyectos vendidos en la gráfica y mapa"
+              style={{
+                background: selectedResumenStage === 'Vendida' ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.16)' : 'rgba(16, 185, 129, 0.12)') : 'var(--bg-card)',
+                border: selectedResumenStage === 'Vendida' ? '1px solid #10b981' : '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-md)',
+                padding: '10px 12px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
                 {countVendidosCurrent.toLocaleString('es-BO')} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>proyectos</span>
               </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
-                Cantidad de proyectos vendidos
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>Cantidad de proyectos vendidos</span>
+                {selectedResumenStage === 'Vendida' && (
+                  <span style={{ fontSize: 9.5, color: '#10b981', fontWeight: 700 }}>● Filtro activo</span>
+                )}
               </div>
               <div style={{ fontSize: 9.5, color: 'var(--text-muted)', marginTop: 2 }}>
                 Etapa Vendida (100% de colocación)
@@ -1615,32 +1781,43 @@ export default function WorkspacePanel({
               <>
                 <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: -0.2 }}>
                   {viewMode === 'chart'
-                    ? (isStockUSD ? 'Stock en USD' : 'Stock por Unidades')
+                    ? (stockBarMode === 'usd' ? 'Stock en USD' : stockBarMode === 'meses' ? 'Meses de Stock' : 'Stock por Unidades')
                     : viewMode === 'table'
                     ? 'Lista de Proyectos'
                     : 'Localización de Proyectos'}
                 </span>
 
                 {viewMode === 'chart' && (
-                  <div style={{ position: 'relative' }}>
-                    <select
-                      value={metricType === 'stock_subzona' ? 'stock_subzona' : 'stock_zona'}
-                      onChange={(e) => setMetricType(e.target.value as MetricType)}
-                      style={{
-                        background: 'var(--bg-card)',
-                        color: 'var(--text-primary)',
-                        border: '1px solid var(--border-default)',
-                        borderRadius: 4,
-                        padding: '5px 10px',
-                        fontSize: 11.5,
-                        fontWeight: 600,
-                        outline: 'none',
-                        cursor: 'pointer',
-                        boxShadow: 'none',
-                      }}>
-                      <option value="stock_zona">Stock por Zona</option>
-                      <option value="stock_subzona">Stock por Subzona</option>
-                    </select>
+                  <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                    {([
+                      { value: 'stock_und_bar',   label: 'Stock en Unidades' },
+                      { value: 'stock_usd_bar',   label: 'Stock en USD' },
+                      { value: 'meses_stock_bar', label: 'Meses de Stock' },
+                    ] as { value: MetricType; label: string }[]).map((opt) => {
+                      const isActive =
+                        (opt.value === 'stock_und_bar'   && stockBarMode === 'und')  ||
+                        (opt.value === 'stock_usd_bar'   && stockBarMode === 'usd')  ||
+                        (opt.value === 'meses_stock_bar' && stockBarMode === 'meses')
+                      return (
+                        <button
+                          key={opt.value}
+                          onClick={() => setMetricType(opt.value)}
+                          style={{
+                            padding: '4px 10px',
+                            fontSize: 11,
+                            fontWeight: isActive ? 700 : 500,
+                            background: isActive ? 'var(--citrino-orange, #ff7a00)' : 'var(--bg-card)',
+                            color: isActive ? '#fff' : 'var(--text-secondary)',
+                            border: `1px solid ${isActive ? 'var(--citrino-orange, #ff7a00)' : 'var(--border-default)'}`,
+                            borderRadius: 4,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </>
@@ -1686,24 +1863,6 @@ export default function WorkspacePanel({
             )}
           </div>
 
-          {/* Toggle between Gráficos, Tabla de Proyectos & Mapa */}
-          <div style={{ display: 'flex', gap: 4 }} className="citrino-subtabs">
-            <button
-              onClick={() => setViewMode('chart')}
-              className={`citrino-subtab-btn ${viewMode === 'chart' ? 'active' : ''}`}>
-              Gráficos
-            </button>
-            <button
-              onClick={() => setViewMode('table')}
-              className={`citrino-subtab-btn ${viewMode === 'table' ? 'active' : ''}`}>
-              Tabla de Proyectos ({filteredProjects.length})
-            </button>
-            <button
-              onClick={() => setViewMode('map')}
-              className={`citrino-subtab-btn ${viewMode === 'map' ? 'active' : ''}`}>
-              Mapa
-            </button>
-          </div>
         </div>
 
         {/* Chart, Map, or Table Area */}
@@ -1797,7 +1956,7 @@ export default function WorkspacePanel({
 
                 {/* Mapa: Distribución Geoespacial por Etapa */}
                 <ResumenEtapasMap
-                  projects={filteredProjects}
+                  projects={resumenProjects}
                   ciudad={ciudad}
                   selectedStage={selectedResumenStage}
                   onSelectStage={setSelectedResumenStage}
@@ -1829,21 +1988,29 @@ export default function WorkspacePanel({
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
-                      Stock por Vender ({isBySubzona ? 'Subzonas' : 'Zonas'})
+                      {stockBarMode === 'meses' ? 'Meses de Stock (Zonas)' : `Stock por Vender (Zonas)`}
                     </span>
                     <span style={{
                       fontSize: 10.5,
                       fontWeight: 600,
-                      background: isStockUSD ? 'rgba(0, 131, 143, 0.15)' : 'rgba(21, 101, 192, 0.15)',
-                      color: isStockUSD ? '#00838f' : '#60a5fa',
+                      background: stockBarMode === 'usd' ? 'rgba(0, 131, 143, 0.15)' : stockBarMode === 'meses' ? 'rgba(16,185,129,0.13)' : 'rgba(21, 101, 192, 0.15)',
+                      color: stockBarMode === 'usd' ? '#00838f' : stockBarMode === 'meses' ? '#10b981' : '#60a5fa',
                       padding: '2px 8px',
                       borderRadius: 12,
                     }}>
-                      {isStockUSD ? `${fmtUSD(totalStockXVenderUSD)} en oferta` : `${totalStockUnd.toLocaleString('es-BO')} unds en oferta`}
+                      {stockBarMode === 'meses'
+                        ? `${avgMesesStock.toFixed(1)} meses promedio`
+                        : stockBarMode === 'usd'
+                        ? `${fmtUSD(totalStockXVenderUSD)} en oferta`
+                        : `${totalStockUnd.toLocaleString('es-BO')} unds en oferta`}
                     </span>
                   </div>
                   <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
-                    {isStockUSD ? 'Monto USD disponible censado agrupado por ' : 'Unidades disponibles censadas agrupadas por '}{isBySubzona ? 'subzona' : 'zona'}
+                    {stockBarMode === 'meses'
+                      ? 'Horizonte de liquidación estimado por zona (verde <12m · amarillo 12-18m · rojo >18m)'
+                      : stockBarMode === 'usd'
+                      ? 'Monto USD disponible censado agrupado por zona'
+                      : 'Unidades disponibles censadas agrupadas por zona'}
                   </div>
                   <div style={{ flex: 1, minHeight: 240, width: '100%' }}>
                     <ReactECharts
@@ -1873,7 +2040,7 @@ export default function WorkspacePanel({
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
-                      Stock Vendido ({isBySubzona ? 'Subzonas' : 'Zonas'})
+                      {stockBarMode === 'meses' ? 'Stock por Vender (Unidades)' : 'Stock Vendido (Zonas)'}
                     </span>
                     <span style={{
                       fontSize: 10.5,
@@ -1883,11 +2050,19 @@ export default function WorkspacePanel({
                       padding: '2px 8px',
                       borderRadius: 12,
                     }}>
-                      {isStockUSD ? `${fmtUSD(totalStockVendidoUSD)} vendidos` : `${totalVendidas.toLocaleString('es-BO')} unds vendidas`}
+                      {stockBarMode === 'meses'
+                        ? `${totalStockUnd.toLocaleString('es-BO')} unds en oferta`
+                        : stockBarMode === 'usd'
+                        ? `${fmtUSD(totalStockVendidoUSD)} vendidos`
+                        : `${totalVendidas.toLocaleString('es-BO')} unds vendidas`}
                     </span>
                   </div>
                   <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
-                    {isStockUSD ? 'Monto USD históricamente colocado agrupado por ' : 'Unidades históricamente colocadas agrupadas por '}{isBySubzona ? 'subzona' : 'zona'}
+                    {stockBarMode === 'meses'
+                      ? 'Stock de unidades disponibles por zona'
+                      : stockBarMode === 'usd'
+                      ? 'Monto USD históricamente colocado agrupado por zona'
+                      : 'Unidades históricamente colocadas agrupadas por zona'}
                   </div>
                   <div style={{ flex: 1, minHeight: 240, width: '100%' }}>
                     <ReactECharts
@@ -1926,7 +2101,7 @@ export default function WorkspacePanel({
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, color: 'var(--text-muted)', fontSize: 11 }}>
                 <span>Proyectos analizados: <strong style={{ color: 'var(--text-primary)' }}>{filteredProjects.length}</strong></span>
                 <span>{isStockMode && metricType === 'stock_subzona' ? 'Subzonas activas:' : 'Zonas activas:'} <strong style={{ color: 'var(--text-primary)' }}>{activeZonesCount}</strong></span>
-                <span>Promedio Stock Inicial: <strong style={{ color: 'var(--text-primary)' }}>{isStockUSD ? fmtUSD(avgStockInicialUSD) : `${avgStockInicial.toLocaleString('es-BO')} unds`}</strong></span>
+                <span>Promedio Stock Inicial: <strong style={{ color: 'var(--text-primary)' }}>{(stockBarMode === 'usd' || isStockUSD) ? fmtUSD(avgStockInicialUSD) : `${avgStockInicial.toLocaleString('es-BO')} unds`}</strong></span>
               </div>
 
               {/* Right: Only show Vendidos/Por Vender when not in resumen_general */}
@@ -1937,7 +2112,7 @@ export default function WorkspacePanel({
                     <span style={{ width: 14, height: 3, background: '#ef4444', display: 'inline-block', borderRadius: 2 }} />
                     <span style={{ color: 'var(--text-secondary)' }}>Vendidas:</span>
                     <strong style={{ color: 'var(--text-primary)' }}>
-                      {isStockUSD
+                      {(stockBarMode === 'usd' || isStockUSD)
                         ? `${fmtUSD(totalStockVendidoUSD)} (${pctVendidoUSD.toFixed(1)}%)`
                         : `${totalVendidas.toLocaleString('es-BO')} (${pctVendido.toFixed(1)}%)`}
                     </strong>
@@ -1945,10 +2120,10 @@ export default function WorkspacePanel({
 
                   {/* Por Vender */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
-                    <span style={{ width: 14, height: 3, background: isStockUSD ? '#00838f' : '#1565c0', display: 'inline-block', borderRadius: 2 }} />
+                    <span style={{ width: 14, height: 3, background: (stockBarMode === 'usd' || isStockUSD) ? '#00838f' : '#1565c0', display: 'inline-block', borderRadius: 2 }} />
                     <span style={{ color: 'var(--text-secondary)' }}>Por Vender (Stock):</span>
                     <strong style={{ color: 'var(--citrino-teal-light)' }}>
-                      {isStockUSD
+                      {(stockBarMode === 'usd' || isStockUSD)
                         ? `${fmtUSD(totalStockXVenderUSD)} (${pctPorVenderUSD.toFixed(1)}%)`
                         : `${totalStockUnd.toLocaleString('es-BO')} (${pctPorVender.toFixed(1)}%)`}
                     </strong>

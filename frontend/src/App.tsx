@@ -70,7 +70,7 @@ export default function App() {
 
   // Navigation state
   const [ciudad, setCiudad] = useState<Ciudad>('SCZ')
-  const [activeTab, setActiveTab] = useState<Tab>('proyectos')
+  const [activeTab, setActiveTab] = useState<Tab>('resumen_general')
   const [activeChapter, setActiveChapter] = useState<string>('1.1')
   const [selectedIndicador, setSelectedIndicador] = useState<IndicadorFull | null>(null)
 
@@ -191,7 +191,7 @@ export default function App() {
         'analisis_producto',
       ]
       if (!chapter1Tabs.includes(activeTab)) {
-        setActiveTab('proyectos')
+        setActiveTab('resumen_general')
       }
     } else if (chapterId === '5.1') {
       setActiveTab('geoespacial')
@@ -557,7 +557,7 @@ export default function App() {
                     etapaFilter={etapaFilterArr}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
-                    initialMetric="stock_zona"
+                    initialMetric="stock_und_bar"
                     kpiMode="stock_unidades"
                     theme={theme}
                   />
@@ -571,7 +571,7 @@ export default function App() {
                     etapaFilter={etapaFilterArr}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
-                    initialMetric="stock_zona"
+                    initialMetric="stock_usd_bar"
                     kpiMode="stock_usd"
                     theme={theme}
                   />
