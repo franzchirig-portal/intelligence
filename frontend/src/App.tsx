@@ -528,7 +528,12 @@ export default function App() {
                   <WorkspacePanel
                     ciudad={ciudad}
                     zonaFilter={zonaFilter}
+                    subzonaFilter={subzonaFilter}
+                    tipoInmuebleFilter={tipoInmuebleFilter}
                     etapaFilter={etapaFilterArr}
+                    periodoFilter={periodoFilter}
+                    tipologiaFilter={tipologiaFilter}
+                    moneda={moneda}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
                     theme={theme}
@@ -540,7 +545,12 @@ export default function App() {
                     key="resumen_general"
                     ciudad={ciudad}
                     zonaFilter={zonaFilter}
+                    subzonaFilter={subzonaFilter}
+                    tipoInmuebleFilter={tipoInmuebleFilter}
                     etapaFilter={etapaFilterArr}
+                    periodoFilter={periodoFilter}
+                    tipologiaFilter={tipologiaFilter}
+                    moneda={moneda}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
                     initialMetric="stock_zona"
@@ -554,7 +564,12 @@ export default function App() {
                     key="stock_unidades"
                     ciudad={ciudad}
                     zonaFilter={zonaFilter}
+                    subzonaFilter={subzonaFilter}
+                    tipoInmuebleFilter={tipoInmuebleFilter}
                     etapaFilter={etapaFilterArr}
+                    periodoFilter={periodoFilter}
+                    tipologiaFilter={tipologiaFilter}
+                    moneda={moneda}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
                     initialMetric="stock_und_bar"
@@ -568,7 +583,12 @@ export default function App() {
                     key="stock_usd"
                     ciudad={ciudad}
                     zonaFilter={zonaFilter}
+                    subzonaFilter={subzonaFilter}
+                    tipoInmuebleFilter={tipoInmuebleFilter}
                     etapaFilter={etapaFilterArr}
+                    periodoFilter={periodoFilter}
+                    tipologiaFilter={tipologiaFilter}
+                    moneda={moneda}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
                     initialMetric="stock_usd_bar"
@@ -582,10 +602,16 @@ export default function App() {
                     key="ritmo_ventas"
                     ciudad={ciudad}
                     zonaFilter={zonaFilter}
+                    subzonaFilter={subzonaFilter}
+                    tipoInmuebleFilter={tipoInmuebleFilter}
                     etapaFilter={etapaFilterArr}
+                    periodoFilter={periodoFilter}
+                    tipologiaFilter={tipologiaFilter}
+                    moneda={moneda}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
                     initialMetric="ritmo_zona"
+                    kpiMode="ritmo_ventas"
                     theme={theme}
                   />
                 )}
@@ -595,7 +621,12 @@ export default function App() {
                     key="meses_stock"
                     ciudad={ciudad}
                     zonaFilter={zonaFilter}
+                    subzonaFilter={subzonaFilter}
+                    tipoInmuebleFilter={tipoInmuebleFilter}
                     etapaFilter={etapaFilterArr}
+                    periodoFilter={periodoFilter}
+                    tipologiaFilter={tipologiaFilter}
+                    moneda={moneda}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
                     initialMetric="meses_zona"
@@ -606,7 +637,13 @@ export default function App() {
                 {activeTab === 'analisis_producto' && (
                   <TipologiasPanel
                     ciudad={ciudad}
+                    zonaFilter={zonaFilter}
+                    subzonaFilter={subzonaFilter}
+                    tipoInmuebleFilter={tipoInmuebleFilter}
                     etapaFilter={etapaFilterArr}
+                    periodoFilter={periodoFilter}
+                    tipologiaFilter={tipologiaFilter}
+                    moneda={moneda}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
                   />
@@ -615,7 +652,13 @@ export default function App() {
                 {activeTab === 'tipologias' && (
                   <TipologiasPanel
                     ciudad={ciudad}
+                    zonaFilter={zonaFilter}
+                    subzonaFilter={subzonaFilter}
+                    tipoInmuebleFilter={tipoInmuebleFilter}
                     etapaFilter={etapaFilterArr}
+                    periodoFilter={periodoFilter}
+                    tipologiaFilter={tipologiaFilter}
+                    moneda={moneda}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
                   />
@@ -625,7 +668,12 @@ export default function App() {
                   <GeoespacialPanel
                     ciudad={ciudad}
                     zonaFilter={zonaFilter}
+                    subzonaFilter={subzonaFilter}
+                    tipoInmuebleFilter={tipoInmuebleFilter}
                     etapaFilter={etapaFilterArr}
+                    periodoFilter={periodoFilter}
+                    tipologiaFilter={tipologiaFilter}
+                    moneda={moneda}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
                     theme={theme}
@@ -636,7 +684,12 @@ export default function App() {
                   <WorkspacePanel
                     ciudad={ciudad}
                     zonaFilter={zonaFilter}
+                    subzonaFilter={subzonaFilter}
+                    tipoInmuebleFilter={tipoInmuebleFilter}
                     etapaFilter={etapaFilterArr}
+                    periodoFilter={periodoFilter}
+                    tipologiaFilter={tipologiaFilter}
+                    moneda={moneda}
                     selectedIndicador={selectedIndicador}
                     onSelectIndicador={setSelectedIndicador}
                   />

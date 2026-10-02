@@ -366,3 +366,21 @@ export async function fetchTipologias(): Promise<string[]> {
   return unique.sort()
 }
 
+/** Returns set of indicador_censo_id that have a given tipologia */
+export async function fetchIndicadorIdsForTipologia(tipologia: string): Promise<Set<string>> {
+  if (!tipologia || tipologia === 'ALL') return new Set()
+  try {
+    const [res1, res2] = await Promise.all([
+      supabase.from('oferta_tipologias').select('indicador_censo_id').eq('tipologia', tipologia),
+      supabase.from('oferta_avg_tipologias').select('indicador_censo_id').eq('avg_tipologia', tipologia),
+    ])
+    const ids = new Set<string>()
+    res1.data?.forEach((r: any) => { if (r.indicador_censo_id) ids.add(r.indicador_censo_id) })
+    res2.data?.forEach((r: any) => { if (r.indicador_censo_id) ids.add(r.indicador_censo_id) })
+    return ids
+  } catch (err) {
+    console.warn('fetchIndicadorIdsForTipologia error:', err)
+    return new Set()
+  }
+}
+

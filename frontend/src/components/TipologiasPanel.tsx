@@ -11,7 +11,13 @@ import type { IndicadorFull, AvgTipologia, TipologiaBenchmark } from '../lib/sup
 
 interface Props {
   ciudad: string
+  zonaFilter?: string
+  subzonaFilter?: string
+  tipoInmuebleFilter?: string
   etapaFilter?: string | string[]
+  periodoFilter?: string
+  tipologiaFilter?: string
+  moneda?: 'USD' | 'BS'
   selectedIndicador: IndicadorFull | null
   onSelectIndicador: (ind: IndicadorFull | null) => void
 }
@@ -55,7 +61,17 @@ function getBedIcon(tipo: string): string {
   return ''
 }
 
-export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador, onSelectIndicador }: Props) {
+export default function TipologiasPanel({
+  ciudad,
+  zonaFilter,
+  subzonaFilter,
+  tipoInmuebleFilter,
+  etapaFilter,
+  periodoFilter,
+  tipologiaFilter,
+  selectedIndicador,
+  onSelectIndicador,
+}: Props) {
   const [proyectos, setProyectos] = useState<IndicadorFull[]>([])
   const [tipologias, setTipologias] = useState<AvgTipologia[]>([])
   const [marketBenchmarks, setMarketBenchmarks] = useState<Record<string, TipologiaBenchmark>>({})
@@ -72,7 +88,21 @@ export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador
       fetchAllAvgTipologias(),
     ])
       .then(([inds, allTipos]) => {
-        let latest = getLatestPerProject(inds)
+        let snapshotInds = inds
+        if (periodoFilter && periodoFilter !== 'ALL') {
+          snapshotInds = snapshotInds.filter((p) => p.fecha_snapshot === periodoFilter)
+        }
+        let latest = getLatestPerProject(snapshotInds)
+
+        if (zonaFilter && zonaFilter !== 'ALL') {
+          latest = latest.filter((p) => (p.ZONAS || 'Sin Zona').trim() === zonaFilter.trim())
+        }
+        if (subzonaFilter && subzonaFilter !== 'ALL') {
+          latest = latest.filter((p) => (p.SUBZONAS || 'Sin Subzona').trim() === subzonaFilter.trim())
+        }
+        if (tipoInmuebleFilter && tipoInmuebleFilter !== 'ALL') {
+          latest = latest.filter((p) => (p.tipo_inmueble || '').toLowerCase().trim() === tipoInmuebleFilter.toLowerCase().trim())
+        }
         if (etapaFilter) {
           if (Array.isArray(etapaFilter)) {
             if (etapaFilter.length > 0 && !etapaFilter.includes('ALL')) {
@@ -82,13 +112,26 @@ export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador
             latest = latest.filter((p) => p.etapa === etapaFilter)
           }
         }
+
+        // Tipologia filter
+        let filteredTipos = allTipos
+        if (tipologiaFilter && tipologiaFilter !== 'ALL') {
+          const normTipo = tipologiaFilter.toLowerCase().trim()
+          filteredTipos = allTipos.filter((t) => {
+            const k = (t.avg_tipologia || '').toLowerCase().trim()
+            return k === normTipo || k.includes(normTipo)
+          })
+          const matchingIndIds = new Set(filteredTipos.map((t) => t.indicador_censo_id))
+          latest = latest.filter((p) => matchingIndIds.has(p.indicador_censo_id))
+        }
+
         latest.sort((a, b) => a.proyecto.localeCompare(b.proyecto))
         setProyectos(latest)
-        setMarketBenchmarks(computeTipologiaBenchmarks(allTipos))
+        setMarketBenchmarks(computeTipologiaBenchmarks(filteredTipos))
 
-        // Compute 01-E matrix from all tipologias
+        // Compute 01-E matrix from tipologias
         const groups = new Map<string, AvgTipologia[]>()
-        allTipos.forEach((t) => {
+        filteredTipos.forEach((t) => {
           const k = t.avg_tipologia || 'Otro'
           if (!groups.has(k)) groups.set(k, [])
           groups.get(k)!.push(t)
@@ -137,7 +180,7 @@ export default function TipologiasPanel({ ciudad, etapaFilter, selectedIndicador
         console.error('TipologiasPanel load error:', err)
         setLoading(false)
       })
-  }, [ciudad, etapaFilter])
+  }, [ciudad, zonaFilter, subzonaFilter, tipoInmuebleFilter, etapaFilter, periodoFilter, tipologiaFilter])
 
   // When selectedIndicador changes, fetch its tipologias
   useEffect(() => {

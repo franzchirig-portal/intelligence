@@ -4,6 +4,7 @@ import {
   fetchIndicadores,
   getLatestPerProject,
   computeZonaMetrics,
+  fetchIndicadorIdsForTipologia,
 } from '../lib/supabase'
 import type { IndicadorFull, ZonaMetrics } from '../lib/supabase'
 import GeoespacialPanel from './GeoespacialPanel'
@@ -12,11 +13,16 @@ import ResumenEtapasMap from './ResumenEtapasMap'
 interface Props {
   ciudad: string
   zonaFilter?: string
+  subzonaFilter?: string
+  tipoInmuebleFilter?: string
   etapaFilter?: string | string[]
+  periodoFilter?: string
+  tipologiaFilter?: string
+  moneda?: 'USD' | 'BS'
   selectedIndicador?: IndicadorFull | null
   onSelectIndicador?: (ind: IndicadorFull | null) => void
   initialMetric?: MetricType
-  kpiMode?: 'default' | 'stock_unidades' | 'stock_usd' | 'resumen_general'
+  kpiMode?: 'default' | 'stock_unidades' | 'stock_usd' | 'resumen_general' | 'ritmo_ventas'
   theme?: 'dark' | 'light'
 }
 
@@ -64,7 +70,12 @@ function isInactivoStage(stage?: string | null): boolean {
 export default function WorkspacePanel({
   ciudad,
   zonaFilter,
+  subzonaFilter,
+  tipoInmuebleFilter,
   etapaFilter,
+  periodoFilter,
+  tipologiaFilter,
+  moneda = 'USD',
   selectedIndicador,
   onSelectIndicador,
   initialMetric,
@@ -74,6 +85,7 @@ export default function WorkspacePanel({
   const isResumenGeneral = kpiMode === 'resumen_general'
   const isStockUnidades = kpiMode === 'stock_unidades'
   const isStockUSD = kpiMode === 'stock_usd'
+  const isRitmoVentas = kpiMode === 'ritmo_ventas'
   const isStockMode = isStockUnidades || isStockUSD
 
   const [allIndicadores, setAllIndicadores] = useState<IndicadorFull[]>([])
@@ -84,6 +96,7 @@ export default function WorkspacePanel({
   )
   const [searchTable, setSearchTable] = useState('')
   const [selectedResumenStage, setSelectedResumenStage] = useState<string | null>(null)
+  const [matchingTipologiaIds, setMatchingTipologiaIds] = useState<Set<string> | null>(null)
 
   // Series visibility toggles (like the screenshot checkboxes)
   const [showVendidas, setShowVendidas] = useState(true)
@@ -91,7 +104,18 @@ export default function WorkspacePanel({
 
   useEffect(() => {
     setSelectedResumenStage(null)
-  }, [ciudad, zonaFilter, etapaFilter])
+  }, [ciudad, zonaFilter, subzonaFilter, tipoInmuebleFilter, etapaFilter, periodoFilter, tipologiaFilter])
+
+  // Tipologia filter lookup
+  useEffect(() => {
+    if (!tipologiaFilter || tipologiaFilter === 'ALL') {
+      setMatchingTipologiaIds(null)
+    } else {
+      fetchIndicadorIdsForTipologia(tipologiaFilter).then((ids) => {
+        setMatchingTipologiaIds(ids)
+      })
+    }
+  }, [tipologiaFilter])
 
   useEffect(() => {
     if (initialMetric) {
@@ -114,22 +138,51 @@ export default function WorkspacePanel({
       })
   }, [ciudad])
 
-  const latestProjects = getLatestPerProject(allIndicadores)
+  // Base snapshot: when a specific snapshot is selected via periodoFilter, use that snapshot;
+  // otherwise take the latest per project.
+  const baseProjects = useMemo(() => {
+    if (periodoFilter && periodoFilter !== 'ALL') {
+      return allIndicadores.filter((p) => p.fecha_snapshot === periodoFilter)
+    }
+    return getLatestPerProject(allIndicadores)
+  }, [allIndicadores, periodoFilter])
 
-  // Apply active filters (Zona and Etapa if selected)
-  const filteredProjects = latestProjects.filter((p) => {
-    if (zonaFilter && zonaFilter !== 'ALL' && p.ZONAS !== zonaFilter) return false
-    if (etapaFilter) {
-      if (Array.isArray(etapaFilter)) {
-        if (etapaFilter.length > 0 && !etapaFilter.includes('ALL') && !etapaFilter.includes(p.etapa || '')) {
-          return false
-        }
-      } else if (etapaFilter !== 'ALL' && p.etapa !== etapaFilter) {
+  // Apply all active filters across the platform
+  const filteredProjects = useMemo(() => {
+    return baseProjects.filter((p) => {
+      // Zona filter
+      if (zonaFilter && zonaFilter !== 'ALL' && (p.ZONAS || 'Sin Zona').trim() !== zonaFilter.trim()) {
         return false
       }
-    }
-    return true
-  })
+      // Subzona filter
+      if (subzonaFilter && subzonaFilter !== 'ALL' && (p.SUBZONAS || 'Sin Subzona').trim() !== subzonaFilter.trim()) {
+        return false
+      }
+      // Tipo Inmueble filter
+      if (tipoInmuebleFilter && tipoInmuebleFilter !== 'ALL' && (p.tipo_inmueble || '').toLowerCase().trim() !== tipoInmuebleFilter.toLowerCase().trim()) {
+        return false
+      }
+      // Tipologia filter
+      if (matchingTipologiaIds && !matchingTipologiaIds.has(p.indicador_censo_id)) {
+        return false
+      }
+      // Etapa filter
+      if (etapaFilter) {
+        if (Array.isArray(etapaFilter)) {
+          if (etapaFilter.length > 0 && !etapaFilter.includes('ALL')) {
+            const matches = etapaFilter.some((f) => {
+              if (!f || f === 'ALL') return true
+              return (p.etapa || '').toLowerCase().trim() === f.toLowerCase().trim()
+            })
+            if (!matches) return false
+          }
+        } else if (etapaFilter !== 'ALL' && (p.etapa || '').toLowerCase().trim() !== etapaFilter.toLowerCase().trim()) {
+          return false
+        }
+      }
+      return true
+    })
+  }, [baseProjects, zonaFilter, subzonaFilter, tipoInmuebleFilter, matchingTipologiaIds, etapaFilter])
 
   // Compute metrics by Zona
   const zonaData = computeZonaMetrics(filteredProjects)
@@ -231,6 +284,8 @@ export default function WorkspacePanel({
       totalStockVendidoUSD: number
       totalInicialUSD: number
       totalProyectos: number
+      totalRitmoMensual: number
+      mesesStock: number
     }>()
     filteredProjects.forEach((p) => {
       const key = (p.SUBZONAS || 'Sin Subzona').trim()
@@ -244,6 +299,8 @@ export default function WorkspacePanel({
           totalStockVendidoUSD: 0,
           totalInicialUSD: 0,
           totalProyectos: 0,
+          totalRitmoMensual: 0,
+          mesesStock: 0,
         })
       }
       const g = groups.get(key)!
@@ -255,6 +312,10 @@ export default function WorkspacePanel({
       const t = p.stock_total ?? 0
       g.totalInicialUSD += (t > 0 ? t : (p.stock_vendido ?? 0) + (p.stock_x_vender ?? 0))
       g.totalProyectos += 1
+      g.totalRitmoMensual += (p.ritmo_venta ?? 0)
+    })
+    groups.forEach((g) => {
+      g.mesesStock = g.totalRitmoMensual > 0 ? g.totalStockUnd / g.totalRitmoMensual : 0
     })
     return Array.from(groups.values())
   }, [filteredProjects])
@@ -276,13 +337,17 @@ export default function WorkspacePanel({
   const prevProjects = prevSnapshotDate
     ? allIndicadores.filter((p) => {
         if (p.fecha_snapshot !== prevSnapshotDate) return false
-        if (zonaFilter && zonaFilter !== 'ALL' && p.ZONAS !== zonaFilter) return false
+        if (zonaFilter && zonaFilter !== 'ALL' && (p.ZONAS || 'Sin Zona').trim() !== zonaFilter.trim()) return false
+        if (subzonaFilter && subzonaFilter !== 'ALL' && (p.SUBZONAS || 'Sin Subzona').trim() !== subzonaFilter.trim()) return false
+        if (tipoInmuebleFilter && tipoInmuebleFilter !== 'ALL' && (p.tipo_inmueble || '').toLowerCase().trim() !== tipoInmuebleFilter.toLowerCase().trim()) return false
+        if (matchingTipologiaIds && !matchingTipologiaIds.has(p.indicador_censo_id)) return false
         if (etapaFilter) {
           if (Array.isArray(etapaFilter)) {
-            if (etapaFilter.length > 0 && !etapaFilter.includes('ALL') && !etapaFilter.includes(p.etapa || '')) {
-              return false
+            if (etapaFilter.length > 0 && !etapaFilter.includes('ALL')) {
+              const matches = etapaFilter.some((f) => (p.etapa || '').toLowerCase().trim() === f.toLowerCase().trim())
+              if (!matches) return false
             }
-          } else if (etapaFilter !== 'ALL' && p.etapa !== etapaFilter) {
+          } else if (etapaFilter !== 'ALL' && (p.etapa || '').toLowerCase().trim() !== etapaFilter.toLowerCase().trim()) {
             return false
           }
         }
@@ -343,6 +408,38 @@ export default function WorkspacePanel({
   const deltaAvgPorVenderUSDPct = prevAvgPorVenderUSD > 0 ? (deltaAvgPorVenderUSD / prevAvgPorVenderUSD) * 100 : null
 
   const deltaPctPorVenderUSD = pctPorVenderUSD - prevPctPorVenderUSD
+
+  // ─── Ritmo de Ventas Calculations (Tarea 6) ─────────────────────────────
+  const totalRitmoCurrent = filteredProjects.reduce((s, p) => s + (p.ritmo_venta ?? 0), 0)
+  const totalRitmoPrev = prevProjects.reduce((s, p) => s + (p.ritmo_venta ?? 0), 0)
+  const deltaTotalRitmo = totalRitmoCurrent - totalRitmoPrev
+  const deltaTotalRitmoPct = totalRitmoPrev > 0 ? (deltaTotalRitmo / totalRitmoPrev) * 100 : null
+
+  const avgRitmoCurrent = filteredProjects.length > 0 ? totalRitmoCurrent / filteredProjects.length : 0
+  const avgRitmoPrev = prevProjects.length > 0 ? totalRitmoPrev / prevProjects.length : 0
+  const deltaAvgRitmo = avgRitmoCurrent - avgRitmoPrev
+  const deltaAvgRitmoPct = avgRitmoPrev > 0 ? (deltaAvgRitmo / avgRitmoPrev) * 100 : null
+
+  const ritmosCurrent = filteredProjects
+    .map((p) => p.ritmo_venta ?? 0)
+    .sort((a, b) => a - b)
+  const mediaRitmoCurrent = ritmosCurrent.length === 0
+    ? 0
+    : ritmosCurrent.length % 2 === 1
+    ? ritmosCurrent[Math.floor(ritmosCurrent.length / 2)]
+    : (ritmosCurrent[ritmosCurrent.length / 2 - 1] + ritmosCurrent[ritmosCurrent.length / 2]) / 2
+
+  const ritmosPrev = prevProjects
+    .map((p) => p.ritmo_venta ?? 0)
+    .sort((a, b) => a - b)
+  const mediaRitmoPrev = ritmosPrev.length === 0
+    ? 0
+    : ritmosPrev.length % 2 === 1
+    ? ritmosPrev[Math.floor(ritmosPrev.length / 2)]
+    : (ritmosPrev[ritmosPrev.length / 2 - 1] + ritmosPrev[ritmosPrev.length / 2]) / 2
+
+  const deltaMediaRitmo = mediaRitmoCurrent - mediaRitmoPrev
+  const deltaMediaRitmoPct = mediaRitmoPrev > 0 ? (deltaMediaRitmo / mediaRitmoPrev) * 100 : null
 
   // Determina si hay un filtro de etapas activo (por FilterBar o selección en Resumen General)
   const isEtapaFiltered = Boolean(
@@ -849,26 +946,33 @@ export default function WorkspacePanel({
     }
   }
 
-  // Right Bar Chart: Stock Vendido (Unidades or USD). In Meses mode: shows Stock por Vender (Unidades) as complementary.
+  // Right Bar Chart: Stock Vendido (Unidades or USD). In Meses mode: shows Meses de Stock (Subzonas).
   function getStockVendidoBarOption() {
     const isDark = theme === 'dark'
     const sourceItems = zonaStockMetrics
 
-    // When meses mode: show Stock por Vender (Unidades) as a complementary chart
+    // When meses mode: show Meses de Stock (Subzonas) with threshold colors
     if (stockBarMode === 'meses') {
-      const items = sourceItems
-        .filter((g) => g.totalStockUnd > 0)
-        .sort((a, b) => b.totalStockUnd - a.totalStockUnd)
+      const items = subzonaStockMetrics
+        .filter((s) => s.mesesStock > 0)
+        .sort((a, b) => b.mesesStock - a.mesesStock)
         .slice(0, 14)
         .reverse()
       if (items.length === 0) {
         return {
           ...CHART_BASE,
-          title: { show: true, text: '0 unds', subtext: 'Sin unidades en oferta', left: 'center', top: '40%',
+          title: {
+            show: true,
+            text: '—',
+            subtext: 'Sin datos de meses de stock para subzonas',
+            left: 'center',
+            top: '40%',
             textStyle: { fontSize: 16, fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b' },
             subtextStyle: { fontSize: 11, color: isDark ? '#64748b' : '#94a3b8' },
           },
-          xAxis: { show: false }, yAxis: { show: false }, series: [],
+          xAxis: { show: false },
+          yAxis: { show: false },
+          series: [],
         }
       }
       return {
@@ -881,13 +985,19 @@ export default function WorkspacePanel({
           textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
           formatter: (params: any) => {
             const p = params[0]
-            return `<b>${p.name}</b><br/>Stock por Vender: <b style="color:#60a5fa">${Number(p.value).toLocaleString('es-BO')} unds</b>`
+            const v = Number(p.value)
+            const color = v > 18 ? '#ef4444' : v > 12 ? '#f59e0b' : '#10b981'
+            return `<b>${p.name}</b><br/>Meses de stock: <b style="color:${color}">${v.toFixed(1)} meses</b>`
           },
         },
         xAxis: {
           type: 'value',
           splitLine: { lineStyle: { color: isDark ? '#2a2e39' : '#e2e8f0' } },
-          axisLabel: { fontSize: 10, color: isDark ? '#94a3b8' : '#64748b' },
+          axisLabel: {
+            fontSize: 10,
+            color: isDark ? '#94a3b8' : '#64748b',
+            formatter: (v: number) => `${v.toFixed(0)}m`,
+          },
         },
         yAxis: {
           type: 'category',
@@ -895,18 +1005,31 @@ export default function WorkspacePanel({
           axisLabel: { fontSize: 10.5, color: isDark ? '#cbd5e1' : '#334155', fontWeight: 500 },
           axisLine: { lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
         },
-        series: [{
-          name: 'Stock por Vender',
-          type: 'bar', barMaxWidth: 16,
-          data: items.map((z) => z.totalStockUnd),
-          itemStyle: { color: '#1565c0', borderRadius: [0, 4, 4, 0] },
-          emphasis: { itemStyle: { color: '#1e88e5' } },
-          label: {
-            show: true, position: 'right', fontSize: 10.5, fontWeight: 600,
-            color: isDark ? '#f1f5f9' : '#0f172a',
-            formatter: (p: any) => p.value > 0 ? Number(p.value).toLocaleString('es-BO') : '',
+        series: [
+          {
+            name: 'Meses de Stock (Subzonas)',
+            type: 'bar',
+            barMaxWidth: 16,
+            data: items.map((z) => z.mesesStock),
+            itemStyle: {
+              color: (param: any) => {
+                const v = param.value
+                if (v > 18) return '#ef4444'
+                if (v > 12) return '#f59e0b'
+                return '#10b981'
+              },
+              borderRadius: [0, 4, 4, 0],
+            },
+            label: {
+              show: true,
+              position: 'right',
+              fontSize: 10.5,
+              fontWeight: 600,
+              color: isDark ? '#f1f5f9' : '#0f172a',
+              formatter: (p: any) => (p.value > 0 ? Number(p.value).toFixed(1) : ''),
+            },
           },
-        }],
+        ],
       }
     }
 
@@ -993,6 +1116,193 @@ export default function WorkspacePanel({
               if (!p.value || p.value <= 0) return ''
               return stockBarMode === 'usd' ? fmtUSD(p.value) : Number(p.value).toLocaleString('es-BO')
             },
+          },
+        },
+      ],
+    }
+  }
+
+  // ─── Ritmo de Ventas Bar Charts (Tarea 6) ──────────────────────────────
+  function getRitmoZonasBarOption() {
+    const isDark = theme === 'dark'
+    const items = [...zonaData]
+      .filter((z) => z.ritmoVentaMensual > 0)
+      .sort((a, b) => b.ritmoVentaMensual - a.ritmoVentaMensual)
+      .slice(0, 14)
+      .reverse()
+
+    if (items.length === 0) {
+      return {
+        ...CHART_BASE,
+        title: {
+          show: true,
+          text: '0 und/mes',
+          subtext: 'Sin ritmo de ventas registrado en zonas',
+          left: 'center',
+          top: '40%',
+          textStyle: { fontSize: 16, fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b' },
+          subtextStyle: { fontSize: 11, color: isDark ? '#64748b' : '#94a3b8' },
+        },
+        xAxis: { show: false },
+        yAxis: { show: false },
+        series: [],
+      }
+    }
+
+    return {
+      ...CHART_BASE,
+      grid: { left: 8, right: 65, top: 10, bottom: 10, containLabel: true },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        backgroundColor: isDark ? '#0f172a' : '#ffffff',
+        borderColor: isDark ? '#334155' : '#cbd5e1',
+        textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
+        formatter: (params: any) => {
+          const p = params[0]
+          return `<b>${p.name}</b><br/>Ritmo de ventas: <b style="color:#a1a1aa">${Number(p.value).toFixed(1)} und/mes</b>`
+        },
+      },
+      xAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: isDark ? '#2a2e39' : '#e2e8f0' } },
+        axisLabel: {
+          fontSize: 10,
+          color: isDark ? '#94a3b8' : '#64748b',
+        },
+      },
+      yAxis: {
+        type: 'category',
+        data: items.map((z) => (z.zona.length > 22 ? z.zona.slice(0, 22) + '…' : z.zona)),
+        axisLabel: { fontSize: 10.5, color: isDark ? '#cbd5e1' : '#334155', fontWeight: 500 },
+        axisLine: { lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
+      },
+      series: [
+        {
+          name: 'Ritmo de ventas',
+          type: 'bar',
+          barMaxWidth: 16,
+          data: items.map((z) => z.ritmoVentaMensual),
+          itemStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 1,
+              y2: 0,
+              colorStops: [
+                { offset: 0, color: '#52525b' },
+                { offset: 1, color: '#a1a1aa' },
+              ],
+            },
+            borderRadius: [0, 4, 4, 0],
+          },
+          emphasis: {
+            itemStyle: {
+              color: '#71717a',
+              opacity: 0.88,
+            },
+          },
+          label: {
+            show: true,
+            position: 'right',
+            fontSize: 10.5,
+            fontWeight: 600,
+            color: isDark ? '#f1f5f9' : '#0f172a',
+            formatter: (p: any) => (p.value > 0 ? Number(p.value).toFixed(1) : ''),
+          },
+        },
+      ],
+    }
+  }
+
+  function getRitmoSubzonasBarOption() {
+    const isDark = theme === 'dark'
+    const items = [...subzonaStockMetrics]
+      .filter((s) => s.totalRitmoMensual > 0)
+      .sort((a, b) => b.totalRitmoMensual - a.totalRitmoMensual)
+      .slice(0, 14)
+      .reverse()
+
+    if (items.length === 0) {
+      return {
+        ...CHART_BASE,
+        title: {
+          show: true,
+          text: '0 und/mes',
+          subtext: 'Sin ritmo de ventas registrado en subzonas',
+          left: 'center',
+          top: '40%',
+          textStyle: { fontSize: 16, fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b' },
+          subtextStyle: { fontSize: 11, color: isDark ? '#64748b' : '#94a3b8' },
+        },
+        xAxis: { show: false },
+        yAxis: { show: false },
+        series: [],
+      }
+    }
+
+    return {
+      ...CHART_BASE,
+      grid: { left: 8, right: 65, top: 10, bottom: 10, containLabel: true },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        backgroundColor: isDark ? '#0f172a' : '#ffffff',
+        borderColor: isDark ? '#334155' : '#cbd5e1',
+        textStyle: { color: isDark ? '#f8fafc' : '#0f172a', fontSize: 11 },
+        formatter: (params: any) => {
+          const p = params[0]
+          return `<b>${p.name}</b><br/>Ritmo de ventas: <b style="color:#a1a1aa">${Number(p.value).toFixed(1)} und/mes</b>`
+        },
+      },
+      xAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: isDark ? '#2a2e39' : '#e2e8f0' } },
+        axisLabel: {
+          fontSize: 10,
+          color: isDark ? '#94a3b8' : '#64748b',
+        },
+      },
+      yAxis: {
+        type: 'category',
+        data: items.map((s) => (s.name.length > 22 ? s.name.slice(0, 22) + '…' : s.name)),
+        axisLabel: { fontSize: 10.5, color: isDark ? '#cbd5e1' : '#334155', fontWeight: 500 },
+        axisLine: { lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
+      },
+      series: [
+        {
+          name: 'Ritmo de ventas',
+          type: 'bar',
+          barMaxWidth: 16,
+          data: items.map((s) => s.totalRitmoMensual),
+          itemStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 1,
+              y2: 0,
+              colorStops: [
+                { offset: 0, color: '#52525b' },
+                { offset: 1, color: '#a1a1aa' },
+              ],
+            },
+            borderRadius: [0, 4, 4, 0],
+          },
+          emphasis: {
+            itemStyle: {
+              color: '#71717a',
+              opacity: 0.88,
+            },
+          },
+          label: {
+            show: true,
+            position: 'right',
+            fontSize: 10.5,
+            fontWeight: 600,
+            color: isDark ? '#f1f5f9' : '#0f172a',
+            formatter: (p: any) => (p.value > 0 ? Number(p.value).toFixed(1) : ''),
           },
         },
       ],
@@ -1329,7 +1639,9 @@ export default function WorkspacePanel({
   }
 
   // KPIs "Promedio Vendido por Proyecto" y "Porcentaje Vendido" (vista Stock en Unidades o USD).
-  // Se renderizan arriba en escritorio y entre las gráficas de barras en móvil.
+  // Dinámicos según stockBarMode ('usd' vs 'und').
+  const isUSDActive = isStockUSD || stockBarMode === 'usd'
+
   const kpisVendido = (
     <>
       {/* KPI 1: Promedio Vendido por Proyecto */}
@@ -1341,16 +1653,16 @@ export default function WorkspacePanel({
         boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
       }}>
         <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
-          {isStockUSD ? fmtUSD(avgVendidoPorProyUSD) : avgVendidasPorProyInt.toLocaleString('es-BO')}{' '}
+          {isUSDActive ? fmtUSD(avgVendidoPorProyUSD) : avgVendidasPorProyInt.toLocaleString('es-BO')}{' '}
           <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
-            {isStockUSD ? 'USD/proy' : 'und/proy'}
+            {isUSDActive ? 'USD/proy' : 'und/proy'}
           </span>
         </div>
         <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
-          Promedio Vendido por Proyecto
+          {isUSDActive ? 'Promedio Vendido por Proyecto (USD)' : 'Promedio Vendido por Proyecto'}
         </div>
         <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-          {isStockUSD ? (
+          {isUSDActive ? (
             prevSnapshotDate && prevAvgVendidoUSD > 0 ? (
               <>
                 <span className={deltaAvgVendidoUSD >= 0 ? 'indicator-pos' : 'indicator-neg'}>
@@ -1389,13 +1701,13 @@ export default function WorkspacePanel({
         boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
       }}>
         <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
-          {isStockUSD ? `${pctVendidoUSD.toFixed(1)}%` : `${pctVendido.toFixed(1)}%`}
+          {isUSDActive ? `${pctVendidoUSD.toFixed(1)}%` : `${pctVendido.toFixed(1)}%`}
         </div>
         <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
-          Porcentaje Vendido
+          {isUSDActive ? 'Porcentaje Vendido (USD)' : 'Porcentaje Vendido'}
         </div>
         <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-          {isStockUSD ? (
+          {isUSDActive ? (
             prevSnapshotDate && prevPctVendidoUSD > 0 ? (
               <>
                 <span className={deltaPctVendidoUSD >= 0 ? 'indicator-pos' : 'indicator-neg'}>
@@ -1441,8 +1753,122 @@ export default function WorkspacePanel({
           Datos de: Censos Inmobiliarios 2025 - 2026 · {ciudad === 'ALL' ? 'Bolivia' : ciudad}
         </div>
 
-        {/* Interactive KPI Cards (3 cards for resumen_general, 4 cards for stock_unidades / stock_usd, 4 cards for default) */}
-        {isResumenGeneral ? (
+        {/* Interactive KPI Cards (3 cards for ritmo_ventas, 3 cards for resumen_general, 4 cards for stock_unidades / stock_usd, 4 cards for default) */}
+        {isRitmoVentas ? (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 12,
+          }}>
+            {/* KPI 1: Total Ritmo de Ventas */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: -0.5 }}>
+                {Math.round(totalRitmoCurrent).toLocaleString('es-BO')}{' '}
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>und/mes</span>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Total Ritmo de Ventas
+              </div>
+              <div style={{ fontSize: 9.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                Velocidad de absorción mensual consolidada
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {prevSnapshotDate && totalRitmoPrev > 0 ? (
+                  <>
+                    <span className={deltaTotalRitmo >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                      {deltaTotalRitmo >= 0 ? `▲ +${deltaTotalRitmoPct != null ? deltaTotalRitmoPct.toFixed(1) : deltaTotalRitmo}%` : `▼ ${deltaTotalRitmoPct != null ? deltaTotalRitmoPct.toFixed(1) : deltaTotalRitmo}%`}
+                      {` (${deltaTotalRitmo >= 0 ? '+' : ''}${Math.round(deltaTotalRitmo)} und/mes)`}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>vs censo anterior</span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {Math.round(totalRitmoCurrent).toLocaleString('es-BO')} und/mes</span>
+                  </>
+                ) : (
+                  <span className="badge-pos">
+                    ● {Math.round(totalRitmoCurrent).toLocaleString('es-BO')} und/mes en el mercado
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* KPI 2: Promedio Ritmo de Venta */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: -0.5 }}>
+                {avgRitmoCurrent.toFixed(1)}{' '}
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>und/mes/proy</span>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Promedio Ritmo de Venta
+              </div>
+              <div style={{ fontSize: 9.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                Ritmo promedio por proyecto censado
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {prevSnapshotDate && avgRitmoPrev > 0 ? (
+                  <>
+                    <span className={deltaAvgRitmo >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                      {deltaAvgRitmo >= 0 ? `▲ +${deltaAvgRitmoPct != null ? deltaAvgRitmoPct.toFixed(1) : deltaAvgRitmo}%` : `▼ ${deltaAvgRitmoPct != null ? deltaAvgRitmoPct.toFixed(1) : deltaAvgRitmo}%`}
+                      {` (${deltaAvgRitmo >= 0 ? '+' : ''}${deltaAvgRitmo.toFixed(1)} und/mes)`}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>vs censo anterior</span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· Promedio: {avgRitmoCurrent.toFixed(1)} und/mes/proy</span>
+                  </>
+                ) : (
+                  <span className="badge-pos">
+                    ● {avgRitmoCurrent.toFixed(1)} und/mes por desarrollo
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* KPI 3: Media Ritmo de Venta */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
+                {mediaRitmoCurrent.toFixed(1)}{' '}
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>und/mes</span>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Media Ritmo de Venta
+              </div>
+              <div style={{ fontSize: 9.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                Mediana central de absorción del mercado
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {prevSnapshotDate && mediaRitmoPrev > 0 ? (
+                  <>
+                    <span className={deltaMediaRitmo >= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                      {deltaMediaRitmo >= 0 ? `▲ +${deltaMediaRitmoPct != null ? deltaMediaRitmoPct.toFixed(1) : deltaMediaRitmo}%` : `▼ ${deltaMediaRitmoPct != null ? deltaMediaRitmoPct.toFixed(1) : deltaMediaRitmo}%`}
+                      {` (${deltaMediaRitmo >= 0 ? '+' : ''}${deltaMediaRitmo.toFixed(1)} und/mes)`}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>vs censo anterior</span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· Media: {mediaRitmoCurrent.toFixed(1)} und/mes</span>
+                  </>
+                ) : (
+                  <span className="badge-pos">
+                    ● {mediaRitmoCurrent.toFixed(1)} und/mes valor central
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : isResumenGeneral ? (
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
@@ -1562,109 +1988,205 @@ export default function WorkspacePanel({
               </div>
             </div>
           </div>
-        ) : (isStockUnidades || isStockUSD) ? (
+        ) : isStockMode ? (
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
             gap: 12,
           }}>
-            {/* KPIs 1-2 (en móvil se muestran entre las dos gráficas de barras) */}
-            <div className="ws-kpis-vendido-top" style={{ display: 'contents' }}>
-              {kpisVendido}
-            </div>
+            {stockBarMode === 'meses' ? (
+              <>
+                {/* Meses KPI 1: Meses de Stock Promedio */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '10px 12px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                }}>
+                  <div style={{
+                    fontSize: 22,
+                    fontWeight: 800,
+                    color: avgMesesStock > 18 ? 'var(--color-negative)' : avgMesesStock > 12 ? 'var(--color-warning)' : 'var(--color-positive)',
+                    letterSpacing: -0.5,
+                  }}>
+                    {avgMesesStock > 0 ? avgMesesStock.toFixed(1) : '—'}{' '}
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>meses</span>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                    Meses de Stock Promedio
+                  </div>
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    marginTop: 4,
+                    color: avgMesesStock <= 12 ? 'var(--color-positive)' : avgMesesStock <= 18 ? 'var(--color-warning)' : 'var(--color-negative)',
+                  }}>
+                    {avgMesesStock <= 12 ? '● Absorción saludable (<12m)' : avgMesesStock <= 18 ? '▲ Presión moderada (12-18m)' : '! Sobre-inventario (>18m)'}
+                  </div>
+                </div>
 
-            {/* KPI 3: Promedio por Vender por Proyecto */}
-            <div style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '10px 12px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: -0.5 }}>
-                {isStockUSD ? fmtUSD(avgPorVenderPorProyUSD) : avgPorVenderPorProyInt.toLocaleString('es-BO')}{' '}
-                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
-                  {isStockUSD ? 'USD/proy' : 'und/proy'}
-                </span>
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
-                Promedio por Vender por Proyecto
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                {isStockUSD ? (
-                  prevSnapshotDate && prevAvgPorVenderUSD > 0 ? (
-                    <>
-                      <span className={deltaAvgPorVenderUSD <= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                        {deltaAvgPorVenderUSD >= 0 ? `▲ +${deltaAvgPorVenderUSDPct != null ? deltaAvgPorVenderUSDPct.toFixed(1) : deltaAvgPorVenderUSD}%` : `▼ ${deltaAvgPorVenderUSDPct != null ? deltaAvgPorVenderUSDPct.toFixed(1) : deltaAvgPorVenderUSD}%`}
-                      </span>
-                      <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {fmtUSD(totalStockXVenderUSD)} por vender tot.</span>
-                    </>
-                  ) : (
-                    <span style={{ color: 'var(--text-muted)' }}>
-                      Total disponible: <strong style={{ color: 'var(--accent-cyan)' }}>{fmtUSD(totalStockXVenderUSD)} USD</strong>
-                    </span>
-                  )
-                ) : (
-                  prevSnapshotDate && prevAvgPorVender > 0 ? (
-                    <>
-                      <span className={deltaAvgPorVender <= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                        {deltaAvgPorVender >= 0 ? `▲ +${deltaAvgPorVenderPct != null ? deltaAvgPorVenderPct.toFixed(1) : deltaAvgPorVender}%` : `▼ ${deltaAvgPorVenderPct != null ? deltaAvgPorVenderPct.toFixed(1) : deltaAvgPorVender}%`}
-                      </span>
-                      <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} por vender tot.</span>
-                    </>
-                  ) : (
-                    <span style={{ color: 'var(--text-muted)' }}>
-                      Total disponible: <strong style={{ color: 'var(--accent-cyan)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
+                {/* Meses KPI 2: Ritmo de Ventas Mensual */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '10px 12px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-emerald)', letterSpacing: -0.5 }}>
+                    {Math.round(totalRitmoMensual).toLocaleString('es-BO')}{' '}
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>und/mes</span>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                    Ritmo de Ventas Mensual
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, color: 'var(--text-muted)' }}>
+                    Velocidad de absorción del mercado
+                  </div>
+                </div>
 
-            {/* KPI 4: Porcentaje por Vender */}
-            <div style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '10px 12px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--citrino-teal-light)', letterSpacing: -0.5 }}>
-                {isStockUSD ? `${pctPorVenderUSD.toFixed(1)}%` : `${pctPorVender.toFixed(1)}%`}
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
-                Porcentaje por Vender
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                {isStockUSD ? (
-                  prevSnapshotDate && prevPctPorVenderUSD > 0 ? (
-                    <>
-                      <span className={deltaPctPorVenderUSD <= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                        {deltaPctPorVenderUSD >= 0 ? `▲ +${deltaPctPorVenderUSD.toFixed(1)}%` : `▼ ${deltaPctPorVenderUSD.toFixed(1)}%`}
-                      </span>
-                      <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {fmtUSD(totalStockXVenderUSD)} en stock</span>
-                    </>
-                  ) : (
-                    <span style={{ color: 'var(--text-muted)' }}>
-                      En oferta: <strong style={{ color: 'var(--citrino-teal-light)' }}>{fmtUSD(totalStockXVenderUSD)} USD</strong>
+                {/* Meses KPI 3: Ritmo Promedio por Proyecto */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '10px 12px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: -0.5 }}>
+                    {avgRitmoPorProyecto.toFixed(1)}{' '}
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>und/mes/proy</span>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                    Ritmo Promedio por Proyecto
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, color: 'var(--text-muted)' }}>
+                    Ventas mensuales por desarrollo
+                  </div>
+                </div>
+
+                {/* Meses KPI 4: Stock por Vender a Absorber */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '10px 12px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--citrino-teal-light)', letterSpacing: -0.5 }}>
+                    {totalStockUnd.toLocaleString('es-BO')}{' '}
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>unds</span>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                    Stock por Vender a Absorber
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, color: 'var(--text-muted)' }}>
+                    Equivalente a: <strong style={{ color: 'var(--citrino-teal-light)' }}>{fmtUSD(totalStockXVenderUSD)} USD</strong>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* KPIs 1-2 (en móvil se muestran entre las dos gráficas de barras) */}
+                <div className="ws-kpis-vendido-top" style={{ display: 'contents' }}>
+                  {kpisVendido}
+                </div>
+
+                {/* KPI 3: Promedio por Vender por Proyecto */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '10px 12px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: -0.5 }}>
+                    {isUSDActive ? fmtUSD(avgPorVenderPorProyUSD) : avgPorVenderPorProyInt.toLocaleString('es-BO')}{' '}
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
+                      {isUSDActive ? 'USD/proy' : 'und/proy'}
                     </span>
-                  )
-                ) : (
-                  prevSnapshotDate && prevPctPorVender > 0 ? (
-                    <>
-                      <span className={deltaPctPorVender <= 0 ? 'indicator-pos' : 'indicator-neg'}>
-                        {deltaPctPorVender >= 0 ? `▲ +${deltaPctPorVender.toFixed(1)}%` : `▼ ${deltaPctPorVender.toFixed(1)}%`}
-                      </span>
-                      <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} en stock</span>
-                    </>
-                  ) : (
-                    <span style={{ color: 'var(--text-muted)' }}>
-                      En oferta: <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                    {isUSDActive ? 'Promedio por Vender por Proyecto (USD)' : 'Promedio por Vender por Proyecto'}
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {isUSDActive ? (
+                      prevSnapshotDate && prevAvgPorVenderUSD > 0 ? (
+                        <>
+                          <span className={deltaAvgPorVenderUSD <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                            {deltaAvgPorVenderUSD >= 0 ? `▲ +${deltaAvgPorVenderUSDPct != null ? deltaAvgPorVenderUSDPct.toFixed(1) : deltaAvgPorVenderUSD}%` : `▼ ${deltaAvgPorVenderUSDPct != null ? deltaAvgPorVenderUSDPct.toFixed(1) : deltaAvgPorVenderUSD}%`}
+                          </span>
+                          <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {fmtUSD(totalStockXVenderUSD)} por vender tot.</span>
+                        </>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>
+                          Total disponible: <strong style={{ color: 'var(--accent-cyan)' }}>{fmtUSD(totalStockXVenderUSD)} USD</strong>
+                        </span>
+                      )
+                    ) : (
+                      prevSnapshotDate && prevAvgPorVender > 0 ? (
+                        <>
+                          <span className={deltaAvgPorVender <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                            {deltaAvgPorVender >= 0 ? `▲ +${deltaAvgPorVenderPct != null ? deltaAvgPorVenderPct.toFixed(1) : deltaAvgPorVender}%` : `▼ ${deltaAvgPorVenderPct != null ? deltaAvgPorVenderPct.toFixed(1) : deltaAvgPorVender}%`}
+                          </span>
+                          <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} por vender tot.</span>
+                        </>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>
+                          Total disponible: <strong style={{ color: 'var(--accent-cyan)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
+                        </span>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                {/* KPI 4: Porcentaje por Vender */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '10px 12px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--citrino-teal-light)', letterSpacing: -0.5 }}>
+                    {isUSDActive ? `${pctPorVenderUSD.toFixed(1)}%` : `${pctPorVender.toFixed(1)}%`}
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+                    {isUSDActive ? 'Porcentaje por Vender (USD)' : 'Porcentaje por Vender'}
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {isUSDActive ? (
+                      prevSnapshotDate && prevPctPorVenderUSD > 0 ? (
+                        <>
+                          <span className={deltaPctPorVenderUSD <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                            {deltaPctPorVenderUSD >= 0 ? `▲ +${deltaPctPorVenderUSD.toFixed(1)}%` : `▼ ${deltaPctPorVenderUSD.toFixed(1)}%`}
+                          </span>
+                          <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {fmtUSD(totalStockXVenderUSD)} en stock</span>
+                        </>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>
+                          En oferta: <strong style={{ color: 'var(--citrino-teal-light)' }}>{fmtUSD(totalStockXVenderUSD)} USD</strong>
+                        </span>
+                      )
+                    ) : (
+                      prevSnapshotDate && prevPctPorVender > 0 ? (
+                        <>
+                          <span className={deltaPctPorVender <= 0 ? 'indicator-pos' : 'indicator-neg'}>
+                            {deltaPctPorVender >= 0 ? `▲ +${deltaPctPorVender.toFixed(1)}%` : `▼ ${deltaPctPorVender.toFixed(1)}%`}
+                          </span>
+                          <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>· {totalStockUnd.toLocaleString('es-BO')} en stock</span>
+                        </>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>
+                          En oferta: <strong style={{ color: 'var(--citrino-teal-light)' }}>{totalStockUnd.toLocaleString('es-BO')} unds</strong>
+                        </span>
+                      )
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div style={{
@@ -1821,6 +2343,10 @@ export default function WorkspacePanel({
                   </div>
                 )}
               </>
+            ) : isRitmoVentas ? (
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: -0.2 }}>
+                Ritmo de Ventas por Zona y Subzona
+              </span>
             ) : !isResumenGeneral ? (
               <>
                 <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -1966,6 +2492,93 @@ export default function WorkspacePanel({
                   selectedIndicador={selectedIndicador}
                 />
               </div>
+            ) : isRitmoVentas ? (
+              /* Tarea 6: 2 Gráficos de Barras Laterales (Ritmo de ventas Zonas & Subzonas) */
+              <div style={{
+                flex: 1,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 12,
+                minHeight: 0,
+              }}>
+                {/* Gráfica 1: Ritmo de ventas (Zonas) */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 14px 6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  minHeight: 0,
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Ritmo de ventas (Zonas)
+                    </span>
+                    <span style={{
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      background: theme === 'dark' ? 'rgba(161, 161, 170, 0.12)' : 'rgba(161, 161, 170, 0.18)',
+                      color: theme === 'dark' ? '#cbd5e1' : '#475569',
+                      padding: '2px 8px',
+                      borderRadius: 12,
+                    }}>
+                      {Math.round(totalRitmoCurrent).toLocaleString('es-BO')} und/mes totales
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    Velocidad mensual de absorción clasificada por zona geográfica
+                  </div>
+                  <div style={{ flex: 1, minHeight: 240, width: '100%' }}>
+                    <ReactECharts
+                      option={getRitmoZonasBarOption()}
+                      notMerge={true}
+                      lazyUpdate={true}
+                      style={{ height: '100%', width: '100%' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Gráfica 2: Ritmo de Ventas (Subzonas) */}
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 14px 6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  minHeight: 0,
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Ritmo de Ventas (Subzonas)
+                    </span>
+                    <span style={{
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      background: theme === 'dark' ? 'rgba(161, 161, 170, 0.12)' : 'rgba(161, 161, 170, 0.18)',
+                      color: theme === 'dark' ? '#cbd5e1' : '#475569',
+                      padding: '2px 8px',
+                      borderRadius: 12,
+                    }}>
+                      {subzonaStockMetrics.filter((s) => s.totalRitmoMensual > 0).length} subzonas activas
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    Velocidad mensual de absorción clasificada por subzona
+                  </div>
+                  <div style={{ flex: 1, minHeight: 240, width: '100%' }}>
+                    <ReactECharts
+                      option={getRitmoSubzonasBarOption()}
+                      notMerge={true}
+                      lazyUpdate={true}
+                      style={{ height: '100%', width: '100%' }}
+                    />
+                  </div>
+                </div>
+              </div>
             ) : isStockMode ? (
               /* Tarea 5 & Tarea 6: 2 Gráficas de Barras Laterales (Stock por Vender & Stock Vendido) */
               <div style={{
@@ -2027,7 +2640,7 @@ export default function WorkspacePanel({
                   {kpisVendido}
                 </div>
 
-                {/* Gráfica 2: Stock Vendido por Zona / Subzona (color=#ef4444) */}
+                {/* Gráfica 2: Stock Vendido por Zona / Meses de Stock por Subzonas */}
                 <div style={{
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border-subtle)',
@@ -2040,18 +2653,18 @@ export default function WorkspacePanel({
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
-                      {stockBarMode === 'meses' ? 'Stock por Vender (Unidades)' : 'Stock Vendido (Zonas)'}
+                      {stockBarMode === 'meses' ? 'Meses de Stock (Subzonas)' : 'Stock Vendido (Zonas)'}
                     </span>
                     <span style={{
                       fontSize: 10.5,
                       fontWeight: 600,
-                      background: 'rgba(239, 68, 68, 0.15)',
-                      color: '#f87171',
+                      background: stockBarMode === 'meses' ? 'rgba(16,185,129,0.13)' : 'rgba(239, 68, 68, 0.15)',
+                      color: stockBarMode === 'meses' ? '#10b981' : '#f87171',
                       padding: '2px 8px',
                       borderRadius: 12,
                     }}>
                       {stockBarMode === 'meses'
-                        ? `${totalStockUnd.toLocaleString('es-BO')} unds en oferta`
+                        ? `${subzonaStockMetrics.filter((s) => s.mesesStock > 0).length} subzonas activas`
                         : stockBarMode === 'usd'
                         ? `${fmtUSD(totalStockVendidoUSD)} vendidos`
                         : `${totalVendidas.toLocaleString('es-BO')} unds vendidas`}
@@ -2059,7 +2672,7 @@ export default function WorkspacePanel({
                   </div>
                   <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 6 }}>
                     {stockBarMode === 'meses'
-                      ? 'Stock de unidades disponibles por zona'
+                      ? 'Horizonte de liquidación estimado por subzona (verde <12m · amarillo 12-18m · rojo >18m)'
                       : stockBarMode === 'usd'
                       ? 'Monto USD históricamente colocado agrupado por zona'
                       : 'Unidades históricamente colocadas agrupadas por zona'}
@@ -2104,8 +2717,8 @@ export default function WorkspacePanel({
                 <span>Promedio Stock Inicial: <strong style={{ color: 'var(--text-primary)' }}>{(stockBarMode === 'usd' || isStockUSD) ? fmtUSD(avgStockInicialUSD) : `${avgStockInicial.toLocaleString('es-BO')} unds`}</strong></span>
               </div>
 
-              {/* Right: Only show Vendidos/Por Vender when not in resumen_general */}
-              {!isResumenGeneral && (
+              {/* Right: Only show Vendidos/Por Vender when not in resumen_general or ritmo_ventas */}
+              {!isResumenGeneral && !isRitmoVentas && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                   {/* Vendidas */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
@@ -2126,6 +2739,30 @@ export default function WorkspacePanel({
                       {(stockBarMode === 'usd' || isStockUSD)
                         ? `${fmtUSD(totalStockXVenderUSD)} (${pctPorVenderUSD.toFixed(1)}%)`
                         : `${totalStockUnd.toLocaleString('es-BO')} (${pctPorVender.toFixed(1)}%)`}
+                    </strong>
+                  </div>
+                </div>
+              )}
+
+              {isRitmoVentas && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
+                    <span style={{ width: 14, height: 3, background: '#a1a1aa', display: 'inline-block', borderRadius: 2 }} />
+                    <span style={{ color: 'var(--text-secondary)' }}>Ritmo Total:</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>
+                      {Math.round(totalRitmoCurrent).toLocaleString('es-BO')} und/mes
+                    </strong>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Promedio:</span>
+                    <strong style={{ color: 'var(--accent-cyan)' }}>
+                      {avgRitmoCurrent.toFixed(1)} und/mes/proy
+                    </strong>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Media:</span>
+                    <strong style={{ color: 'var(--accent-emerald)' }}>
+                      {mediaRitmoCurrent.toFixed(1)} und/mes
                     </strong>
                   </div>
                 </div>

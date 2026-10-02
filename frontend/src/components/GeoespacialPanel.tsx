@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { fetchIndicadores, getLatestPerProject } from '../lib/supabase'
+import { fetchIndicadores, getLatestPerProject, fetchIndicadorIdsForTipologia } from '../lib/supabase'
 import type { IndicadorFull } from '../lib/supabase'
 
 declare const L: any
@@ -7,7 +7,12 @@ declare const L: any
 interface Props {
   ciudad: string
   zonaFilter?: string
+  subzonaFilter?: string
+  tipoInmuebleFilter?: string
   etapaFilter?: string | string[]
+  periodoFilter?: string
+  tipologiaFilter?: string
+  moneda?: 'USD' | 'BS'
   selectedIndicador: IndicadorFull | null
   onSelectIndicador: (ind: IndicadorFull | null) => void
   theme?: 'dark' | 'light'
@@ -168,7 +173,11 @@ const PRELOADED_SCZ_ZONES: any = {
 export default function GeoespacialPanel({
   ciudad,
   zonaFilter = 'ALL',
+  subzonaFilter = 'ALL',
+  tipoInmuebleFilter = 'ALL',
   etapaFilter,
+  periodoFilter = 'ALL',
+  tipologiaFilter = 'ALL',
   selectedIndicador,
   onSelectIndicador,
   theme = 'dark',
@@ -182,6 +191,7 @@ export default function GeoespacialPanel({
 
   const [allProjects, setAllProjects] = useState<IndicadorFull[]>([])
   const [loading, setLoading] = useState(true)
+  const [matchingTipologiaIds, setMatchingTipologiaIds] = useState<Set<string> | null>(null)
 
   // Map Modes & Settings
   const [mapMode, setMapMode] = useState<MapDisplayMode>('markers')
@@ -211,7 +221,18 @@ export default function GeoespacialPanel({
   const [wmsUrl, setWmsUrl] = useState('')
   const [wmsName, setWmsName] = useState('')
 
-  // 1. Fetch data for active city
+  // Tipologia filter lookup
+  useEffect(() => {
+    if (!tipologiaFilter || tipologiaFilter === 'ALL') {
+      setMatchingTipologiaIds(null)
+    } else {
+      fetchIndicadorIdsForTipologia(tipologiaFilter).then((ids) => {
+        setMatchingTipologiaIds(ids)
+      })
+    }
+  }, [tipologiaFilter])
+
+  // 1. Fetch data for active city and selected period
   useEffect(() => {
     let cancelled = false
     setLoading(true)
@@ -219,7 +240,11 @@ export default function GeoespacialPanel({
     fetchIndicadores(ciudad === 'ALL' ? undefined : ciudad)
       .then((inds) => {
         if (cancelled) return
-        const latest = getLatestPerProject(inds)
+        let snapshotInds = inds
+        if (periodoFilter && periodoFilter !== 'ALL') {
+          snapshotInds = snapshotInds.filter((p) => p.fecha_snapshot === periodoFilter)
+        }
+        const latest = getLatestPerProject(snapshotInds)
         setAllProjects(latest)
         setLoading(false)
       })
@@ -231,7 +256,7 @@ export default function GeoespacialPanel({
     return () => {
       cancelled = true
     }
-  }, [ciudad])
+  }, [ciudad, periodoFilter])
 
   // 2. Filter projects based on coordinates and filters
   const filteredProjects = useMemo(() => {
@@ -244,7 +269,22 @@ export default function GeoespacialPanel({
       }
 
       // Zona filter
-      if (zonaFilter && zonaFilter !== 'ALL' && p.ZONAS !== zonaFilter) {
+      if (zonaFilter && zonaFilter !== 'ALL' && (p.ZONAS || 'Sin Zona').trim() !== zonaFilter.trim()) {
+        return false
+      }
+
+      // Subzona filter
+      if (subzonaFilter && subzonaFilter !== 'ALL' && (p.SUBZONAS || 'Sin Subzona').trim() !== subzonaFilter.trim()) {
+        return false
+      }
+
+      // Tipo Inmueble filter
+      if (tipoInmuebleFilter && tipoInmuebleFilter !== 'ALL' && (p.tipo_inmueble || '').toLowerCase().trim() !== tipoInmuebleFilter.toLowerCase().trim()) {
+        return false
+      }
+
+      // Tipologia filter
+      if (matchingTipologiaIds && !matchingTipologiaIds.has(p.indicador_censo_id)) {
         return false
       }
 
@@ -290,7 +330,7 @@ export default function GeoespacialPanel({
 
       return true
     })
-  }, [allProjects, zonaFilter, etapaFilter, searchQuery])
+  }, [allProjects, zonaFilter, subzonaFilter, tipoInmuebleFilter, matchingTipologiaIds, etapaFilter, searchQuery])
 
   // Helper: Marker / Bubble color
   const getMarkerColor = (p: IndicadorFull): string => {

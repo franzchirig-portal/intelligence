@@ -130,9 +130,37 @@ un ajuste más. cuando seleccionó una etapa el color que se vuelve muy fuerte y
 ----------------------------------------------------------------------------------------------------
 
 ahora vamos con la tarea 6. donde vamos a al pestaña de ¨Stock en venta (USD)¨ vamos replicar los mismo que la pestaña de ¨stock en venta (unidade)¨ donde en ves de mostrar la cantidad de oferta en unidades vamos a mostrar la cantidad de oferta en USD. usando los datos las columnas stock_vendido/, stock_x_vender/ de la tabla de oferta_indicadores_censo/
------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------
 
 en la gráfica de barras laterales de stock por vender de la pestaña ¨stock en venta (USD)¨ el color de las van a ser ¨#00838f¨  
-------------------------------------------------------------------------------------------------------
-
+----------------------------------------------------------------------------------------------
 la grafica de de barras laterales de las cantidades de proyectos por etapas de la pestaña ¨resumen general¨ ordenarlo en orden descendente.
+-----------------------------------------------------------------------------------------------
+la grafica de de barras laterales de las cantidades de proyectos por etapas de la pestaña ¨resumen general¨ ordenarlo en orden descendente.
+-----------------------------------------------------------------------------------------------
+en la pestaña de ¨resumen general¨ vamos a cambiar la grafica circular por el mapa, el mapa solo va mostrar los puntos clasificados por etapas. 
+-----------------------------------------------------------------------------------------------
+## en la pestaña de ¨stock de ventas (unidades)¨ vamos hacer los siguientes cambios:
+
+ahora la pestaña se va llamar ¨Stock en Ventas¨
+
+> en las graficas de barras laterales los filtros por zona y subzona se van a cambiar por:
+	Stock en Unidades
+	Stock en USD
+	Meses de Stock 
+-----------------------------------------------------------------
+## las pestañas de "stock en ventas (usd)¨ y ¨meses de stock¨ se deben de quitar del panel secundario header y las pestañas de las graficas laterales lo que son ¨Grafico¨,¨tabla de proyectos¨ y ¨mapa¨
+----------------------------------------------------------------
+en el panel secundario header las pestañas ¨proyectos¨,¨tipologias¨y¨mapa¨ se deben mover a la cola después de ¨Análisis de Producto¨ y que la pestaña ¨resumen general¨ sea como la pestaña principal. 
+-----------------------------------------------------------------------------------------------
+## en las gráficas de barras laterales y mapa quitar los datos vendidos. solo cuando se filtre por etapas debe salir mostrarse. 
+---------------------------------------------------------------
+## ajustando los gráficos de la pestaña de ¨stock de ventas¨ 
+
+los cuadros de resultados deben ser dinámicos en conjunto como están las barras laterales. ej. si en las graficas de barras laterales seleccionó la pestaña ¨stock en usd¨ el cuadro de resultados donde se muestra los ¨promedios de las unidades¨ se cambian a ¨promedios en usd¨  y los cuadros de resultados de los ¨porcentajes¨ igual deben ser dinámicos. 
+
+en la pestaña de ¨meses de stock¨ La segunda grafica de barras laterales deben de mostrar los ¨Meses de Stock (Subzonas)¨. 
+
+> ah eso los filtros generales deben funcionar con todos los gráficos de todas de la plataforma. 
+-----------------------------------------------------------------
+en la pesta
